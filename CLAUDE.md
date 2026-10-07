@@ -10,6 +10,18 @@
 
 Personal portfolio of Felix Pfeiffer (MSc Information Security @ UCL, ex Fraunhofer IOSB, BaFin, AXA, co-founder of Cosmoshield and Pakt). Experiment in how far AI can take a real project.
 
+# Mission
+
+1. Rank first on Google for "Felix Pfeiffer".
+2. Be easy for AI assistants and AI search to find, read and cite.
+
+SEO and AI optimization come before visual polish when the two conflict. Every change must keep:
+- Real, crawlable text in the HTML (no content only inside images or client-only code).
+- Correct metadata, canonical URL, JSON-LD `Person`, `sitemap.xml`, `robots.txt`, `llms.txt`.
+- Fast loads and good Core Web Vitals.
+- Facts consistent with LinkedIn and GitHub (name, role, links).
+Site config and facts live in `src/config.ts`.
+
 # Stack and structure
 
 - Next.js (App Router), TypeScript, Tailwind. Next.js 16 differs from training data: read `node_modules/next/dist/docs/` before using its APIs.
