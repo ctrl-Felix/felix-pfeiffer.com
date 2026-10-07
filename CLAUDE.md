@@ -12,4 +12,7 @@ Personal portfolio of Felix Pfeiffer (MSc Information Security @ UCL, ex Fraunho
 
 # Stack and structure
 
-Not decided yet.
+- Next.js (App Router), TypeScript, Tailwind. Next.js 16 differs from training data: read `node_modules/next/dist/docs/` before using its APIs.
+- AI features: Vercel AI SDK with Claude (not installed yet).
+- Self-hosted via Docker: multi-stage `Dockerfile` (Next `standalone` output), `docker-compose.yml` hardened (non-root, read-only, caps dropped).
+- Source in `src/app`.
