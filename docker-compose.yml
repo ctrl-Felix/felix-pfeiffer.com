@@ -4,6 +4,9 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
     read_only: true
     tmpfs:
       - /tmp

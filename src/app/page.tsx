@@ -1,15 +1,13 @@
-import Dock from "@/components/Dock";
-import DesktopIcons from "@/components/DesktopIcons";
-import Seo from "@/components/Seo";
+import Desktop from "@/components/Desktop";
 import MenuBar from "@/components/MenuBar";
+import Seo from "@/components/Seo";
 
 export default function Home() {
   return (
     <main className="wallpaper relative h-full w-full">
       <Seo />
       <MenuBar />
-      <DesktopIcons />
-      <Dock />
+      <Desktop />
     </main>
   );
 }

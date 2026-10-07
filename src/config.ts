@@ -1,6 +1,8 @@
+import { profile } from "@/data/profile";
+
 export const site = {
   url: "https://felix-pfeiffer.com",
-  name: "Felix Pfeiffer",
+  name: profile.name,
   title: "Felix Pfeiffer | Information Security",
   description:
     "Felix Pfeiffer is an information security student at UCL in London. Former Fraunhofer IOSB, BaFin and AXA. Co-founder of Cosmoshield and Pakt.",
@@ -11,6 +13,6 @@ export const site = {
 export const links = {
   github: "https://github.com/ctrl-Felix",
   linkedin: "https://www.linkedin.com/in/felixpf",
-  mail: "mailto:hello@felix-pfeiffer.com",
-  cv: "/cv.pdf",
+  email: "felixpfeifferbw@t-online.de",
+  mail: "mailto:felixpfeifferbw@t-online.de",
 };

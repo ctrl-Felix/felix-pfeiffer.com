@@ -6,68 +6,109 @@ export function AppleLogo({ className }: { className?: string }) {
   );
 }
 
-export function GithubIcon() {
+const RADIUS = 14.4;
+
+function Tile({ id, from, to, children }: { id: string; from: string; to: string; children: React.ReactNode }) {
   return (
-    <svg viewBox="0 0 64 64" className="h-full w-full drop-shadow-md">
+    <svg viewBox="0 0 64 64" className="h-full w-full [filter:drop-shadow(0_3px_5px_rgba(0,0,0,0.28))]">
       <defs>
-        <linearGradient id="gh" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#3a3f47" />
-          <stop offset="1" stopColor="#14171c" />
+        <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={from} />
+          <stop offset="1" stopColor={to} />
+        </linearGradient>
+        <linearGradient id={`${id}-gloss`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="white" stopOpacity="0.38" />
+          <stop offset="0.5" stopColor="white" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <rect width="64" height="64" rx="14" fill="url(#gh)" />
-      <g transform="translate(10 10) scale(1.83)" fill="white">
+      <rect width="64" height="64" rx={RADIUS} fill={`url(#${id}-bg)`} />
+      {children}
+      <rect width="64" height="64" rx={RADIUS} fill={`url(#${id}-gloss)`} />
+      <rect x="0.5" y="0.5" width="63" height="63" rx={RADIUS - 0.5} fill="none" stroke="white" strokeOpacity="0.35" />
+      <rect x="0.5" y="0.5" width="63" height="63" rx={RADIUS - 0.5} fill="none" stroke="black" strokeOpacity="0.12" strokeWidth="0.5" />
+    </svg>
+  );
+}
+
+export function GithubIcon() {
+  return (
+    <Tile id="gh" from="#3b4048" to="#0e1013">
+      <g transform="translate(11 11) scale(1.75)" fill="white">
         <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
       </g>
-    </svg>
+    </Tile>
   );
 }
 
 export function MailIcon() {
   return (
-    <svg viewBox="0 0 64 64" className="h-full w-full drop-shadow-md">
-      <defs>
-        <linearGradient id="ml" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#5ac8fa" />
-          <stop offset="1" stopColor="#1a7cf5" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="14" fill="url(#ml)" />
-      <rect x="11" y="17" width="42" height="30" rx="4" fill="white" />
-      <path d="M13 21l19 15 19-15" fill="none" stroke="#1a7cf5" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <Tile id="ml" from="#6bd3ff" to="#0a6cf0">
+      <rect x="10" y="16" width="44" height="32" rx="5" fill="white" />
+      <path d="M12 21.5l20 14.5 20-14.5" fill="none" stroke="#2a8cf5" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+    </Tile>
   );
 }
 
-export function CvIcon() {
+export function ProfileIcon() {
   return (
-    <svg viewBox="0 0 64 64" className="h-full w-full drop-shadow-md">
-      <path d="M14 4h26l12 12v42a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="white" />
-      <path d="M40 4l12 12H42a2 2 0 0 1-2-2z" fill="#d8d8de" />
-      <rect x="12" y="34" width="40" height="16" fill="#e5352b" />
-      <text x="32" y="46.5" textAnchor="middle" fontSize="12" fontWeight="700" fill="white" fontFamily="system-ui, sans-serif">CV</text>
-      <rect x="18" y="14" width="14" height="3" rx="1.5" fill="#c9c9d1" />
-      <rect x="18" y="21" width="20" height="3" rx="1.5" fill="#c9c9d1" />
-      <rect x="18" y="28" width="16" height="3" rx="1.5" fill="#c9c9d1" />
-    </svg>
+    <Tile id="pf" from="#fbfbfd" to="#d6d6dc">
+      <rect x="0" y="0" width="10" height="64" fill="#c9a77a" opacity="0.9" />
+      <circle cx="35" cy="26" r="9.5" fill="#8e8e96" />
+      <path d="M17 52c1-10 8-15 18-15s17 5 18 15z" fill="#8e8e96" />
+    </Tile>
   );
 }
 
 export function FinderIcon() {
   return (
-    <svg viewBox="0 0 64 64" className="h-full w-full drop-shadow-md">
-      <defs>
-        <linearGradient id="fn" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#6fd3ff" />
-          <stop offset="1" stopColor="#1c7df0" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="14" fill="url(#fn)" />
-      <path d="M32 0h18a14 14 0 0 1 14 14v36a14 14 0 0 1-14 14H36C38 48 36 20 32 0z" fill="white" opacity="0.92" />
-      <path d="M20 22v6M44 22v6M18 42c8 7 20 7 28 0" fill="none" stroke="#10243f" strokeWidth="3" strokeLinecap="round" />
+    <Tile id="fn" from="#8fdcff" to="#3a9af0">
+      <path d="M32 0h18.5A13.5 13.5 0 0 1 64 13.5v37A13.5 13.5 0 0 1 50.5 64H38c3-14 1-42-6-64z" fill="#2f7fe6" />
+      <path d="M21 21v7M44 21v7M18 41c9 8 22 8 30 0" fill="none" stroke="#0c2340" strokeWidth="3" strokeLinecap="round" />
+      <path d="M33 12c1 10 2 22 5 30" fill="none" stroke="white" strokeOpacity="0.7" strokeWidth="2" strokeLinecap="round" />
+    </Tile>
+  );
+}
+
+function Glyph({ children }: { children: React.ReactNode }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-full w-full p-[22%]">
+      {children}
     </svg>
   );
 }
+
+export const glyphs = {
+  person: (
+    <Glyph>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c1-5 4-7 8-7s7 2 8 7" />
+    </Glyph>
+  ),
+  education: (
+    <Glyph>
+      <path d="M2 9l10-5 10 5-10 5z" />
+      <path d="M6 11v5c3 2.5 9 2.5 12 0v-5" />
+    </Glyph>
+  ),
+  experience: (
+    <Glyph>
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18" />
+    </Glyph>
+  ),
+  ventures: (
+    <Glyph>
+      <path d="M12 3c4 2 6 6 5 11l-5 4-5-4c-1-5 1-9 5-11z" />
+      <circle cx="12" cy="10" r="1.6" />
+      <path d="M7 15l-3 4 4-1M17 15l3 4-4-1" />
+    </Glyph>
+  ),
+  skills: (
+    <Glyph>
+      <path d="M14.5 6.5a4 4 0 0 0-5 5L3 18l3 3 6.5-6.5a4 4 0 0 0 5-5l-3 3-2-2z" />
+    </Glyph>
+  ),
+};
 
 export function Wifi() {
   return (

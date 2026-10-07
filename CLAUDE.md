@@ -27,4 +27,8 @@ Site config and facts live in `src/config.ts`.
 - Next.js (App Router), TypeScript, Tailwind. Next.js 16 differs from training data: read `node_modules/next/dist/docs/` before using its APIs.
 - AI features: Vercel AI SDK with Claude (not installed yet).
 - Self-hosted via Docker: multi-stage `Dockerfile` (Next `standalone` output), `docker-compose.yml` hardened (non-root, read-only, caps dropped).
-- Source in `src/app`.
+- Source in `src/app` (pages, `api/contact`) and `src/components` (macOS UI: menu bar, dock, desktop icons, Profile and Mail windows).
+- Profile content lives only in `src/data/profile.ts` and feeds the Profile window, the hidden SEO text and JSON-LD. Never put the phone number on the site.
+- Mail window posts to `/api/contact` (nodemailer, SMTP env vars in `.env.example`, honeypot and per-IP rate limit).
+- Glass look is the `.glass` class in `globals.css`. Keep it inside `@layer components` so Tailwind utilities can override it.
+- Do not use `pkill -f` in the shell, it kills the tool shell. Use `fuser -k <port>/tcp`.
