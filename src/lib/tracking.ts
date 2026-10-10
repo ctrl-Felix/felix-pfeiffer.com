@@ -3,7 +3,7 @@ export const trackTargets = {
   profile: "Profile",
   github: "GitHub",
   mail: "Mail",
-  seo: "SEO tracker",
+  seo: "SEO and GEO tracker",
   vulnerabilities: "Vulnerability tracker",
   tools: "Tools",
   stats: "Stats",
@@ -14,6 +14,7 @@ export const trackTargets = {
   security: "Security",
   linkedin: "LinkedIn",
   email: "Email",
+  speedtest: "Speed test",
 } as const;
 
 export const mcpTargets = {

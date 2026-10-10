@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AppleLogo, Battery, Wifi } from "./Icons";
+import { AppleLogo, Battery } from "./Icons";
 import McpMenu from "./McpMenu";
 import { buildMenus } from "./menus";
+import WifiMenu from "./WifiMenu";
 import { useWindows } from "./windows/WindowManager";
 
 function formatClock(date: Date) {
@@ -90,7 +91,7 @@ export default function MenuBar() {
       <div className="flex items-center gap-3 px-2">
         <McpMenu open={openId === "mcp"} onToggle={() => setOpenId(openId === "mcp" ? null : "mcp")} onClose={() => setOpenId(null)} />
         <span className="hidden sm:block"><Battery /></span>
-        <span className="hidden sm:block"><Wifi /></span>
+        <WifiMenu open={openId === "wifi"} onToggle={() => setOpenId(openId === "wifi" ? null : "wifi")} />
         <span className="min-w-32 text-right tabular-nums">{clock}</span>
       </div>
     </header>

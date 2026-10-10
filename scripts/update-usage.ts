@@ -13,7 +13,8 @@ const projectsDir = process.env.TRANSCRIPTS_ROOT ?? join(homedir(), ".claude", "
 const file = process.env.LEDGER_FILE ?? join(__dirname, "..", "src", "data", "tokenUsage.json");
 const messageFile = process.env.MESSAGE_LEDGER_FILE ?? join(__dirname, "..", "src", "data", "messageCount.json");
 
-type MessageLedger = Record<string, string>;
+type MessageEntry = [day: string, model: string];
+type MessageLedger = Record<string, MessageEntry>;
 
 type HumanEntry = {
   type?: string;
@@ -56,10 +57,14 @@ const keyOf = (messageId: string) => createHash("sha256").update(messageId).dige
 
 function collectHumanMessage(messages: MessageLedger, entry: HumanEntry) {
   if (entry.isSidechain || entry.isMeta) return;
-  if (entry.type === "user" && entry.origin?.kind === "human") addMessage(messages, entry.uuid, entry.timestamp);
+  if (entry.type === "user" && entry.origin?.kind === "human") return addMessage(messages, entry.uuid, entry.timestamp);
   if (entry.type === "attachment" && entry.attachment?.type === "queued_command" && entry.attachment.origin?.kind === "human") {
-    addMessage(messages, entry.attachment.source_uuid ?? entry.attachment.delivery_id, entry.attachment.timestamp ?? entry.timestamp);
+    return addMessage(messages, entry.attachment.source_uuid ?? entry.attachment.delivery_id, entry.attachment.timestamp ?? entry.timestamp);
   }
+}
+
+function assignModel(messages: MessageLedger, keys: string[], model: string) {
+  for (const key of keys) if (messages[key][1] === unknownModel) messages[key][1] = model;
 }
 
 function mergeInto(ledger: Ledger, key: string, model: string, counts: Counts) {
@@ -69,6 +74,7 @@ function mergeInto(ledger: Ledger, key: string, model: string, counts: Counts) {
 }
 
 async function collect(ledger: Ledger, messages: MessageLedger, path: string) {
+  let awaitingReply: string[] = [];
   for (const line of (await readFile(path, "utf8")).split("\n")) {
     const mayHaveUsage = line.includes('"usage"');
     const mayBeHuman = line.includes('"human"');
@@ -79,20 +85,28 @@ async function collect(ledger: Ledger, messages: MessageLedger, path: string) {
     } catch {
       continue;
     }
-    if (mayBeHuman) collectHumanMessage(messages, entry);
+    if (mayBeHuman) {
+      const key = collectHumanMessage(messages, entry);
+      if (key) awaitingReply.push(key);
+    }
     if (!mayHaveUsage) continue;
     const usage = entry.message?.usage;
     const id = entry.message?.id;
     if (entry.type !== "assistant" || !usage || typeof id !== "string") continue;
     const model = typeof entry.message.model === "string" && entry.message.model ? entry.message.model : unknownModel;
     if (model.startsWith("<")) continue;
+    if (!entry.isSidechain && model !== unknownModel) {
+      assignModel(messages, awaitingReply, model);
+      awaitingReply = [];
+    }
     mergeInto(ledger, keyOf(id), model, [usage.input_tokens ?? 0, usage.output_tokens ?? 0, usage.cache_creation_input_tokens ?? 0, usage.cache_read_input_tokens ?? 0]);
   }
 }
 
 async function readMessageLedger(): Promise<MessageLedger> {
   try {
-    return JSON.parse(await readFile(messageFile, "utf8")).userMessages ?? {};
+    const stored: Record<string, string | string[]> = JSON.parse(await readFile(messageFile, "utf8")).userMessages ?? {};
+    return Object.fromEntries(Object.entries(stored).map(([key, value]) => [key, (typeof value === "string" ? [value, unknownModel] : value) as MessageEntry]));
   } catch {
     return {};
   }
@@ -103,11 +117,14 @@ function addMessage(messages: MessageLedger, id: unknown, timestamp: unknown) {
   const day = typeof timestamp === "string" ? timestamp.slice(0, 10) : "";
   const key = keyOf(id);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
-  if (!messages[key] || day < messages[key]) messages[key] = day;
+  const current = messages[key];
+  if (!current) messages[key] = [day, unknownModel];
+  else if (day < current[0]) current[0] = day;
+  return key;
 }
 
 function renderMessages(messages: MessageLedger) {
-  const rows = Object.keys(messages).sort().map((key) => `    "${key}": "${messages[key]}"`);
+  const rows = Object.keys(messages).sort().map((key) => `    "${key}": ${JSON.stringify(messages[key])}`);
   return `{\n  "userMessages": {\n${rows.join(",\n")}\n  }\n}\n`;
 }
 

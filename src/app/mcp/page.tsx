@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import McpPage from "@/components/mcp/McpPage";
 import McpSeo from "@/components/mcp/McpSeo";
+import VisitTracker from "@/components/VisitTracker";
 import { site } from "@/config";
 import { mcpPage } from "@/data/mcp";
 
@@ -19,6 +20,7 @@ export default function McpIndexPage() {
     <>
       <McpSeo />
       <McpPage />
+      <VisitTracker />
     </>
   );
 }

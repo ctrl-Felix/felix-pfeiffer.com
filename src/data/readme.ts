@@ -3,7 +3,7 @@ import { formatMillions, modelName, tokenTotals } from "@/lib/tokenUsage";
 
 const { processed, written, models } = tokenTotals();
 
-const modelLines = models.map((item) => `- **${modelName(item.model)}**: ${formatMillions(item.processed)} tokens, ${formatMillions(item.written)} generated`).join("\n");
+const modelLines = models.map((item) => `- **${modelName(item.model)}**: ${item.messages} messages, ${formatMillions(item.processed)} tokens, ${formatMillions(item.written)} generated`).join("\n");
 
 const tokenLine =
   processed > 0

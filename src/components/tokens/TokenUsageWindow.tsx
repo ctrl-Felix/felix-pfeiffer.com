@@ -47,7 +47,7 @@ export default function TokenUsageWindow() {
                       <div className="h-full rounded-full bg-[#0a84ff]" style={{ width: `${Math.max(share, 1)}%` }} />
                     </div>
                     <div className="mt-1.5 text-xs text-black/55">
-                      {formatMillions(item.processed)} read, {formatMillions(item.written)} generated
+                      {item.messages.toLocaleString("en-US")} {item.messages === 1 ? "message" : "messages"}, {formatMillions(item.processed)} read, {formatMillions(item.written)} generated
                     </div>
                   </li>
                 );

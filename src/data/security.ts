@@ -2,6 +2,8 @@ import { links } from "@/config";
 
 export const security = `# Security
 
+Please read README.md first.
+
 I'm studying Information Security (MSc at UCL), so security matters to me, even on a small page like this.
 
 The whole codebase is open source on [GitHub](${links.source}). Claude writes all of it and is instructed to build it in a secure way.

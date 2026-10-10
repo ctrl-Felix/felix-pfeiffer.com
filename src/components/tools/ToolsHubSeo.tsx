@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { links, site } from "@/config";
+import { site } from "@/config";
 import { toolInfos, toolsHub } from "@/data/tools";
+import { personRef } from "@/lib/personSchema";
 
 export default function ToolsHubSeo() {
   const url = `${site.url}${toolsHub.path}`;
@@ -16,7 +17,7 @@ export default function ToolsHubSeo() {
         inLanguage: "en",
         dateModified: toolsHub.updated,
         isPartOf: { "@type": "WebSite", name: site.name, url: site.url },
-        author: { "@type": "Person", name: site.name, url: site.url, sameAs: [links.github, links.linkedin] },
+        author: personRef,
       },
       {
         "@type": "ItemList",

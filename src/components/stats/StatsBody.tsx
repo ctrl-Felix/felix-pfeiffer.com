@@ -5,6 +5,7 @@ import { legacyTargets, mcpTargets, trackTargets } from "@/lib/tracking";
 import type { Period, Stats } from "@/lib/stats";
 import { barsFor, mcpBarsFor, periods } from "./ranges";
 import TargetIcon from "./TargetIcon";
+import TrafficSources from "./TrafficSources";
 import VisitorChart from "./VisitorChart";
 
 type Tone = "page" | "window";
@@ -35,6 +36,7 @@ function Transparency({ card }: { card: string }) {
           <h3 className="mb-1 font-semibold text-white">What is stored</h3>
           <ul className="list-disc space-y-1 pl-4">
             <li>The time and type of an event: a visit or a click.</li>
+            <li>For a visit, the page you arrived on and where you came from, as one entry of a fixed list (for example Google, ChatGPT or Direct).</li>
             <li>For a click, what was pressed, for example Mail.</li>
             <li>For a call to the MCP server, which tool was called. Nothing that was sent to it.</li>
             <li>A random anonymous ID that changes every day and cannot be traced back to you.</li>
@@ -43,14 +45,14 @@ function Transparency({ card }: { card: string }) {
         <div>
           <h3 className="mb-1 font-semibold text-white">What is not stored</h3>
           <ul className="list-disc space-y-1 pl-4">
-            <li>No cookies, no IP address, no browser details, no location, no referrer.</li>
+            <li>No cookies, no IP address, no browser details, no location, no referring address.</li>
             <li>Nothing you type: no search queries, no contact messages.</li>
             <li>No third-party analytics, ad networks or external scripts.</li>
           </ul>
         </div>
       </div>
       <p className="mt-4 text-xs text-white/50">
-        Each visitor counts once per day, and each app once per visitor per day. Every MCP call is counted, without any visitor ID. Your IP address is only used in memory to create that ID and limit abuse. Bots and visitors who send Do Not Track or Global Privacy Control are not counted. Add ?notrack to any address to stop counting your own visits.
+        Each visitor counts once per day, with the source and page of the first visit that day, and each app once per visitor per day. Every MCP call is counted, without any visitor ID. Your IP address is only used in memory to create that ID and limit abuse. Bots and visitors who send Do Not Track or Global Privacy Control are not counted. Add ?notrack to any address to stop counting your own visits.
       </p>
     </section>
   );
@@ -88,6 +90,7 @@ export default function StatsBody({ stats, tone }: { stats: Stats | null; tone: 
       <section className={card}>
         <VisitorChart key={period} bars={barsFor(period, stats)} total={stats.totals[period]} caption={periods.find((item) => item.id === period)!.label} />
       </section>
+      <TrafficSources stats={stats} period={period} card={card} />
       <section className={card}>
         <h2 className="mb-3 text-lg font-semibold">Most pressed</h2>
         <MostPressed stats={stats} period={period} />

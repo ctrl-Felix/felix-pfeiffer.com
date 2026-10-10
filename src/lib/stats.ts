@@ -15,6 +15,10 @@ export type Stats = {
     monthly: { month: string; calls: number }[];
     tools: { target: string; counts: Record<Period, number> }[];
   };
+  traffic: {
+    since: string | null;
+    rows: { source: string; landing: string; counts: Record<Period, number> }[];
+  };
 };
 
 export async function getStats(): Promise<Stats | null> {
@@ -23,7 +27,7 @@ export async function getStats(): Promise<Stats | null> {
 
   try {
     const pool = db();
-    const [totals, daily, monthly, clicks, mcpTotals, mcpDaily, mcpMonthly, mcpTools] = await Promise.all([
+    const [totals, daily, monthly, clicks, mcpTotals, mcpDaily, mcpMonthly, mcpTools, traffic, trafficSince] = await Promise.all([
       pool.query(`
         select
           count(*) filter (where day >= (now() at time zone 'utc')::date - 6)::int as d7,
@@ -78,6 +82,14 @@ export async function getStats(): Promise<Stats | null> {
           count(*) filter (where day >= date_trunc('year', (now() at time zone 'utc')::date::timestamp)::date)::int as year,
           count(*)::int as all_time
         from events where kind = 'mcp' group by target order by all_time desc`),
+      pool.query(`
+        select source, landing,
+          count(*) filter (where day >= (now() at time zone 'utc')::date - 6)::int as d7,
+          count(*) filter (where day >= (now() at time zone 'utc')::date - 29)::int as d30,
+          count(*) filter (where day >= date_trunc('year', (now() at time zone 'utc')::date::timestamp)::date)::int as year,
+          count(*)::int as all_time
+        from events where kind = 'visit' and source is not null group by source, landing order by all_time desc`),
+      pool.query(`select to_char(min(day), 'YYYY-MM-DD') as since from events where kind = 'visit' and source is not null`),
     ]);
     const mcpRow = mcpTotals.rows[0];
     const row = totals.rows[0];
@@ -97,6 +109,14 @@ export async function getStats(): Promise<Stats | null> {
         tools: mcpTools.rows.map((tool) => ({
           target: tool.target,
           counts: { "7d": tool.d7, "30d": tool.d30, year: tool.year, all: tool.all_time },
+        })),
+      },
+      traffic: {
+        since: trafficSince.rows[0]?.since ?? null,
+        rows: traffic.rows.map((row) => ({
+          source: row.source,
+          landing: row.landing ?? "other",
+          counts: { "7d": row.d7, "30d": row.d30, year: row.year, all: row.all_time },
         })),
       },
     };

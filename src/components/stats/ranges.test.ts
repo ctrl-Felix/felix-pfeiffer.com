@@ -16,6 +16,7 @@ const stats: Stats = {
     monthly: [{ month: "2026-02", calls: 5 }],
     tools: [],
   },
+  traffic: { since: null, rows: [] },
 };
 
 test("barsFor builds the right number of bars per range", () => {

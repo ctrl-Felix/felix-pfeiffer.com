@@ -1,7 +1,8 @@
 import usage from "@/data/tokenUsage.json";
+import { messagesByModel } from "./messageCount";
 
 type Entry = [model: string, input: number, output: number, cacheWrite: number, cacheRead: number];
-export type ModelTotals = { model: string; processed: number; written: number };
+export type ModelTotals = { model: string; processed: number; written: number; messages: number };
 
 export function modelName(model: string) {
   const match = model.match(/^claude-([a-z]+)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?$/);
@@ -13,9 +14,14 @@ export function modelName(model: string) {
 export function tokenTotals() {
   const perModel = new Map<string, ModelTotals>();
   for (const [model, input, output, cacheWrite, cacheRead] of Object.values(usage.messages as unknown as Record<string, Entry>)) {
-    const totals = perModel.get(model) ?? { model, processed: 0, written: 0 };
+    const totals = perModel.get(model) ?? { model, processed: 0, written: 0, messages: 0 };
     totals.processed += input + output + cacheWrite + cacheRead;
     totals.written += output;
+    perModel.set(model, totals);
+  }
+  for (const [model, count] of messagesByModel()) {
+    const totals = perModel.get(model) ?? { model, processed: 0, written: 0, messages: 0 };
+    totals.messages = count;
     perModel.set(model, totals);
   }
   const models = [...perModel.values()].sort((a, b) => b.processed - a.processed);

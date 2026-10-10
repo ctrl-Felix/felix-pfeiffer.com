@@ -1,4 +1,5 @@
 import { site } from "@/config";
+import { aboutPage } from "./about";
 import { mcpPage } from "./mcp";
 import { toolInfos, toolsHub } from "./tools";
 
@@ -31,6 +32,16 @@ export const publicPaths: PublicPath[] = [
     kind: "desktop",
     group: "site",
     indexed: true,
+  },
+  {
+    path: aboutPage.path,
+    title: "About Felix Pfeiffer",
+    description: "Full profile as a plain page: experience, ventures, education, open source and skills.",
+    kind: "page",
+    group: "site",
+    indexed: true,
+    updated: aboutPage.updated,
+    icon: "logo",
   },
   {
     path: "/stats",
