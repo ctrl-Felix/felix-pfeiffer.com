@@ -3,9 +3,15 @@
 import { useWindow } from "@/components/windows/context";
 import TrafficLights from "@/components/windows/TrafficLights";
 import { messageTotal } from "@/lib/messageCount";
+import { routineTotals } from "@/lib/routineUsage";
 import { formatMillions, modelName, tokenTotals } from "@/lib/tokenUsage";
+import UsageCards from "./UsageCards";
+import UsageList from "./UsageList";
 
-const totals = tokenTotals();
+const build = tokenTotals();
+const routines = routineTotals();
+
+const count = (value: number, singular: string, plural: string) => `${value.toLocaleString("en-US")} ${value === 1 ? singular : plural}`;
 
 export default function TokenUsageWindow() {
   const { dragProps } = useWindow();
@@ -17,47 +23,53 @@ export default function TokenUsageWindow() {
         <h1 className="flex-1 pr-14 text-center text-[13px] font-semibold">Token Usage</h1>
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-        <p className="text-[13px] text-black/60">What it took to build this page.</p>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          {[
-            { label: "Processed", hint: "tokens read", value: formatMillions(totals.processed) },
-            { label: "Written", hint: "tokens generated", value: formatMillions(totals.written) },
-            { label: "Messages", hint: "sent by Felix", value: messageTotal().toLocaleString("en-US") },
-          ].map((item) => (
-            <div key={item.label} className="rounded-xl bg-white/80 px-2 py-3 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
-              <div className="text-lg font-semibold">{item.value}</div>
-              <div className="text-xs font-medium text-black/60">{item.label}</div>
-              <div className="text-[11px] text-black/50">{item.hint}</div>
-            </div>
-          ))}
-        </div>
-        <section>
-          <h2 className="mb-2 text-sm font-semibold">By model</h2>
-          {totals.models.length ? (
-            <ul className="divide-y divide-black/10 overflow-hidden rounded-xl bg-white/80 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
-              {totals.models.map((item) => {
-                const share = totals.processed ? (item.processed / totals.processed) * 100 : 0;
-                return (
-                  <li key={item.model} className="px-4 py-3 text-[13px]">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="font-medium">{modelName(item.model)}</span>
-                      <span className="text-black/55">{share.toFixed(share < 10 && share > 0 ? 1 : 0)}%</span>
-                    </div>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-black/8">
-                      <div className="h-full rounded-full bg-[#0a84ff]" style={{ width: `${Math.max(share, 1)}%` }} />
-                    </div>
-                    <div className="mt-1.5 text-xs text-black/55">
-                      {item.messages.toLocaleString("en-US")} {item.messages === 1 ? "message" : "messages"}, {formatMillions(item.processed)} read, {formatMillions(item.written)} generated
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="py-4 text-center text-[13px] text-black/45">No usage recorded yet.</p>
-          )}
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold">Building</h2>
+            <p className="text-[13px] text-black/60">What it took to build this page.</p>
+          </div>
+          <UsageCards
+            cards={[
+              { label: "Processed", hint: "tokens read", value: formatMillions(build.processed) },
+              { label: "Written", hint: "tokens generated", value: formatMillions(build.written) },
+              { label: "Messages", hint: "sent by Felix", value: messageTotal().toLocaleString("en-US") },
+            ]}
+          />
+          <UsageList
+            total={build.processed}
+            empty="No usage recorded yet."
+            rows={build.models.map((item) => ({
+              id: item.model,
+              name: modelName(item.model),
+              processed: item.processed,
+              detail: `${count(item.messages, "message", "messages")}, ${formatMillions(item.processed)} read, ${formatMillions(item.written)} generated`,
+            }))}
+          />
         </section>
-        <p className="text-center text-[11px] text-black/40">Read includes context re-read on every step. Each message is counted once.</p>
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold">Routines</h2>
+            <p className="text-[13px] text-black/60">Scheduled runs that maintain this page.</p>
+          </div>
+          <UsageCards
+            cards={[
+              { label: "Processed", hint: "tokens read", value: formatMillions(routines.processed) },
+              { label: "Written", hint: "tokens generated", value: formatMillions(routines.written) },
+              { label: "Executions", hint: "routine runs", value: routines.executions.toLocaleString("en-US") },
+            ]}
+          />
+          <UsageList
+            total={routines.processed}
+            empty="No routine has run yet."
+            rows={routines.routines.map((item) => ({
+              id: item.name,
+              name: item.name,
+              processed: item.processed,
+              detail: `${count(item.executions, "execution", "executions")}, ${formatMillions(item.processed)} read, ${formatMillions(item.written)} generated`,
+            }))}
+          />
+        </section>
+        <p className="text-center text-[11px] text-black/40">Read includes context re-read on every step. Each message and execution is counted once.</p>
       </div>
     </div>
   );

@@ -116,7 +116,7 @@ export const tokensApp: App = {
   label: "Token Usage",
   Icon: StatsIcon,
   hidden: true,
-  window: { Content: TokenUsageWindow, width: 460, height: 420, minWidth: 340, minHeight: 300 },
+  window: { Content: TokenUsageWindow, width: 460, height: 560, minWidth: 340, minHeight: 300 },
 };
 
 export const allApps = [finder, ...apps, pathsApp, tokensApp];
