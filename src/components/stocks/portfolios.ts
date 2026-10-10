@@ -34,8 +34,8 @@ const examples: Portfolio[] = [
     example: true,
     positions: [
       { symbol: "TSLA", shares: 1 },
-      { symbol: "^GSPC", shares: 1 },
-      { symbol: "^GDAXI", shares: 1 },
+      { symbol: "SPY", shares: 1 },
+      { symbol: "EWG", shares: 1 },
     ],
   },
 ];

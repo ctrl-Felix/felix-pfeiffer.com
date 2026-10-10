@@ -1,6 +1,6 @@
 import { clientIp, tooMany } from "@/lib/rateLimit";
 import { ranges, symbolPattern, type RangeKey } from "@/lib/stocks";
-import { getChart } from "@/lib/yahoo";
+import { getChart } from "@/lib/market";
 
 export async function GET(request: Request) {
   if (tooMany("stocks", clientIp(request), 120, 60_000)) {

@@ -1,6 +1,6 @@
 import { clientIp, tooMany } from "@/lib/rateLimit";
 import { symbolPattern } from "@/lib/stocks";
-import { getQuotes } from "@/lib/yahoo";
+import { getQuotes } from "@/lib/market";
 
 const maxSymbols = 25;
 

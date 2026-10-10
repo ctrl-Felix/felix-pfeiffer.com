@@ -7,7 +7,8 @@ import { searchStocks } from "./api";
 type Props = { onPick: (hit: SearchHit) => void; placeholder?: string; className?: string };
 type Result = { query: string; hits: SearchHit[]; failed: boolean };
 
-const debounceMs = 200;
+const debounceMs = 300;
+const minQueryLength = 2;
 
 export default function SymbolSearch({ onPick, placeholder = "Search stocks, ETFs and indices", className = "" }: Props) {
   const listId = useId();
@@ -18,7 +19,7 @@ export default function SymbolSearch({ onPick, placeholder = "Search stocks, ETF
   const trimmed = query.trim();
 
   useEffect(() => {
-    if (!trimmed) return;
+    if (trimmed.length < minQueryLength) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
       searchStocks(trimmed, controller.signal)
@@ -36,7 +37,7 @@ export default function SymbolSearch({ onPick, placeholder = "Search stocks, ETF
     };
   }, [trimmed]);
 
-  const open = focused && trimmed !== "";
+  const open = focused && trimmed.length >= minQueryLength;
   const ready = result.query === trimmed;
   const hits = ready ? result.hits : [];
 

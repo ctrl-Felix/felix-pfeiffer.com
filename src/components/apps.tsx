@@ -1,4 +1,5 @@
 import { links } from "@/config";
+import FinderWindow from "./FinderWindow";
 import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, StatsIcon, StocksIcon } from "./Icons";
 import MailWindow from "./MailWindow";
 import ProfileWindow from "./ProfileWindow";
@@ -42,6 +43,11 @@ export const apps: App[] = [
   { id: "stats", label: "Stats", Icon: StatsIcon, href: "/stats" },
 ];
 
-export const finder: App = { id: "finder", label: "Finder", Icon: FinderIcon };
+export const finder: App = {
+  id: "finder",
+  label: "Finder",
+  Icon: FinderIcon,
+  window: { Content: FinderWindow, width: 560, height: 380, minWidth: 320, minHeight: 240 },
+};
 
 export const allApps = [finder, ...apps];

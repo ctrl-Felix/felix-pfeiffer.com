@@ -1,20 +1,20 @@
 export const ranges = {
-  "1D": { range: "1d", interval: "5m" },
-  "1W": { range: "5d", interval: "30m" },
-  "1M": { range: "1mo", interval: "1d" },
-  "6M": { range: "6mo", interval: "1d" },
-  YTD: { range: "ytd", interval: "1d" },
-  "1Y": { range: "1y", interval: "1d" },
-  "5Y": { range: "5y", interval: "1wk" },
-  MAX: { range: "max", interval: "1mo" },
+  "1D": { interval: "5min", outputsize: 78 },
+  "1W": { interval: "30min", outputsize: 65 },
+  "1M": { interval: "1day", outputsize: 22 },
+  "6M": { interval: "1day", outputsize: 126 },
+  YTD: { interval: "1day", outputsize: 260 },
+  "1Y": { interval: "1day", outputsize: 252 },
+  "5Y": { interval: "1week", outputsize: 260 },
+  MAX: { interval: "1month", outputsize: 600 },
 } as const;
 
 export type RangeKey = keyof typeof ranges;
 export const rangeKeys = Object.keys(ranges) as RangeKey[];
 
-export const symbolPattern = /^[A-Za-z0-9.^=\-]{1,15}$/;
+export const symbolPattern = /^[A-Za-z0-9.\-]{1,15}$/;
 
-export type ChartData = {
+export type QuoteSummary = {
   symbol: string;
   name: string;
   currency: string;
@@ -27,8 +27,11 @@ export type ChartData = {
   yearHigh: number | null;
   yearLow: number | null;
   volume: number | null;
-  points: [number, number][];
 };
+
+export type ChartData = QuoteSummary & { points: [number, number][] };
+
+export type Quote = QuoteSummary & { requested: string };
 
 export type SearchHit = {
   symbol: string;
@@ -36,5 +39,3 @@ export type SearchHit = {
   exchange: string;
   type: string;
 };
-
-export type Quote = ChartData & { requested: string };

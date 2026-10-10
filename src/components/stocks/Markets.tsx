@@ -3,12 +3,11 @@
 import { useMemo } from "react";
 import type { Quote } from "@/lib/stocks";
 import { indices, indexSymbols } from "./indices";
-import { formatPercent, formatPrice, negativeColor, positiveColor } from "./format";
-import Sparkline from "./Sparkline";
+import { formatPercent, negativeColor, positiveColor } from "./format";
 import { useHeight } from "./useHeight";
 import { useQuotes } from "./useQuotes";
 
-const maxRows = 5;
+const maxRows = 3;
 const minRowHeight = 30;
 const headerHeight = 44;
 
@@ -30,8 +29,7 @@ function Table({ title, positive, entries, onSelect }: { title: string; positive
           <li key={quote.requested} className="flex min-h-0 flex-1 border-t border-white/8">
             <button type="button" onClick={() => onSelect(quote.requested)} className="flex w-full items-center gap-2 rounded-md px-1 text-left hover:bg-white/8">
               <span className="min-w-0 flex-1 truncate text-[13px]">{name}</span>
-              <span className="hidden @min-3xl:block"><Sparkline points={quote.points} positive={percent >= 0} /></span>
-              <span className="w-[4.5rem] shrink-0 text-right text-[13px] tabular-nums text-white/80">{formatPrice(quote.price)}</span>
+              <span className="shrink-0 text-xs text-white/45">{quote.requested}</span>
               <span className="w-[3.75rem] shrink-0 text-right text-[13px] font-medium tabular-nums" style={{ color: percent >= 0 ? positiveColor : negativeColor }}>
                 {formatPercent(percent)}
               </span>
@@ -63,9 +61,12 @@ export default function Markets({ onSelect }: { onSelect: (symbol: string) => vo
 
   const half = Math.min(maxRows, Math.floor(entries.length / 2));
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-2 gap-3 @max-lg:grid-cols-1 @max-lg:grid-rows-2">
-      <Table title="Best performing" positive entries={entries.slice(0, half)} onSelect={onSelect} />
-      <Table title="Worst performing" positive={false} entries={entries.slice(-half).reverse()} onSelect={onSelect} />
-    </div>
+    <>
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-3 @max-lg:grid-cols-1 @max-lg:grid-rows-2">
+        <Table title="Best performing" positive entries={entries.slice(0, half)} onSelect={onSelect} />
+        <Table title="Worst performing" positive={false} entries={entries.slice(-half).reverse()} onSelect={onSelect} />
+      </div>
+      <p className="shrink-0 text-center text-[10px] text-white/35">Daily change of US-listed index funds. Market data by Twelve Data, may be delayed.</p>
+    </>
   );
 }
