@@ -59,6 +59,18 @@ export function ProfileIcon() {
   );
 }
 
+export function StocksIcon() {
+  return (
+    <Tile id="st" from="#2c2c2e" to="#000000">
+      <g stroke="white" strokeOpacity="0.12">
+        <path d="M8 20h48M8 32h48M8 44h48" />
+      </g>
+      <path d="M8 46l12-10 9 6 11-16 8 7 8-14" fill="none" stroke="#30d158" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 46l12-10 9 6 11-16 8 7 8-14V56H8z" fill="#30d158" opacity="0.16" />
+    </Tile>
+  );
+}
+
 export function FinderIcon() {
   return (
     <Tile id="fn" from="#8fdcff" to="#3a9af0">

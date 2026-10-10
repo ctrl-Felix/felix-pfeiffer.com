@@ -1,5 +1,8 @@
 import { links } from "@/config";
-import { FinderIcon, GithubIcon, MailIcon, ProfileIcon } from "./Icons";
+import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, StocksIcon } from "./Icons";
+import MailWindow from "./MailWindow";
+import ProfileWindow from "./ProfileWindow";
+import StocksApp from "./stocks/StocksApp";
 
 export type App = {
   id: string;
@@ -7,12 +10,37 @@ export type App = {
   Icon: () => React.JSX.Element;
   href?: string;
   external?: boolean;
+  window?: {
+    Content: React.ComponentType;
+    width: number;
+    height: number;
+    minWidth: number;
+    minHeight: number;
+  };
 };
 
 export const apps: App[] = [
-  { id: "profile", label: "Profile", Icon: ProfileIcon },
+  {
+    id: "profile",
+    label: "Profile",
+    Icon: ProfileIcon,
+    window: { Content: ProfileWindow, width: 880, height: 620, minWidth: 560, minHeight: 400 },
+  },
   { id: "github", label: "GitHub", Icon: GithubIcon, href: links.github, external: true },
-  { id: "mail", label: "Mail", Icon: MailIcon },
+  {
+    id: "mail",
+    label: "Mail",
+    Icon: MailIcon,
+    window: { Content: MailWindow, width: 640, height: 520, minWidth: 420, minHeight: 360 },
+  },
+  {
+    id: "stocks",
+    label: "Stocks",
+    Icon: StocksIcon,
+    window: { Content: StocksApp, width: 940, height: 620, minWidth: 380, minHeight: 360 },
+  },
 ];
 
 export const finder: App = { id: "finder", label: "Finder", Icon: FinderIcon };
+
+export const allApps = [finder, ...apps];

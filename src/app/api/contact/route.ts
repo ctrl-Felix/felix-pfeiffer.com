@@ -1,26 +1,14 @@
 import nodemailer from "nodemailer";
 import { links } from "@/config";
+import { clientIp, tooMany } from "@/lib/rateLimit";
 
 const limits = { name: 100, email: 200, subject: 200, message: 5000 };
-const windowMs = 60 * 60 * 1000;
-const maxPerWindow = 3;
-const hits = new Map<string, number[]>();
-
-function tooMany(ip: string) {
-  const now = Date.now();
-  const recent = (hits.get(ip) ?? []).filter((time) => now - time < windowMs);
-  recent.push(now);
-  hits.set(ip, recent);
-  return recent.length > maxPerWindow;
-}
-
 function text(value: unknown, max: number) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-  if (tooMany(ip)) return Response.json({ error: "Too many messages. Try again later." }, { status: 429 });
+  if (tooMany("contact", clientIp(request), 3, 60 * 60 * 1000)) return Response.json({ error: "Too many messages. Try again later." }, { status: 429 });
 
   const body = await request.json().catch(() => null);
   if (!body) return Response.json({ error: "Invalid request." }, { status: 400 });

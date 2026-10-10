@@ -1,14 +1,18 @@
+"use client";
+
 import AppLink from "./AppLink";
 import { apps } from "./apps";
+import { useWindows } from "./windows/WindowManager";
 
-export default function DesktopIcons({ onOpen }: { onOpen: (id: string) => void }) {
+export default function DesktopIcons() {
+  const { open } = useWindows();
   return (
     <div className="absolute right-4 top-12 z-10 flex flex-col items-center gap-4">
       {apps.map((app) => (
         <AppLink
           key={app.id}
           app={app}
-          onOpen={onOpen}
+          onOpen={open}
           className="group flex w-24 cursor-default flex-col items-center gap-1 rounded-lg p-1 outline-none"
         >
           <span className="block h-16 w-16 transition-transform group-active:scale-95">

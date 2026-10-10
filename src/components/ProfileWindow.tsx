@@ -4,7 +4,8 @@ import { useState } from "react";
 import { links } from "@/config";
 import { profile } from "@/data/profile";
 import { glyphs } from "./Icons";
-import { useDrag } from "./useDrag";
+import { useWindow } from "./windows/context";
+import TrafficLights from "./windows/TrafficLights";
 import { EntryGroup, Group, Row } from "./ProfileParts";
 
 const sections = [
@@ -67,23 +68,16 @@ function Content({ section }: { section: SectionId }) {
   }
 }
 
-export default function ProfileWindow({ onClose }: { onClose: () => void }) {
+export default function ProfileWindow() {
   const [section, setSection] = useState<SectionId>("overview");
-  const { offset, handlers } = useDrag();
+  const { dragProps } = useWindow();
   const current = sections.find((item) => item.id === section)!;
 
   return (
-    <div
-      role="dialog"
-      aria-label="Profile"
-      className="window-pop fixed left-1/2 top-1/2 z-30 flex h-[min(620px,calc(100dvh-8rem))] w-[min(880px,calc(100vw-1.5rem))] overflow-hidden rounded-[26px] bg-[#f5f5f7]/85 text-[#1d1d1f] shadow-[0_30px_80px_rgba(0,0,0,0.4),0_0_0_0.5px_rgba(0,0,0,0.25)] backdrop-blur-3xl backdrop-saturate-200"
-      style={{ transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))` }}
-    >
+    <div className="flex h-full bg-[#f5f5f7]/85 text-[#1d1d1f]">
       <aside className="hidden w-60 shrink-0 flex-col bg-white/40 md:flex">
-        <div className="flex h-12 items-center gap-2 px-4" {...handlers}>
-          <button type="button" aria-label="Close" onClick={onClose} className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.2)]" />
-          <span className="h-3 w-3 rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.2)]" />
-          <span className="h-3 w-3 rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.2)]" />
+        <div className="flex h-12 items-center gap-2 px-4" {...dragProps}>
+          <TrafficLights />
         </div>
         <div className="flex items-center gap-3 px-4 pb-4 pt-1">
           <Avatar size={44} />
@@ -107,8 +101,8 @@ export default function ProfileWindow({ onClose }: { onClose: () => void }) {
         </nav>
       </aside>
       <section className="flex min-w-0 flex-1 flex-col bg-[#f2f2f7]/70">
-        <div className="flex h-12 shrink-0 items-center gap-2 px-4 md:justify-center" {...handlers}>
-          <button type="button" aria-label="Close" onClick={onClose} className="h-3 w-3 rounded-full bg-[#ff5f57] md:hidden" />
+        <div className="flex h-12 shrink-0 items-center gap-2 px-4 md:justify-center" {...dragProps}>
+          <TrafficLights className="md:hidden" />
           <h1 className="text-[15px] font-semibold">{current.label}</h1>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-2 md:hidden">

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { profile } from "@/data/profile";
-import { useDrag } from "./useDrag";
+import { useWindow } from "./windows/context";
+import TrafficLights from "./windows/TrafficLights";
 
 type Status = { kind: "idle" | "sending" | "sent" | "error"; message?: string };
 
@@ -25,8 +26,8 @@ function SendIcon() {
   );
 }
 
-export default function MailWindow({ onClose }: { onClose: () => void }) {
-  const { offset, handlers } = useDrag();
+export default function MailWindow() {
+  const { dragProps } = useWindow();
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -49,19 +50,10 @@ export default function MailWindow({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div
-      role="dialog"
-      aria-label="New Message"
-      className="window-pop fixed left-1/2 top-1/2 z-30 flex h-[min(520px,calc(100dvh-8rem))] w-[min(640px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[26px] bg-white/90 text-[#1d1d1f] shadow-[0_30px_80px_rgba(0,0,0,0.4),0_0_0_0.5px_rgba(0,0,0,0.25)] backdrop-blur-3xl backdrop-saturate-200"
-      style={{ transform: `translate(calc(-50% + ${offset.x + 40}px), calc(-50% + ${offset.y + 20}px))` }}
-    >
+    <div className="flex h-full flex-col bg-white/90 text-[#1d1d1f]">
       <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
-        <div className="flex h-12 shrink-0 items-center justify-between border-b border-black/10 bg-[#f6f6f8] px-4" {...handlers}>
-          <div className="flex items-center gap-2">
-            <button type="button" aria-label="Close" onClick={onClose} className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.2)]" />
-            <span className="h-3 w-3 rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.2)]" />
-            <span className="h-3 w-3 rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.2)]" />
-          </div>
+        <div className="flex h-12 shrink-0 items-center justify-between border-b border-black/10 bg-[#f6f6f8] px-4" {...dragProps}>
+          <TrafficLights />
           <h1 className="text-[13px] font-semibold">New Message</h1>
           <button
             type="submit"

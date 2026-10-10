@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AppleLogo, Battery, Wifi } from "./Icons";
+import { useWindows } from "./windows/WindowManager";
 
 const menus = ["File", "Edit", "View", "Go", "Window", "Help"];
 
@@ -13,6 +14,8 @@ function formatClock(date: Date) {
 
 export default function MenuBar() {
   const [clock, setClock] = useState("");
+  const { windows, focusedId } = useWindows();
+  const activeTitle = windows.find((win) => win.id === focusedId)?.title ?? "Felix Pfeiffer";
 
   useEffect(() => {
     const tick = () => setClock(formatClock(new Date()));
@@ -22,10 +25,10 @@ export default function MenuBar() {
   }, []);
 
   return (
-    <header className="menubar fixed inset-x-0 top-0 z-50 flex h-7 items-center justify-between px-4 text-[13px] text-white">
+    <header className="menubar fixed inset-x-0 top-0 z-[9500] flex h-7 items-center justify-between px-4 text-[13px] text-white">
       <nav className="flex items-center gap-5">
         <AppleLogo className="h-4 w-4" />
-        <span className="font-bold">Felix Pfeiffer</span>
+        <span className="font-bold">{activeTitle}</span>
         {menus.map((menu) => (
           <span key={menu} className="hidden sm:inline">{menu}</span>
         ))}
