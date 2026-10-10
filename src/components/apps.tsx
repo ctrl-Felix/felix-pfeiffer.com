@@ -37,7 +37,7 @@ export const apps: App[] = [
     id: "stocks",
     label: "Stocks",
     Icon: StocksIcon,
-    window: { Content: StocksApp, width: 940, height: 620, minWidth: 380, minHeight: 360 },
+    window: { Content: StocksApp, width: 860, height: 600, minWidth: 560, minHeight: 440 },
   },
 ];
 

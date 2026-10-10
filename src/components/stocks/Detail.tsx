@@ -40,7 +40,7 @@ export default function Detail({ symbol }: { symbol: string }) {
   const positive = change >= 0;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-6 pb-4">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h2 className="truncate text-2xl font-semibold">{data.name}</h2>
@@ -76,7 +76,7 @@ export default function Detail({ symbol }: { symbol: string }) {
           onHover={setHover}
         />
       </div>
-      <dl className="mt-3 grid shrink-0 grid-cols-2 gap-x-6 text-[13px] @max-2xl:grid-cols-1">
+      <dl className="mt-3 grid shrink-0 grid-cols-2 gap-x-6 text-[13px] @max-xl:grid-cols-1">
         {stats(data).map(([label, value]) => (
           <div key={label} className="flex justify-between gap-3 border-t border-white/10 py-1.5">
             <dt className="text-white/50">{label}</dt>

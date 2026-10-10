@@ -1,4 +1,4 @@
-import type { ChartData, RangeKey, SearchHit } from "@/lib/stocks";
+import type { ChartData, Quote, RangeKey, SearchHit } from "@/lib/stocks";
 
 const ttlMs = 60_000;
 const chartCache = new Map<string, { at: number; data: ChartData }>();
@@ -18,4 +18,11 @@ export async function searchStocks(query: string, signal?: AbortSignal): Promise
   const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}`, { signal });
   if (!response.ok) throw new Error("search unavailable");
   return response.json();
+}
+
+export async function fetchQuotes(symbols: string[], signal?: AbortSignal): Promise<Record<string, Quote>> {
+  const response = await fetch(`/api/stocks/quotes?symbols=${encodeURIComponent(symbols.join(","))}`, { signal });
+  if (!response.ok) throw new Error("quotes unavailable");
+  const quotes: Quote[] = await response.json();
+  return Object.fromEntries(quotes.map((quote) => [quote.requested, quote]));
 }

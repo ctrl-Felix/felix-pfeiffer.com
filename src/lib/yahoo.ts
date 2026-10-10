@@ -70,3 +70,10 @@ export function searchSymbols(query: string) {
       }));
   });
 }
+
+export async function getQuotes(symbols: string[]) {
+  const results = await Promise.allSettled(symbols.map((symbol) => getChart(symbol, "1D")));
+  return results.flatMap((result, index) =>
+    result.status === "fulfilled" ? [{ ...result.value, requested: symbols[index] }] : [],
+  );
+}

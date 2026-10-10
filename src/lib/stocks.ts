@@ -36,3 +36,5 @@ export type SearchHit = {
   exchange: string;
   type: string;
 };
+
+export type Quote = ChartData & { requested: string };
