@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { peekPendingLaunch } from "@/components/deepLink";
 import type { WhoisResult } from "@/lib/whois";
+import TldCoverage from "./TldCoverage";
 import WhoisAbout from "./WhoisAbout";
 
 type State =
@@ -89,6 +90,7 @@ function Result({ result }: { result: WhoisResult }) {
 export default function WhoisTool() {
   const [domain, setDomain] = useState(() => peekPendingLaunch()?.domain ?? "");
   const [state, setState] = useState<State>({ kind: "idle" });
+  const [showCoverage, setShowCoverage] = useState(false);
 
   async function lookup(event: React.FormEvent) {
     event.preventDefault();
@@ -122,11 +124,22 @@ export default function WhoisTool() {
         <button type="submit" disabled={!domain.trim() || state.kind === "loading"} className="rounded-lg bg-[#0a84ff] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-40">
           Look up
         </button>
+        <button
+          type="button"
+          onClick={() => setShowCoverage((current) => !current)}
+          aria-label="Supported top level domains"
+          aria-pressed={showCoverage}
+          title="Supported top level domains"
+          className={`h-9 w-9 shrink-0 rounded-full text-sm font-semibold ${showCoverage ? "bg-[#0a84ff] text-white" : "bg-black/6 text-black/60 hover:bg-black/10"}`}
+        >
+          i
+        </button>
       </form>
-      {state.kind === "loading" && <p className="py-6 text-center text-sm text-black/45">Looking up…</p>}
-      {state.kind === "error" && <p className="rounded-xl bg-[#ff3b30]/10 px-4 py-3 text-[13px] text-[#c4281e]" role="alert">{state.message}</p>}
-      {state.kind === "done" && <Result result={state.result} />}
-      {state.kind === "idle" && <WhoisAbout />}
+      {showCoverage && <TldCoverage />}
+      {!showCoverage && state.kind === "loading" && <p className="py-6 text-center text-sm text-black/45">Looking up…</p>}
+      {!showCoverage && state.kind === "error" && <p className="rounded-xl bg-[#ff3b30]/10 px-4 py-3 text-[13px] text-[#c4281e]" role="alert">{state.message}</p>}
+      {!showCoverage && state.kind === "done" && <Result result={state.result} />}
+      {!showCoverage && state.kind === "idle" && <WhoisAbout />}
     </div>
   );
 }

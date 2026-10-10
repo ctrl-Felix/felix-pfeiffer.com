@@ -125,6 +125,24 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
 
+  tld-coverage:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check every TLD for a WHOIS or RDAP server
+        run: npm run tld:update | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tld-coverage
+          path: src/data/tldCoverage.json
+          retention-days: 14
+
   ai-security-review:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

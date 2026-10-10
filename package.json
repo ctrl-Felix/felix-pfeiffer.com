@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "tld:update": "tsx scripts/update-tld-coverage.ts",
+    "tokens:update": "tsx scripts/update-token-usage.ts",
     "test": "tsx --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\""
   },
   "dependencies": {

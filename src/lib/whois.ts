@@ -54,7 +54,7 @@ export function normalizeDomain(input: string) {
   return ascii;
 }
 
-async function loadBootstrap() {
+export async function loadBootstrap() {
   if (bootstrapCache && bootstrapCache.expires > Date.now()) return bootstrapCache.value;
   const response = await fetch(bootstrapUrl, { signal: AbortSignal.timeout(timeoutMs), cache: "no-store" });
   if (!response.ok) throw new Error("bootstrap unavailable");
@@ -65,7 +65,7 @@ async function loadBootstrap() {
   return value;
 }
 
-function rdapBaseFor(tld: string, bootstrap: Bootstrap) {
+export function rdapBaseFor(tld: string, bootstrap: Bootstrap) {
   const service = bootstrap.services.find(([tlds]) => tlds.includes(tld));
   const url = service?.[1].find((candidate) => candidate.startsWith("https://") || (rdapTestMode && candidate.startsWith("http://")));
   if (!url) return null;
@@ -130,7 +130,7 @@ async function rdapLookup(domain: string): Promise<Attempt> {
   }
 }
 
-function queryWhois(host: string, port: number, query: string) {
+export function queryWhois(host: string, port: number, query: string) {
   return new Promise<string>((resolve, reject) => {
     const socket = connect({ host, port });
     let data = "";
@@ -152,7 +152,7 @@ function queryWhois(host: string, port: number, query: string) {
   });
 }
 
-function isPublicHostname(host: string) {
+export function isPublicHostname(host: string) {
   if (!/^[a-z0-9]([a-z0-9.-]*[a-z0-9])$/i.test(host) || !host.includes(".")) return false;
   if (/^\d+(\.\d+){3}$/.test(host)) return false;
   return !/(^|\.)(localhost|local|internal|lan)$/i.test(host);

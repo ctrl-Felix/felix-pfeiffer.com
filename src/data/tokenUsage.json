@@ -1,0 +1,10 @@
+{
+  "sessions": {
+    "f7de7ac5-d2f5-5eb4-a0d2-c1e9b924e226": {
+      "input": 554,
+      "output": 459877,
+      "cacheWrite": 2179299,
+      "cacheRead": 88433891
+    }
+  }
+}
