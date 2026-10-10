@@ -1,14 +1,14 @@
 import { links } from "@/config";
 import FinderWindow from "./FinderWindow";
-import { FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, StatsIcon, StocksIcon, ToolsIcon } from "./Icons";
+import { FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, StatsIcon, SeoIcon, ToolsIcon } from "./Icons";
 import MailWindow from "./MailWindow";
 import PathsWindow from "./paths/PathsWindow";
 import ProfileWindow from "./ProfileWindow";
 import ReaderWindow from "./reader/ReaderWindow";
 import SecurityWindow from "./reader/SecurityWindow";
+import SeoTrackerWindow from "./seo/SeoTrackerWindow";
 import StatsWindow from "./stats/StatsWindow";
 import TokenUsageWindow from "./tokens/TokenUsageWindow";
-import StocksApp from "./stocks/StocksApp";
 import ToolsApp from "./tools/ToolsApp";
 
 export type App = {
@@ -46,11 +46,11 @@ export const apps: App[] = [
     window: { Content: MailWindow, width: 640, height: 520, minWidth: 420, minHeight: 360 },
   },
   {
-    id: "stocks",
-    label: "Stocks",
-    Icon: StocksIcon,
+    id: "seo",
+    label: "SEO Tracker",
+    Icon: SeoIcon,
     transient: true,
-    window: { Content: StocksApp, width: 860, height: 600, minWidth: 560, minHeight: 440 },
+    window: { Content: SeoTrackerWindow, width: 560, height: 420, minWidth: 340, minHeight: 260 },
   },
   {
     id: "tools",

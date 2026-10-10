@@ -19,5 +19,6 @@ test("GET on /mcp shows the page, an event stream request is answered by the end
 
 test("tool paths keep working and unknown ones are a real 404", () => {
   assert.equal(call("/tools/whois").status, 200);
+  assert.equal(call("/tools").status, 200);
   assert.equal(call("/tools/nope").status, 404);
 });

@@ -3,7 +3,7 @@ export const trackTargets = {
   profile: "Profile",
   github: "GitHub",
   mail: "Mail",
-  stocks: "Stocks",
+  seo: "SEO tracker",
   tools: "Tools",
   stats: "Stats",
   paths: "Public paths",
@@ -14,6 +14,8 @@ export const trackTargets = {
   linkedin: "LinkedIn",
   email: "Email",
 } as const;
+
+export const legacyTargets: Record<string, string> = { stocks: "Stocks" };
 
 export type TrackTarget = keyof typeof trackTargets;
 

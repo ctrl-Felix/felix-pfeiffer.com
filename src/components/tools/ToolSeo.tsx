@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { links, site } from "@/config";
-import type { ToolInfo } from "@/data/tools";
+import { toolInfos, toolsHub, type ToolInfo } from "@/data/tools";
 
 export default function ToolSeo({ tool }: { tool: ToolInfo }) {
   const url = `${site.url}/tools/${tool.id}`;
@@ -33,10 +33,15 @@ export default function ToolSeo({ tool }: { tool: ToolInfo }) {
         })),
       },
       {
+        "@type": "HowTo",
+        name: `How to use the ${tool.name} tool`,
+        step: tool.seo.steps.map((text, index) => ({ "@type": "HowToStep", position: index + 1, text })),
+      },
+      {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: site.name, item: site.url },
-          { "@type": "ListItem", position: 2, name: "Tools", item: `${site.url}/tools/${tool.id}` },
+          { "@type": "ListItem", position: 2, name: "Tools", item: `${site.url}${toolsHub.path}` },
           { "@type": "ListItem", position: 3, name: tool.name, item: url },
         ],
       },
@@ -70,6 +75,19 @@ export default function ToolSeo({ tool }: { tool: ToolInfo }) {
             <p>{item.answer}</p>
           </section>
         ))}
+        <h2>More free tools</h2>
+        <ul>
+          <li>
+            <Link href={toolsHub.path}>All free tools</Link>
+          </li>
+          {toolInfos
+            .filter((other) => other.id !== tool.id)
+            .map((other) => (
+              <li key={other.id}>
+                <Link href={`/tools/${other.id}`}>{other.name}</Link>: {other.description}
+              </li>
+            ))}
+        </ul>
         <p>
           <Link href="/mcp">How to use this tool from an AI assistant (MCP)</Link>
         </p>

@@ -62,14 +62,14 @@ export function ProfileIcon() {
   );
 }
 
-export function StocksIcon() {
+export function SeoIcon() {
   return (
-    <Tile id="st" from="#2c2c2e" to="#000000">
-      <g stroke="white" strokeOpacity="0.12">
-        <path d="M8 20h48M8 32h48M8 44h48" />
+    <Tile id="se" from="#ffb340" to="#ff6a00">
+      <g fill="none" stroke="white" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="28" cy="28" r="12" />
+        <path d="M37 37l11 11" strokeWidth="4.4" />
+        <path d="M22 31l4-4 3 3 5-6" strokeWidth="3" />
       </g>
-      <path d="M8 46l12-10 9 6 11-16 8 7 8-14" fill="none" stroke="#30d158" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M8 46l12-10 9 6 11-16 8 7 8-14V56H8z" fill="#30d158" opacity="0.16" />
     </Tile>
   );
 }

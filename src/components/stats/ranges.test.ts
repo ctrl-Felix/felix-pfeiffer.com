@@ -10,7 +10,6 @@ const stats: Stats = {
   daily: days,
   monthly: [{ month: "2025-12", visitors: 4 }, { month: "2026-02", visitors: 9 }],
   clicks: [],
-  recent: [],
 };
 
 test("barsFor builds the right number of bars per range", () => {

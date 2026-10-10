@@ -3,7 +3,7 @@ import { test } from "node:test";
 import robots from "../app/robots";
 import { mcpPage } from "./mcp";
 import { publicPaths } from "./publicPaths";
-import { toolInfos } from "./tools";
+import { toolInfos, toolsHub } from "./tools";
 
 test("every tool has search friendly metadata", () => {
   for (const tool of toolInfos) {
@@ -38,4 +38,20 @@ test("robots.txt never blocks an indexed path", () => {
   }
   assert.equal(rules.disallow.some((rule) => blocks(rule, "/mcp")), false);
   assert.ok(rules.disallow.some((rule) => blocks(rule, "/api/mcp")));
+});
+
+test("the tools hub is indexed, has search friendly metadata and lists every tool", () => {
+  assert.ok(toolsHub.title.length <= 60, `title is ${toolsHub.title.length} characters`);
+  assert.ok(toolsHub.description.length >= 70 && toolsHub.description.length <= 160, `description is ${toolsHub.description.length} characters`);
+  const hub = publicPaths.find((item) => item.path === toolsHub.path);
+  assert.equal(hub?.indexed, true);
+  for (const tool of toolInfos) assert.equal(publicPaths.find((item) => item.path === `/tools/${tool.id}`)?.parent, toolsHub.path);
+});
+
+test("every public path belongs to a group and every parent exists", () => {
+  const paths = new Set(publicPaths.map((item) => item.path));
+  for (const entry of publicPaths) {
+    assert.ok(["site", "tools", "ai"].includes(entry.group), `${entry.path} needs a group`);
+    if (entry.parent) assert.ok(paths.has(entry.parent), `${entry.path} has an unknown parent`);
+  }
 });

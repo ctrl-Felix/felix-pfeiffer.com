@@ -9,7 +9,6 @@ export type Stats = {
   daily: { day: string; visitors: number }[];
   monthly: { month: string; visitors: number }[];
   clicks: { target: string; counts: Record<Period, number> }[];
-  recent: { at: string; kind: string; target: string | null }[];
 };
 
 export async function getStats(): Promise<Stats | null> {
@@ -18,7 +17,7 @@ export async function getStats(): Promise<Stats | null> {
 
   try {
     const pool = db();
-    const [totals, daily, monthly, clicks, recent] = await Promise.all([
+    const [totals, daily, monthly, clicks] = await Promise.all([
       pool.query(`
         select
           count(*) filter (where day >= (now() at time zone 'utc')::date - 6)::int as d7,
@@ -46,9 +45,6 @@ export async function getStats(): Promise<Stats | null> {
           count(*) filter (where day >= date_trunc('year', (now() at time zone 'utc')::date::timestamp)::date)::int as year,
           count(*)::int as all_time
         from events where kind = 'click' group by target order by all_time desc`),
-      pool.query(`
-        select to_char(occurred_at at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as at, kind, target
-        from events order by id desc limit 15`),
     ]);
     const row = totals.rows[0];
     return {
@@ -60,7 +56,6 @@ export async function getStats(): Promise<Stats | null> {
         target: click.target,
         counts: { "7d": click.d7, "30d": click.d30, year: click.year, all: click.all_time },
       })),
-      recent: recent.rows,
     };
   } catch {
     return null;
