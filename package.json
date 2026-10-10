@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "tld:update": "tsx scripts/update-tld-coverage.ts",
+    "tokens:update": "tsx scripts/update-token-usage.ts",
     "test": "tsx --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "next": "16.4.0",
-    "nodemailer": "^10.0.15",
+    "nodemailer": "^10.0.16",
     "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
@@ -23,7 +25,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.4.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",

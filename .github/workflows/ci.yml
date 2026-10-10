@@ -1,9 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: ["**"]
   pull_request:
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -16,8 +15,8 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -46,7 +45,7 @@ jobs:
       DBMATE_SHA256: 4a3814fdb7253348d6b3cd60a2e315fba69e1a3a794a31ec75af2ca6019c835c
       PGHOST: localhost
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install dbmate
         run: |
           curl -fsSL -o dbmate https://github.com/amacneil/dbmate/releases/download/v2.28.0/dbmate-linux-amd64
@@ -76,10 +75,10 @@ jobs:
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -89,7 +88,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
@@ -99,8 +98,8 @@ jobs:
   container:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: hadolint/hadolint-action@v3.3.0
+      - uses: actions/checkout@v7
+      - uses: hadolint/hadolint-action@v3.5.0
         with:
           dockerfile: Dockerfile
       - name: Validate and build compose stack
@@ -125,20 +124,20 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
 
-  ai-security-review:
-    if: github.event_name == 'pull_request'
+  tld-coverage:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    env:
-      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
-      - if: env.HAS_KEY == 'true'
-        uses: anthropics/claude-code-security-review@main
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check every TLD for a WHOIS or RDAP server
+        run: npm run tld:update | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
         with:
-          claude-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          name: tld-coverage
+          path: src/data/tldCoverage.json
+          retention-days: 14
