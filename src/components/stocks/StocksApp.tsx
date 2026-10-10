@@ -78,6 +78,7 @@ export default function StocksApp() {
             }}
           />
         )}
+        <p className="shrink-0 text-center text-[10px] text-white/35">Placeholder data, not real market prices.</p>
       </div>
     </div>
   );

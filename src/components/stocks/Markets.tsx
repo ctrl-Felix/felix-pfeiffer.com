@@ -61,12 +61,9 @@ export default function Markets({ onSelect }: { onSelect: (symbol: string) => vo
 
   const half = Math.min(maxRows, Math.floor(entries.length / 2));
   return (
-    <>
-      <div className="grid min-h-0 flex-1 grid-cols-2 gap-3 @max-lg:grid-cols-1 @max-lg:grid-rows-2">
+    <div className="grid min-h-0 flex-1 grid-cols-2 gap-3 @max-lg:grid-cols-1 @max-lg:grid-rows-2">
         <Table title="Best performing" positive entries={entries.slice(0, half)} onSelect={onSelect} />
         <Table title="Worst performing" positive={false} entries={entries.slice(-half).reverse()} onSelect={onSelect} />
-      </div>
-      <p className="shrink-0 text-center text-[10px] text-white/35">Daily change of US-listed index funds. Market data by Alpaca (IEX), may be delayed.</p>
-    </>
+    </div>
   );
 }
