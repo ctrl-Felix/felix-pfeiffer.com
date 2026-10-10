@@ -14,6 +14,7 @@ export const trackTargets = {
   security: "Security",
   linkedin: "LinkedIn",
   email: "Email",
+  speedtest: "Speed test",
 } as const;
 
 export const mcpTargets = {

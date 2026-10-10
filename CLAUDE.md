@@ -55,6 +55,7 @@ Site config and facts live in `src/config.ts`, `src/data/profile.ts` and `src/da
 - Glass look is the `.glass` class in `globals.css`. Keep it inside `@layer components` so Tailwind utilities can override it. Glass is for the functional layer (dock, toolbars, menus). Content cards use plain translucent fills.
 - SVG icons in `Icons.tsx` get unique ids per instance through `useSvgId` (React `useId`). Never use fixed ids in an SVG: the same icon renders several times and `url(#id)` would point at a hidden copy.
 - Brand icon: `src/app/icon.svg` (F and P monogram on a blue tile). `favicon.ico` and `apple-icon.png` are rendered from it. Regenerate them if the SVG changes.
+- Speed test: the Wi-Fi icon in the menu bar (`components/WifiMenu.tsx`, logic and tests in `src/lib/speedTest.ts`) measures latency, download and upload in the browser against Cloudflare's public endpoints `speed.cloudflare.com/__down` and `/__up` (no API key, CORS open). It only runs when the user presses Start, stops after about 12 seconds per direction, stores nothing and is the only third-party host in the CSP (`connect-src`, checked in `tests/security.test.ts`). Starting it counts as the click `speedtest`.
 - Do not use `pkill -f` in the shell, it kills the tool shell. Use `fuser -k <port>/tcp`.
 
 # Privacy and tracking

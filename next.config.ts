@@ -11,7 +11,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
-      "connect-src 'self'",
+      "connect-src 'self' https://speed.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

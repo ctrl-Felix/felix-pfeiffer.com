@@ -56,6 +56,7 @@ test("the web app sends the security headers", async () => {
   assert.match(headers["Content-Security-Policy"], /default-src 'self'/);
   assert.match(headers["Content-Security-Policy"], /object-src 'none'/);
   assert.match(headers["Content-Security-Policy"], /frame-ancestors 'none'/);
+  assert.match(headers["Content-Security-Policy"], /connect-src 'self' https:\/\/speed\.cloudflare\.com(;|$)/);
   assert.match(headers["Strict-Transport-Security"], /max-age=\d{7,}/);
   assert.equal(headers["X-Content-Type-Options"], "nosniff");
   assert.equal(headers["X-Frame-Options"], "DENY");
