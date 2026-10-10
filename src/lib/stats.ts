@@ -9,6 +9,12 @@ export type Stats = {
   daily: { day: string; visitors: number }[];
   monthly: { month: string; visitors: number }[];
   clicks: { target: string; counts: Record<Period, number> }[];
+  mcp: {
+    totals: Record<Period, number>;
+    daily: { day: string; calls: number }[];
+    monthly: { month: string; calls: number }[];
+    tools: { target: string; counts: Record<Period, number> }[];
+  };
 };
 
 export async function getStats(): Promise<Stats | null> {
@@ -17,7 +23,7 @@ export async function getStats(): Promise<Stats | null> {
 
   try {
     const pool = db();
-    const [totals, daily, monthly, clicks] = await Promise.all([
+    const [totals, daily, monthly, clicks, mcpTotals, mcpDaily, mcpMonthly, mcpTools] = await Promise.all([
       pool.query(`
         select
           count(*) filter (where day >= (now() at time zone 'utc')::date - 6)::int as d7,
@@ -45,7 +51,35 @@ export async function getStats(): Promise<Stats | null> {
           count(*) filter (where day >= date_trunc('year', (now() at time zone 'utc')::date::timestamp)::date)::int as year,
           count(*)::int as all_time
         from events where kind = 'click' group by target order by all_time desc`),
+      pool.query(`
+        select
+          count(*) filter (where day >= (now() at time zone 'utc')::date - 6)::int as d7,
+          count(*) filter (where day >= (now() at time zone 'utc')::date - 29)::int as d30,
+          count(*) filter (where day >= date_trunc('year', (now() at time zone 'utc')::date::timestamp)::date)::int as year,
+          count(*)::int as all_time
+        from events where kind = 'mcp'`),
+      pool.query(`
+        select to_char(d, 'YYYY-MM-DD') as day, count(e.id)::int as calls
+        from generate_series((now() at time zone 'utc')::date - 29, (now() at time zone 'utc')::date, interval '1 day') d
+        left join events e on e.kind = 'mcp' and e.day = d::date
+        group by d order by d`),
+      pool.query(`
+        select to_char(m, 'YYYY-MM') as month, count(e.id)::int as calls
+        from generate_series(
+          (select date_trunc('month', coalesce(min(day), (now() at time zone 'utc')::date)::timestamp) from events where kind = 'mcp'),
+          date_trunc('month', (now() at time zone 'utc')::date::timestamp),
+          interval '1 month') m
+        left join events e on e.kind = 'mcp' and date_trunc('month', e.day::timestamp) = m
+        group by m order by m`),
+      pool.query(`
+        select target,
+          count(*) filter (where day >= (now() at time zone 'utc')::date - 6)::int as d7,
+          count(*) filter (where day >= (now() at time zone 'utc')::date - 29)::int as d30,
+          count(*) filter (where day >= date_trunc('year', (now() at time zone 'utc')::date::timestamp)::date)::int as year,
+          count(*)::int as all_time
+        from events where kind = 'mcp' group by target order by all_time desc`),
     ]);
+    const mcpRow = mcpTotals.rows[0];
     const row = totals.rows[0];
     return {
       year: new Date().getUTCFullYear(),
@@ -56,6 +90,15 @@ export async function getStats(): Promise<Stats | null> {
         target: click.target,
         counts: { "7d": click.d7, "30d": click.d30, year: click.year, all: click.all_time },
       })),
+      mcp: {
+        totals: { "7d": mcpRow.d7, "30d": mcpRow.d30, year: mcpRow.year, all: mcpRow.all_time },
+        daily: mcpDaily.rows,
+        monthly: mcpMonthly.rows,
+        tools: mcpTools.rows.map((tool) => ({
+          target: tool.target,
+          counts: { "7d": tool.d7, "30d": tool.d30, year: tool.year, all: tool.all_time },
+        })),
+      },
     };
   } catch {
     return null;

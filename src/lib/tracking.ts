@@ -15,6 +15,15 @@ export const trackTargets = {
   email: "Email",
 } as const;
 
+export const mcpTargets = {
+  whois_lookup: "Whois lookup",
+  dns_records: "DNS records",
+} as const;
+
+export type McpTarget = keyof typeof mcpTargets;
+
+export const isMcpTarget = (value: unknown): value is McpTarget => typeof value === "string" && Object.hasOwn(mcpTargets, value);
+
 export const legacyTargets: Record<string, string> = { stocks: "Stocks" };
 
 export type TrackTarget = keyof typeof trackTargets;

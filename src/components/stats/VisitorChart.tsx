@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Bar } from "./ranges";
 
-export default function VisitorChart({ bars, total, caption }: { bars: Bar[]; total: number; caption: string }) {
+export default function VisitorChart({ bars, total, caption, unit = "visitors" }: { bars: Bar[]; total: number; caption: string; unit?: string }) {
   const [active, setActive] = useState<string | null>(null);
   const max = Math.max(...bars.map((bar) => bar.value), 1);
   const selected = bars.find((bar) => bar.key === active);
@@ -14,9 +14,9 @@ export default function VisitorChart({ bars, total, caption }: { bars: Bar[]; to
       <p className="text-xs font-medium uppercase tracking-wide text-white/55">{selected ? selected.label : caption}</p>
       <p className="mb-4 text-3xl font-semibold tabular-nums">
         {(selected ? selected.value : total).toLocaleString("en-US")}
-        <span className="ml-2 text-sm font-normal text-white/55">visitors</span>
+        <span className="ml-2 text-sm font-normal text-white/55">{unit}</span>
       </p>
-      <div className="flex h-44 items-end gap-[3px]" role="img" aria-label={`Visitors per ${bars.length > 12 ? "day" : "period"}, ${caption}`}>
+      <div className="flex h-44 items-end gap-[3px]" role="img" aria-label={`${unit} per ${bars.length > 12 ? "day" : "period"}, ${caption}`}>
         {bars.map((bar) => (
           <div
             key={bar.key}
@@ -39,7 +39,7 @@ export default function VisitorChart({ bars, total, caption }: { bars: Bar[]; to
         ))}
       </div>
       <table className="sr-only">
-        <caption>Visitors, {caption}</caption>
+        <caption>{unit}, {caption}</caption>
         <tbody>
           {bars.map((bar) => (
             <tr key={bar.key}>

@@ -69,6 +69,8 @@ jobs:
           PGPASSWORD: ci-app
         run: |
           psql -v ON_ERROR_STOP=1 -U portfolio_app -d portfolio -c "insert into events (kind, target) values ('click', 'profile')"
+          psql -v ON_ERROR_STOP=1 -U portfolio_app -d portfolio -c "insert into events (kind, target) values ('mcp', 'whois_lookup')"
+          psql -U portfolio_app -d portfolio -c "insert into events (kind, target) values ('mcp', null)" && exit 1 || true
           psql -U portfolio_app -d portfolio -c "update events set target = 'x'" && exit 1 || true
           psql -U portfolio_app -d portfolio -c "delete from events" && exit 1 || true
           psql -U portfolio_app -d portfolio -c "drop table events" && exit 1 || true

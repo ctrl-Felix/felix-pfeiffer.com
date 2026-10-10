@@ -47,3 +47,14 @@ test("batches answer requests only and reject bad sizes", async () => {
   const empty = (await handleRpc([], ip)) as Reply;
   assert.equal(empty.error?.code, -32600);
 });
+
+test("tool calls are reported once per call, unknown tools and other methods are not", async () => {
+  const calls: string[] = [];
+  const options = { onToolCall: (tool: string) => calls.push(tool) };
+  await handleRpc(rpc("tools/call", { name: "dns_records", arguments: { domain: "localhost" } }), ip, options);
+  await handleRpc(rpc("tools/call", { name: "whois_lookup", arguments: {} }), ip, options);
+  await handleRpc(rpc("tools/call", { name: "nope" }), ip, options);
+  await handleRpc(rpc("tools/list"), ip, options);
+  await handleRpc(rpc("initialize", { protocolVersion: "2025-06-18" }), ip, options);
+  assert.deepEqual(calls, ["dns_records", "whois_lookup"]);
+});

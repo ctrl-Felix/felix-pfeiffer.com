@@ -1,5 +1,5 @@
 import { db } from "./db";
-import type { TrackTarget } from "./tracking";
+import type { McpTarget, TrackTarget } from "./tracking";
 
 export async function recordVisit(visitor: string) {
   await db().query("insert into events (kind, visitor) values ('visit', $1) on conflict do nothing", [visitor]);
@@ -7,4 +7,8 @@ export async function recordVisit(visitor: string) {
 
 export async function recordClick(target: TrackTarget, visitor: string) {
   await db().query("insert into events (kind, target, visitor) values ('click', $1, $2) on conflict do nothing", [target, visitor]);
+}
+
+export async function recordMcpCall(tool: McpTarget) {
+  await db().query("insert into events (kind, target) values ('mcp', $1)", [tool]);
 }

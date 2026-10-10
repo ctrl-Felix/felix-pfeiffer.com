@@ -1,4 +1,6 @@
 import { site } from "@/config";
+import { after } from "next/server";
+import { recordMcpCall } from "@/lib/events";
 import { handleRpc } from "@/lib/mcp";
 import { clientIp, tooMany } from "@/lib/rateLimit";
 
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
     return rpcError(400, -32700, "Parse error");
   }
 
-  const response = await handleRpc(body, ip);
+  const response = await handleRpc(body, ip, { onToolCall: (tool) => after(() => recordMcpCall(tool).catch(() => {})) });
   if (response === null) return new Response(null, { status: 202 });
   return new Response(JSON.stringify(response), { status: 200, headers: jsonHeaders });
 }
