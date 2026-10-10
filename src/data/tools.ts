@@ -76,7 +76,7 @@ export const toolInfos: ToolInfo[] = [
   {
     id: "dns",
     name: "DNS Records",
-    description: "Look up the DNS records of a domain: addresses, mail servers, name servers, TXT and CAA.",
+    description: "Look up the DNS records of a domain: addresses, mail servers, TXT and CAA.",
     keywords: ["dns", "records", "mx", "txt", "spf", "dmarc", "caa", "nameserver", "lookup"],
     updated: "2026-10-10",
     seo: {
