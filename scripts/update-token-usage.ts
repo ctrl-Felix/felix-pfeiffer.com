@@ -4,14 +4,18 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 type Counts = [input: number, output: number, cacheWrite: number, cacheRead: number];
-type Ledger = Record<string, Counts>;
+type Entry = [model: string, ...Counts];
+type Ledger = Record<string, Entry>;
+
+const unknownModel = "unknown";
 
 const projectsDir = process.env.TRANSCRIPTS_ROOT ?? join(homedir(), ".claude", "projects");
 const file = process.env.LEDGER_FILE ?? join(__dirname, "..", "src", "data", "tokenUsage.json");
 
 async function readLedger(): Promise<Ledger> {
   try {
-    return JSON.parse(await readFile(file, "utf8")).messages ?? {};
+    const stored: Record<string, (string | number)[]> = JSON.parse(await readFile(file, "utf8")).messages ?? {};
+    return Object.fromEntries(Object.entries(stored).map(([key, entry]) => [key, (typeof entry[0] === "string" ? entry : [unknownModel, ...entry]) as Entry]));
   } catch {
     return {};
   }
@@ -37,9 +41,10 @@ async function projectDirectories() {
 
 const keyOf = (messageId: string) => createHash("sha256").update(messageId).digest("hex").slice(0, 16);
 
-function mergeInto(ledger: Ledger, key: string, counts: Counts) {
-  const current = ledger[key] ?? [0, 0, 0, 0];
-  ledger[key] = current.map((value, index) => Math.max(value, counts[index])) as Counts;
+function mergeInto(ledger: Ledger, key: string, model: string, counts: Counts) {
+  const current = ledger[key] ?? [unknownModel, 0, 0, 0, 0];
+  const numbers = counts.map((value, index) => Math.max(current[index + 1] as number, value));
+  ledger[key] = [model === unknownModel ? current[0] : model, ...numbers] as Entry;
 }
 
 async function collect(ledger: Ledger, path: string) {
@@ -54,7 +59,9 @@ async function collect(ledger: Ledger, path: string) {
     const usage = entry.message?.usage;
     const id = entry.message?.id;
     if (entry.type !== "assistant" || !usage || typeof id !== "string") continue;
-    mergeInto(ledger, keyOf(id), [usage.input_tokens ?? 0, usage.output_tokens ?? 0, usage.cache_creation_input_tokens ?? 0, usage.cache_read_input_tokens ?? 0]);
+    const model = typeof entry.message.model === "string" && entry.message.model ? entry.message.model : unknownModel;
+    if (model.startsWith("<")) continue;
+    mergeInto(ledger, keyOf(id), model, [usage.input_tokens ?? 0, usage.output_tokens ?? 0, usage.cache_creation_input_tokens ?? 0, usage.cache_read_input_tokens ?? 0]);
   }
 }
 

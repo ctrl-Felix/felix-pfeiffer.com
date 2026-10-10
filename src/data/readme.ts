@@ -1,10 +1,12 @@
-import { formatMillions, tokenTotals } from "@/lib/tokenUsage";
+import { formatMillions, modelName, tokenTotals } from "@/lib/tokenUsage";
 
-const { processed, written } = tokenTotals();
+const { processed, written, models } = tokenTotals();
+
+const modelLines = models.map((item) => `- **${modelName(item.model)}**: ${formatMillions(item.processed)} tokens, ${formatMillions(item.written)} written`).join("\n");
 
 const tokenLine =
   processed > 0
-    ? `\nSo far, building this page has used about ${formatMillions(processed)} tokens, ${formatMillions(written)} of them written by Claude.\n`
+    ? `\nSo far, building this page has used about ${formatMillions(processed)} tokens, ${formatMillions(written)} of them written by Claude. By model:\n\n${modelLines}\n`
     : "";
 
 export const readme = `# README
