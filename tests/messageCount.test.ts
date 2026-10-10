@@ -14,7 +14,7 @@ function run(root: string, ledger: string) {
     env: { ...process.env, TRANSCRIPTS_ROOT: join(root, "projects"), LEDGER_FILE: join(root, "tokens.json"), MESSAGE_LEDGER_FILE: ledger },
     stdio: "pipe",
   });
-  return JSON.parse(readFileSync(ledger, "utf8")).userMessages as Record<string, string>;
+  return JSON.parse(readFileSync(ledger, "utf8")).userMessages as Record<string, [string, string]>;
 }
 
 test("only messages written by the human are logged, once each", () => {
@@ -40,8 +40,36 @@ test("only messages written by the human are logged, once each", () => {
   writeFileSync(join(project, "fork.jsonl"), [human("u1", "2026-10-09T10:00:00.000Z"), human("u2", "2026-10-09T12:00:00.000Z")].join("\n"));
   const afterFork = run(root, ledger);
   assert.equal(Object.keys(afterFork).length, 3);
-  assert.ok(Object.values(afterFork).includes("2026-10-07"), "the earliest date of a message is kept");
+  assert.ok(Object.values(afterFork).some(([day]) => day === "2026-10-07"), "the earliest date of a message is kept");
 
   writeFileSync(join(project, "first.jsonl"), human("u2", "2026-10-09T12:00:00.000Z"));
   assert.equal(Object.keys(run(root, ledger)).length, 3);
+});
+
+const reply = (id: string, model: string, extra = {}) =>
+  JSON.stringify({ type: "assistant", ...extra, message: { id, model, usage: { input_tokens: 1, output_tokens: 1 } } });
+
+test("each message records the model that answered it and old entries are read as unknown", () => {
+  const root = mkdtempSync(join(tmpdir(), "messages-"));
+  const project = join(root, "projects", "-home-user-felix-pfeiffer-com");
+  mkdirSync(project, { recursive: true });
+  const ledger = join(root, "messages.json");
+  writeFileSync(ledger, JSON.stringify({ userMessages: { "0000000000000000": "2026-10-01" } }));
+
+  writeFileSync(
+    join(project, "session.jsonl"),
+    [
+      human("u1", "2026-10-07T10:00:00.000Z"),
+      reply("a0", "claude-haiku-5-5", { isSidechain: true }),
+      reply("a1", "claude-sonnet-5-5"),
+      reply("a2", "claude-opus-5-5"),
+      human("u2", "2026-10-07T11:00:00.000Z"),
+      queued("q1", "2026-10-07T11:01:00.000Z"),
+      reply("a3", "claude-opus-5-5"),
+      human("u3", "2026-10-07T12:00:00.000Z"),
+    ].join("\n"),
+  );
+  const models = Object.values(run(root, ledger)).map(([, model]) => model).sort();
+  assert.deepEqual(models, ["claude-opus-5-5", "claude-opus-5-5", "claude-sonnet-5-5", "unknown", "unknown"]);
+  assert.deepEqual(Object.values(run(root, ledger)).map(([, model]) => model).sort(), models);
 });
