@@ -1,6 +1,6 @@
 import type { TrackTarget } from "./tracking";
 
-type Payload = { kind: "visit" } | { kind: "click"; target: TrackTarget };
+type Payload = { kind: "visit"; referrer: string; campaign: string; path: string } | { kind: "click"; target: TrackTarget };
 
 const optOutKey = "notrack";
 const sentClicks = new Set<string>();
@@ -23,6 +23,14 @@ export function applyOptOutFromUrl() {
   } catch {}
 }
 
+function referrerHost() {
+  try {
+    return document.referrer ? new URL(document.referrer).hostname : "";
+  } catch {
+    return "";
+  }
+}
+
 function send(payload: Payload) {
   try {
     fetch("/api/track", {
@@ -37,7 +45,7 @@ function send(payload: Payload) {
 export function trackVisit() {
   if (visitSent || optedOut()) return;
   visitSent = true;
-  send({ kind: "visit" });
+  send({ kind: "visit", referrer: referrerHost(), campaign: new URLSearchParams(window.location.search).get("utm_source") ?? "", path: window.location.pathname });
 }
 
 export function trackClick(target: string) {

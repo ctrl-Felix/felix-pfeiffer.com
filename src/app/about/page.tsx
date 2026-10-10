@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AboutPage from "@/components/about/AboutPage";
 import AboutSeo from "@/components/about/AboutSeo";
+import VisitTracker from "@/components/VisitTracker";
 import { site } from "@/config";
 import { aboutPage } from "@/data/about";
 
@@ -18,6 +19,7 @@ export default function About() {
     <>
       <AboutSeo />
       <AboutPage />
+      <VisitTracker />
     </>
   );
 }

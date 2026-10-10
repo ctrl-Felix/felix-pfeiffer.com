@@ -1,27 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { Stats } from "@/lib/stats";
 import { useWindow } from "@/components/windows/context";
 import TrafficLights from "@/components/windows/TrafficLights";
 import StatsBody from "./StatsBody";
-
-type State = { loaded: boolean; stats: Stats | null };
+import { useStats } from "./useStats";
 
 export default function StatsWindow() {
   const { dragProps } = useWindow();
-  const [state, setState] = useState<State>({ loaded: false, stats: null });
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch("/api/stats", { signal: controller.signal })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((stats: Stats | null) => setState({ loaded: true, stats }))
-      .catch(() => {
-        if (!controller.signal.aborted) setState({ loaded: true, stats: null });
-      });
-    return () => controller.abort();
-  }, []);
+  const state = useStats();
 
   return (
     <div className="@container flex h-full flex-col bg-[#1c1c1e]/95 text-white">

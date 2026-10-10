@@ -1,10 +1,13 @@
 import { after } from "next/server";
+import { site } from "@/config";
 import { recordClick, recordVisit } from "@/lib/events";
 import { clientIp, tooMany } from "@/lib/rateLimit";
 import { isTrackTarget } from "@/lib/tracking";
+import { classifySource, landingPath } from "@/lib/trafficSources";
 import { isBot, visitorId } from "@/lib/visitor";
 
 const noContent = () => new Response(null, { status: 204 });
+const ownHost = new URL(site.url).hostname;
 
 export async function POST(request: Request) {
   const site = request.headers.get("sec-fetch-site");
@@ -24,7 +27,11 @@ export async function POST(request: Request) {
 
   try {
     const visitor = await visitorId(ip, userAgent);
-    if (isVisit) after(() => recordVisit(visitor).catch(() => {}));
+    if (isVisit) {
+      const source = classifySource(body.referrer, body.campaign, ownHost);
+      const landing = landingPath(body.path);
+      after(() => recordVisit(visitor, source, landing).catch(() => {}));
+    }
     else {
       const target = body.target;
       after(() => recordClick(target, visitor).catch(() => {}));

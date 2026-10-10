@@ -48,10 +48,10 @@ export const apps: App[] = [
   },
   {
     id: "seo",
-    label: "SEO Tracker",
+    label: "SEO and GEO Tracker",
     Icon: SeoIcon,
     transient: true,
-    window: { Content: SeoTrackerWindow, width: 560, height: 420, minWidth: 340, minHeight: 260 },
+    window: { Content: SeoTrackerWindow, width: 620, height: 640, minWidth: 340, minHeight: 320 },
   },
   {
     id: "tools",
