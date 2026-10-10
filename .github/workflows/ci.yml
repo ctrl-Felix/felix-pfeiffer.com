@@ -1,9 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: ["**"]
   pull_request:
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -144,7 +143,6 @@ jobs:
           retention-days: 14
 
   ai-security-review:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -156,7 +154,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
-      - if: env.HAS_KEY == 'true'
-        uses: anthropics/claude-code-security-review@main
+      - name: Require the API key
+        if: env.HAS_KEY != 'true'
+        run: |
+          echo "::error::The mandatory AI security review needs the ANTHROPIC_API_KEY repository secret."
+          exit 1
+      - uses: anthropics/claude-code-security-review@main
         with:
           claude-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
