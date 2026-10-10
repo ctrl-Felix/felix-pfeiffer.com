@@ -31,6 +31,9 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  async redirects() {
+    return [{ source: "/mcp-servers", destination: "/mcp", permanent: true }];
+  },
   output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,

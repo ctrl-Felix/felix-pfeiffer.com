@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: mcpPage.title, description: mcpPage.description },
 };
 
-export default function McpServersPage() {
+export default function McpIndexPage() {
   return (
     <>
       <McpSeo />

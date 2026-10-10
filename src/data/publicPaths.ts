@@ -48,8 +48,8 @@ export const publicPaths: PublicPath[] = [
     icon: "paths",
   },
   {
-    path: "/mcp",
-    title: "MCP server",
+    path: "/mcp/whois",
+    title: "Whois MCP server",
     description: "Model Context Protocol endpoint (Streamable HTTP, no login) that gives AI assistants the whois_lookup tool. Not a web page.",
     kind: "api",
     indexed: false,

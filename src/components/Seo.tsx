@@ -54,7 +54,7 @@ export default function Seo() {
           ))}
         </ul>
         <h2>For AI assistants</h2>
-        <p><Link href="/mcp-servers">MCP servers</Link>: connect Claude and other assistants to the open whois lookup.</p>
+        <p><Link href="/mcp">MCP servers</Link>: connect Claude and other assistants to the open whois lookup.</p>
         <ul>
           <li><a href={links.github}>GitHub</a></li>
           <li><a href={links.linkedin}>LinkedIn</a></li>

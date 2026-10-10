@@ -12,7 +12,7 @@ export default function McpMenu({ open, onToggle, onClose }: Props) {
   const go = (hash = "") => {
     trackClick("mcp");
     onClose();
-    router.push(`/mcp-servers${hash}`);
+    router.push(`${mcpPage.path}${hash}`);
   };
 
   const copy = async (event: React.MouseEvent, value: string) => {

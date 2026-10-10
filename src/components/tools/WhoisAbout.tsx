@@ -4,7 +4,7 @@ import { useState } from "react";
 import { site } from "@/config";
 import { findToolInfo } from "@/data/tools";
 
-const mcpUrl = `${site.url}/mcp`;
+const mcpUrl = `${site.url}/mcp/whois`;
 const claudeCodeCommand = `claude mcp add --transport http whois ${mcpUrl}`;
 
 function CopyLine({ value }: { value: string }) {
@@ -37,7 +37,7 @@ export default function WhoisAbout() {
         <h2 className="text-sm font-semibold">Use it from an AI assistant</h2>
         <p className="mt-1 text-xs text-black/55">
           Open MCP server, no account or key needed.{" "}
-          <a href="/mcp-servers" className="text-[#0a6cf0] hover:underline">How to connect</a>
+          <a href="/mcp" className="text-[#0a6cf0] hover:underline">How to connect</a>
         </p>
         <div className="mt-3 space-y-2">
           <p className="text-xs font-medium">Claude: Settings, Connectors, Add custom connector, then paste</p>

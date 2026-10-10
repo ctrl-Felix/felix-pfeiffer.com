@@ -71,7 +71,7 @@ export default function ToolSeo({ tool }: { tool: ToolInfo }) {
           </section>
         ))}
         <p>
-          <Link href="/mcp-servers">How to use this tool from an AI assistant (MCP)</Link>
+          <Link href="/mcp">How to use this tool from an AI assistant (MCP)</Link>
         </p>
         <p>
           Part of the portfolio of <Link href="/">{site.name}</Link>.

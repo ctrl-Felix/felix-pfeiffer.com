@@ -15,7 +15,7 @@ export const mcpConnectors: McpConnector[] = [
     id: "whois",
     name: "Whois",
     description: "Domain registration lookup: registrar, dates, name servers and DNSSEC.",
-    path: "/mcp",
+    path: "/mcp/whois",
     tools: [
       {
         name: "whois_lookup",
@@ -27,7 +27,7 @@ export const mcpConnectors: McpConnector[] = [
 ];
 
 export const mcpPage = {
-  path: "/mcp-servers",
+  path: "/mcp",
   updated: "2026-10-11",
   title: "MCP Servers for AI Assistants: Free Whois Lookup",
   description:
