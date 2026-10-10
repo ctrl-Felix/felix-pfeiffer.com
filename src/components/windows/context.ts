@@ -11,7 +11,7 @@ export type WindowState = Bounds & {
 };
 
 export type WindowActions = {
-  open: (id: string) => void;
+  open: (id: string, options?: { maximized?: boolean }) => void;
   close: (id: string) => void;
   focus: (id: string) => void;
   minimize: (id: string) => void;

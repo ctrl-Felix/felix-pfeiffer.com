@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { peekPendingLaunch } from "@/components/deepLink";
 import type { WhoisResult } from "@/lib/whois";
+import WhoisAbout from "./WhoisAbout";
 
 type State =
   | { kind: "idle" }
@@ -85,7 +87,7 @@ function Result({ result }: { result: WhoisResult }) {
 }
 
 export default function WhoisTool() {
-  const [domain, setDomain] = useState("");
+  const [domain, setDomain] = useState(() => peekPendingLaunch()?.domain ?? "");
   const [state, setState] = useState<State>({ kind: "idle" });
 
   async function lookup(event: React.FormEvent) {
@@ -124,7 +126,7 @@ export default function WhoisTool() {
       {state.kind === "loading" && <p className="py-6 text-center text-sm text-black/45">Looking up…</p>}
       {state.kind === "error" && <p className="rounded-xl bg-[#ff3b30]/10 px-4 py-3 text-[13px] text-[#c4281e]" role="alert">{state.message}</p>}
       {state.kind === "done" && <Result result={state.result} />}
-      {state.kind === "idle" && <p className="py-6 text-center text-sm text-black/40">Enter a domain to see its registration data.</p>}
+      {state.kind === "idle" && <WhoisAbout />}
     </div>
   );
 }

@@ -18,15 +18,17 @@ export async function POST(request: Request) {
   if (tooMany("track", ip, 120, 60_000)) return new Response(null, { status: 429 });
 
   const body = await request.json().catch(() => null);
-  if (body?.kind === "visit") {
-    const visitor = visitorId(ip, userAgent);
-    after(() => recordVisit(visitor).catch(() => {}));
-    return noContent();
-  }
-  if (body?.kind === "click" && isTrackTarget(body.target)) {
-    const target = body.target;
-    after(() => recordClick(target).catch(() => {}));
-    return noContent();
-  }
-  return new Response(null, { status: 400 });
+  const isVisit = body?.kind === "visit";
+  const isClick = body?.kind === "click" && isTrackTarget(body.target);
+  if (!isVisit && !isClick) return new Response(null, { status: 400 });
+
+  try {
+    const visitor = await visitorId(ip, userAgent);
+    if (isVisit) after(() => recordVisit(visitor).catch(() => {}));
+    else {
+      const target = body.target;
+      after(() => recordClick(target, visitor).catch(() => {}));
+    }
+  } catch {}
+  return noContent();
 }

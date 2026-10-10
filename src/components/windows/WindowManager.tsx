@@ -22,7 +22,7 @@ function topZ(windows: WindowState[]) {
   return windows.reduce((top, win) => Math.max(top, win.z), 0);
 }
 
-function createWindow(app: App, existing: WindowState[]): WindowState {
+function createWindow(app: App, existing: WindowState[], maximized?: boolean): WindowState {
   const config = app.window!;
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
@@ -38,7 +38,7 @@ function createWindow(app: App, existing: WindowState[]): WindowState {
     height,
     z: topZ(existing) + 1,
     minimized: false,
-    maximized: viewportWidth < MOBILE_WIDTH,
+    maximized: maximized ?? viewportWidth < MOBILE_WIDTH,
   };
 }
 
@@ -51,13 +51,13 @@ export function WindowProvider({ apps, children }: { apps: App[]; children: Reac
 
   const actions = useMemo<WindowActions>(
     () => ({
-      open: (id) =>
+      open: (id, options) =>
         setWindows((all) => {
           const app = apps.find((candidate) => candidate.id === id);
           if (!app?.window) return all;
           const existing = all.find((win) => win.id === id);
-          if (!existing) return [...all, createWindow(app, all)];
-          return all.map((win) => (win.id === id ? { ...win, minimized: false, z: topZ(all) + 1 } : win));
+          if (!existing) return [...all, createWindow(app, all, options?.maximized)];
+          return all.map((win) => (win.id === id ? { ...win, minimized: false, z: topZ(all) + 1, maximized: options?.maximized ?? win.maximized } : win));
         }),
       close: (id) => setWindows((all) => all.filter((win) => win.id !== id)),
       focus: (id) =>

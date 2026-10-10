@@ -1,8 +1,10 @@
 import { links } from "@/config";
 import FinderWindow from "./FinderWindow";
-import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, StatsIcon, StocksIcon, ToolsIcon } from "./Icons";
+import { FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, StatsIcon, StocksIcon, ToolsIcon } from "./Icons";
 import MailWindow from "./MailWindow";
+import PathsWindow from "./paths/PathsWindow";
 import ProfileWindow from "./ProfileWindow";
+import ReaderWindow from "./reader/ReaderWindow";
 import StatsWindow from "./stats/StatsWindow";
 import StocksApp from "./stocks/StocksApp";
 import ToolsApp from "./tools/ToolsApp";
@@ -13,6 +15,11 @@ export type App = {
   Icon: () => React.JSX.Element;
   href?: string;
   external?: boolean;
+  hidden?: boolean;
+  transient?: boolean;
+  desktopIcon?: () => React.JSX.Element;
+  desktopLabel?: string;
+  desktopAnchor?: "bottom-right";
   window?: {
     Content: React.ComponentType;
     width: number;
@@ -46,12 +53,24 @@ export const apps: App[] = [
     id: "tools",
     label: "Tools",
     Icon: ToolsIcon,
+    transient: true,
     window: { Content: ToolsApp, width: 720, height: 560, minWidth: 420, minHeight: 340 },
+  },
+  {
+    id: "reader",
+    label: "Reader",
+    Icon: ReaderIcon,
+    transient: true,
+    desktopIcon: MarkdownFileIcon,
+    desktopLabel: "README.md",
+    desktopAnchor: "bottom-right",
+    window: { Content: ReaderWindow, width: 640, height: 480, minWidth: 360, minHeight: 280 },
   },
   {
     id: "stats",
     label: "Stats",
     Icon: StatsIcon,
+    transient: true,
     window: { Content: StatsWindow, width: 760, height: 640, minWidth: 420, minHeight: 360 },
   },
 ];
@@ -63,4 +82,14 @@ export const finder: App = {
   window: { Content: FinderWindow, width: 560, height: 380, minWidth: 320, minHeight: 240 },
 };
 
-export const allApps = [finder, ...apps];
+export const pathsApp: App = {
+  id: "paths",
+  label: "Public Paths",
+  Icon: PathsIcon,
+  hidden: true,
+  window: { Content: PathsWindow, width: 720, height: 540, minWidth: 420, minHeight: 340 },
+};
+
+export const allApps = [finder, ...apps, pathsApp];
+
+export const visibleApps = allApps.filter((app) => !app.hidden);

@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { links, site } from "@/config";
 import { profile } from "@/data/profile";
+import { toolInfos } from "@/data/tools";
 
 const person = {
   "@context": "https://schema.org",
@@ -45,6 +47,14 @@ export default function Seo() {
         ))}
         <h2>Skills</h2>
         <ul>{profile.skills.map((skill) => <li key={skill.label}>{skill.label}: {skill.value}</li>)}</ul>
+        <h2>Tools</h2>
+        <ul>
+          {toolInfos.map((tool) => (
+            <li key={tool.id}><Link href={`/tools/${tool.id}`}>{tool.name}</Link>: {tool.description}</li>
+          ))}
+        </ul>
+        <h2>For AI assistants</h2>
+        <p><Link href="/mcp-servers">MCP servers</Link>: connect Claude and other assistants to the open whois lookup.</p>
         <ul>
           <li><a href={links.github}>GitHub</a></li>
           <li><a href={links.linkedin}>LinkedIn</a></li>

@@ -1,25 +1,17 @@
 import { WhoisIcon } from "@/components/Icons";
+import { toolInfos, type ToolInfo } from "@/data/tools";
 import WhoisTool from "./WhoisTool";
 
-export type Tool = {
-  id: string;
-  name: string;
-  description: string;
-  keywords: string[];
+export type Tool = ToolInfo & {
   Icon: () => React.JSX.Element;
   Component: React.ComponentType;
 };
 
-export const tools: Tool[] = [
-  {
-    id: "whois",
-    name: "Whois",
-    description: "Look up who registered a domain, when it expires and which name servers it uses.",
-    keywords: ["domain", "dns", "rdap", "registrar", "nameserver", "lookup"],
-    Icon: WhoisIcon,
-    Component: WhoisTool,
-  },
-];
+const parts: Record<string, Pick<Tool, "Icon" | "Component">> = {
+  whois: { Icon: WhoisIcon, Component: WhoisTool },
+};
+
+export const tools: Tool[] = toolInfos.map((info) => ({ ...info, ...parts[info.id] }));
 
 export function matchTools(query: string) {
   const needle = query.trim().toLowerCase();

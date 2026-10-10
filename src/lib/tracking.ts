@@ -6,6 +6,9 @@ export const trackTargets = {
   stocks: "Stocks",
   tools: "Tools",
   stats: "Stats",
+  paths: "Public paths",
+  mcp: "MCP",
+  reader: "README",
   linkedin: "LinkedIn",
   email: "Email",
 } as const;

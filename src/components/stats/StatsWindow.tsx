@@ -32,7 +32,7 @@ export default function StatsWindow() {
           Open page ↗
         </a>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-1">
         {state.loaded ? (
           <StatsBody stats={state.stats} tone="window" />
         ) : (

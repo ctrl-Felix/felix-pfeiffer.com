@@ -37,7 +37,7 @@ function Transparency({ card }: { card: string }) {
           <ul className="list-disc space-y-1 pl-4">
             <li>The time and type of an event: a visit or a click.</li>
             <li>For a click, what was pressed, for example Stocks.</li>
-            <li>For a visit, a random anonymous ID that changes every day and cannot be traced back to you.</li>
+            <li>A random anonymous ID that changes every day and cannot be traced back to you.</li>
           </ul>
         </div>
         <div>
@@ -50,9 +50,7 @@ function Transparency({ card }: { card: string }) {
         </div>
       </div>
       <p className="mt-4 text-xs text-white/50">
-        Each anonymous visitor counts once per day. Your IP address only lives in memory for a moment to create that ID and to limit abuse.
-        Bots and visitors who send Do Not Track or Global Privacy Control are not counted. The contact form sends your message by email
-        and does not save it on this site. The Stocks app currently shows placeholder data generated on this server and stores nothing. Tools such as Whois send the domain you enter through this server to public registry servers and do not store it.
+        Each visitor counts once per day, and each app once per visitor per day. Your IP address is only used in memory to create that ID and limit abuse. Bots and visitors who send Do Not Track or Global Privacy Control are not counted. Add ?notrack to any address to stop counting your own visits.
       </p>
     </section>
   );

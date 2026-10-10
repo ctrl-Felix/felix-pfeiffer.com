@@ -21,8 +21,11 @@ function Tile({ id, from, to, children }: { id: string; from: string; to: string
           <stop offset="0.5" stopColor="white" stopOpacity="0" />
         </linearGradient>
       </defs>
+      <clipPath id={`${id}-clip`}>
+        <rect width="64" height="64" rx={RADIUS} />
+      </clipPath>
       <rect width="64" height="64" rx={RADIUS} fill={`url(#${id}-bg)`} />
-      {children}
+      <g clipPath={`url(#${id}-clip)`}>{children}</g>
       <rect width="64" height="64" rx={RADIUS} fill={`url(#${id}-gloss)`} />
       <rect x="0.5" y="0.5" width="63" height="63" rx={RADIUS - 0.5} fill="none" stroke="white" strokeOpacity="0.35" />
       <rect x="0.5" y="0.5" width="63" height="63" rx={RADIUS - 0.5} fill="none" stroke="black" strokeOpacity="0.12" strokeWidth="0.5" />
@@ -83,9 +86,40 @@ export function StatsIcon() {
 
 export function ToolsIcon() {
   return (
-    <Tile id="tl" from="#a1a7b3" to="#4b505b">
-      <g transform="translate(14 14) scale(1.5)" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.5 6.5a4 4 0 0 0-5 5L3 18l3 3 6.5-6.5a4 4 0 0 0 5-5l-3 3-2-2z" />
+    <Tile id="tl" from="#8a91a0" to="#2d3039">
+      <defs>
+        <linearGradient id="tl-metal" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.55" stopColor="#e6e9f0" />
+          <stop offset="1" stopColor="#aeb5c4" />
+        </linearGradient>
+        <linearGradient id="tl-grip" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#ffbe4d" />
+          <stop offset="1" stopColor="#ff7a00" />
+        </linearGradient>
+        <mask id="tl-wrench" maskUnits="userSpaceOnUse" x="-20" y="-40" width="40" height="80">
+          <rect x="-20" y="-40" width="40" height="80" fill="#fff" />
+          <rect x="-4.6" y="-34" width="9.2" height="14" rx="1.8" fill="#000" />
+          <circle cx="0" cy="24" r="2.3" fill="#000" />
+        </mask>
+        <filter id="tl-shadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="1.4" stdDeviation="1.2" floodColor="#000" floodOpacity="0.4" />
+        </filter>
+      </defs>
+      <g transform="translate(32 32) rotate(45) scale(0.96)" filter="url(#tl-shadow)">
+        <g mask="url(#tl-wrench)" fill="url(#tl-metal)">
+          <circle cx="0" cy="-19" r="10.6" />
+          <rect x="-3.4" y="-14" width="6.8" height="36" />
+          <circle cx="0" cy="24" r="5.4" />
+        </g>
+      </g>
+      <g transform="translate(32 32) rotate(-45) scale(0.96)" filter="url(#tl-shadow)">
+        <path d="M-1.7 -29h3.4l0.9 6v21h-5.2v-21z" fill="url(#tl-metal)" />
+        <rect x="-3.2" y="-4" width="6.4" height="4" rx="1" fill="#c9cfdb" />
+        <rect x="-5.4" y="-1" width="10.8" height="30" rx="5.2" fill="url(#tl-grip)" />
+        <g stroke="#fff" strokeOpacity="0.28" strokeWidth="1.2" strokeLinecap="round">
+          <path d="M-3.4 8h6.8M-3.4 13h6.8M-3.4 18h6.8" />
+        </g>
       </g>
     </Tile>
   );
@@ -100,6 +134,61 @@ export function WhoisIcon() {
         <path d="M40 40l10 10" strokeWidth="4.5" />
       </g>
     </Tile>
+  );
+}
+
+export function LogoIcon() {
+  return (
+    <Tile id="lg" from="#5ac8fa" to="#0a64e6">
+      <g fill="none" stroke="white" strokeWidth="6.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M15 17v30M15 17h12M15 31h9.5" />
+        <path d="M36 47V17h5.5a7.5 7.5 0 0 1 0 15H36" />
+      </g>
+    </Tile>
+  );
+}
+
+export function PathsIcon() {
+  return (
+    <Tile id="pa" from="#7fd6c2" to="#1b8f7a">
+      <g fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M27 37l10-10" />
+        <path d="M30 24l3-3a8.5 8.5 0 0 1 12 12l-3 3" />
+        <path d="M34 40l-3 3a8.5 8.5 0 0 1-12-12l3-3" />
+      </g>
+    </Tile>
+  );
+}
+
+export function ReaderIcon() {
+  return (
+    <Tile id="rd" from="#ffb04d" to="#ff7a00">
+      <g fill="#fff">
+        <path d="M13 20c6.5-3.4 13-3 19 1.2v27c-6-4.2-12.5-4.6-19-1.2z" />
+        <path d="M51 20c-6.5-3.4-13-3-19 1.2v27c6-4.2 12.5-4.6 19-1.2z" fillOpacity="0.88" />
+      </g>
+      <path d="M32 21.2v27" stroke="#ff7a00" strokeOpacity="0.35" strokeWidth="1.2" />
+    </Tile>
+  );
+}
+
+export function MarkdownFileIcon() {
+  return (
+    <svg viewBox="0 0 64 64" className="h-full w-full [filter:drop-shadow(0_3px_5px_rgba(0,0,0,0.28))]">
+      <defs>
+        <linearGradient id="md-page" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="1" stopColor="#e6e9ef" />
+        </linearGradient>
+      </defs>
+      <path d="M14 4h26l12 12v42a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z" fill="url(#md-page)" />
+      <path d="M40 4l12 12H43a3 3 0 0 1-3-3z" fill="#cfd3dc" />
+      <rect x="18" y="14" width="14" height="3" rx="1.5" fill="#c4c9d4" />
+      <rect x="18" y="21" width="22" height="3" rx="1.5" fill="#c4c9d4" />
+      <rect x="18" y="28" width="18" height="3" rx="1.5" fill="#c4c9d4" />
+      <rect x="11" y="38" width="42" height="16" rx="3.5" fill="#4b5563" />
+      <text x="32" y="50" textAnchor="middle" fontSize="12" fontWeight="700" fill="#fff" fontFamily="system-ui, sans-serif">MD</text>
+    </svg>
   );
 }
 

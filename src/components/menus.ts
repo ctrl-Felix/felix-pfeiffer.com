@@ -27,6 +27,7 @@ export function buildMenus(windows: Windows, active: WindowState | undefined): M
       label: "",
       items: [
         { label: "About Felix Pfeiffer", onSelect: () => windows.open("profile") },
+        { label: "Public Paths…", onSelect: () => openApp("paths", windows) },
         separator,
         { label: "Restart…", onSelect: () => window.location.reload() },
       ],
@@ -42,7 +43,7 @@ export function buildMenus(windows: Windows, active: WindowState | undefined): M
       label: "Go",
       compactHidden: true,
       items: allApps
-        .filter((app) => app.href || app.window)
+        .filter((app) => !app.hidden && (app.href || app.window))
         .map((app) => ({ label: app.external ? `${app.label} ↗` : app.label, onSelect: () => openApp(app.id, windows) })),
     },
     {

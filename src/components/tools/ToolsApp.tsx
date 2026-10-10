@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { peekPendingLaunch, setPendingLaunch } from "@/components/deepLink";
 import { useWindow } from "@/components/windows/context";
 import TrafficLights from "@/components/windows/TrafficLights";
 import { matchTools, tools } from "./registry";
@@ -8,7 +9,11 @@ import { matchTools, tools } from "./registry";
 export default function ToolsApp() {
   const { dragProps } = useWindow();
   const [query, setQuery] = useState("");
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(() => peekPendingLaunch()?.toolId ?? null);
+
+  useEffect(() => {
+    setPendingLaunch(undefined);
+  }, []);
   const active = tools.find((tool) => tool.id === activeId);
   const matches = matchTools(query);
 
@@ -43,9 +48,13 @@ export default function ToolsApp() {
             <ul className="grid min-h-0 flex-1 auto-rows-min grid-cols-1 content-start gap-3 overflow-y-auto @lg:grid-cols-2">
               {matches.map((tool) => (
                 <li key={tool.id}>
-                  <button
-                    type="button"
-                    onClick={() => setActiveId(tool.id)}
+                  <a
+                    href={`/tools/${tool.id}`}
+                    onClick={(event) => {
+                      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+                      event.preventDefault();
+                      setActiveId(tool.id);
+                    }}
                     className="flex w-full items-center gap-3 rounded-2xl bg-white/80 p-3 text-left shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)] hover:bg-white"
                   >
                     <span className="block h-11 w-11 shrink-0"><tool.Icon /></span>
@@ -53,7 +62,7 @@ export default function ToolsApp() {
                       <span className="block text-sm font-semibold">{tool.name}</span>
                       <span className="block text-xs text-black/55">{tool.description}</span>
                     </span>
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>

@@ -59,3 +59,67 @@ body {
 .window-pop {
   animation: window-pop 0.22s ease-out;
 }
+
+.dock-slot {
+  position: relative;
+  --dock-icon: 3.5rem;
+  display: flex;
+  justify-content: center;
+  width: calc(var(--dock-icon) + 10px);
+}
+
+@media (min-width: 640px) {
+  .dock-slot {
+    --dock-icon: 4rem;
+  }
+}
+
+.dock-slot > * {
+  flex-shrink: 0;
+}
+
+@keyframes dock-slot-grow {
+  from { width: 0; }
+  to { width: calc(var(--dock-icon) + 10px); }
+}
+
+@keyframes dock-slot-shrink {
+  from { width: calc(var(--dock-icon) + 10px); }
+  to { width: 0; }
+}
+
+@keyframes dock-icon-grow {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes dock-icon-shrink {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0); opacity: 0; }
+}
+
+.dock-entering {
+  animation: dock-slot-grow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.dock-entering > * {
+  animation: dock-icon-grow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.dock-leaving {
+  animation: dock-slot-shrink 0.32s cubic-bezier(0.4, 0, 0.6, 1) both;
+  pointer-events: none;
+}
+
+.dock-leaving > * {
+  animation: dock-icon-shrink 0.32s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-entering,
+  .dock-entering > *,
+  .dock-leaving,
+  .dock-leaving > * {
+    animation-duration: 0.01ms;
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AppleLogo, Battery, Wifi } from "./Icons";
+import McpMenu from "./McpMenu";
 import { buildMenus } from "./menus";
 import { useWindows } from "./windows/WindowManager";
 
@@ -15,6 +16,7 @@ export default function MenuBar() {
   const [clock, setClock] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const barRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const windows = useWindows();
   const active = windows.windows.find((win) => win.id === windows.focusedId);
   const menus = buildMenus(windows, active);
@@ -29,7 +31,7 @@ export default function MenuBar() {
   useEffect(() => {
     if (!openId) return;
     const close = (event: PointerEvent) => {
-      if (!barRef.current?.contains(event.target as Node)) setOpenId(null);
+      if (!headerRef.current?.contains(event.target as Node)) setOpenId(null);
     };
     const escape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpenId(null);
@@ -43,7 +45,7 @@ export default function MenuBar() {
   }, [openId]);
 
   return (
-    <header className="menubar fixed inset-x-0 top-0 z-[9500] flex h-7 items-center justify-between px-2 text-[13px] text-white">
+    <header ref={headerRef} className="menubar fixed inset-x-0 top-0 z-[9500] flex h-7 items-center justify-between px-2 text-[13px] text-white">
       <nav ref={barRef} className="flex items-center">
         {menus.map((menu) => (
           <div key={menu.id} className={`relative ${menu.compactHidden ? "hidden sm:block" : ""}`}>
@@ -85,9 +87,10 @@ export default function MenuBar() {
           </div>
         ))}
       </nav>
-      <div className="flex items-center gap-4 px-2">
-        <Battery />
-        <Wifi />
+      <div className="flex items-center gap-3 px-2">
+        <McpMenu open={openId === "mcp"} onToggle={() => setOpenId(openId === "mcp" ? null : "mcp")} onClose={() => setOpenId(null)} />
+        <span className="hidden sm:block"><Battery /></span>
+        <span className="hidden sm:block"><Wifi /></span>
         <span className="min-w-32 text-right tabular-nums">{clock}</span>
       </div>
     </header>
