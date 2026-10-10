@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "tld:update": "tsx scripts/update-tld-coverage.ts",
+    "energy:update": "tsx scripts/update-energy-data.ts",
     "usage:update": "tsx scripts/update-usage.ts",
     "vulns:record": "tsx scripts/record-vulnerabilities.ts",
     "test": "tsx --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\""
