@@ -1,5 +1,6 @@
-import { WhoisIcon } from "@/components/Icons";
+import { DnsIcon, WhoisIcon } from "@/components/Icons";
 import { toolInfos, type ToolInfo } from "@/data/tools";
+import DnsTool from "./DnsTool";
 import WhoisTool from "./WhoisTool";
 
 export type Tool = ToolInfo & {
@@ -9,6 +10,7 @@ export type Tool = ToolInfo & {
 
 const parts: Record<string, Pick<Tool, "Icon" | "Component">> = {
   whois: { Icon: WhoisIcon, Component: WhoisTool },
+  dns: { Icon: DnsIcon, Component: DnsTool },
 };
 
 export const tools: Tool[] = toolInfos.map((info) => ({ ...info, ...parts[info.id] }));

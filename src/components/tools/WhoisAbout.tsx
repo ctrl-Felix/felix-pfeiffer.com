@@ -4,8 +4,8 @@ import { useState } from "react";
 import { site } from "@/config";
 import { findToolInfo } from "@/data/tools";
 
-const mcpUrl = `${site.url}/mcp/whois`;
-const claudeCodeCommand = `claude mcp add --transport http whois ${mcpUrl}`;
+const mcpUrl = `${site.url}/mcp`;
+const claudeCodeCommand = `claude mcp add --transport http security ${mcpUrl}`;
 
 function CopyLine({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);

@@ -137,6 +137,21 @@ export function WhoisIcon() {
   );
 }
 
+export function DnsIcon() {
+  return (
+    <Tile id="dn" from="#6ee7b0" to="#0a9d6a">
+      <g fill="none" stroke="white" strokeWidth="3.6" strokeLinecap="round">
+        <path d="M24 19h22M24 32h22M24 45h22" />
+      </g>
+      <g fill="white">
+        <circle cx="16" cy="19" r="3.2" />
+        <circle cx="16" cy="32" r="3.2" />
+        <circle cx="16" cy="45" r="3.2" />
+      </g>
+    </Tile>
+  );
+}
+
 export function LogoIcon() {
   return (
     <Tile id="lg" from="#5ac8fa" to="#0a64e6">
