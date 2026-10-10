@@ -1,5 +1,5 @@
 import mixes from "@/data/energy/countryMix.json";
-import { countryAt, countryFromTimezone, countryOfNearestPlant, largestPlants, nearestPlants } from "./energyGeo";
+import { countryAt, countryFromTimezone, countryOfNearestBorder } from "./energyGeo";
 import { energyChartsCountries, intensityFromMix, liveEnergyCharts, liveGreatBritain, outcodeAt } from "./energyLive";
 import type { CountryMix, EnergyReport, Mix, MixSource } from "./energyTypes";
 
@@ -40,13 +40,8 @@ async function liveData(fetcher: typeof fetch, country: string, latitude?: numbe
 const sortedMix = (mix: Mix) =>
   (Object.entries(mix) as [MixSource, number][]).map(([source, share]) => ({ source, share })).sort((a, b) => b.share - a.share);
 
-const iso2ByIso3 = new Map(Object.entries(countryMixes).map(([iso2, mix]) => [mix.iso3, iso2]));
-
 function countryNear(latitude: number, longitude: number) {
-  const inside = countryAt(latitude, longitude);
-  if (inside) return inside;
-  const iso3 = countryOfNearestPlant(latitude, longitude, 50);
-  return iso3 ? (iso2ByIso3.get(iso3) ?? null) : null;
+  return countryAt(latitude, longitude) ?? countryOfNearestBorder(latitude, longitude, 50);
 }
 
 export function locate(query: EnergyQuery) {
@@ -64,7 +59,6 @@ export async function energyReport(query: EnergyQuery, fetcher: typeof fetch = f
   const precise = located.method === "precise";
   const yearly = countryMixes[located.country];
   const live = await liveData(fetcher, located.country, precise ? query.latitude : undefined, precise ? query.longitude : undefined);
-  const plants = precise ? nearestPlants(query.latitude!, query.longitude!) : largestPlants(yearly.iso3);
 
   return {
     location: { country: located.country, name: yearly.name, ...(live?.region ? { region: live.region } : {}), method: located.method },
@@ -73,8 +67,6 @@ export async function energyReport(query: EnergyQuery, fetcher: typeof fetch = f
     live: Boolean(live),
     period: live?.period ?? String(yearly.year),
     source: live?.source ?? "Our World in Data (Ember, Energy Institute)",
-    plants,
-    plantsNearby: precise,
   };
 }
 

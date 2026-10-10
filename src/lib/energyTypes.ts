@@ -33,14 +33,8 @@ export const mixColors: Record<MixSource, string> = {
 export const fossilSources: MixSource[] = ["coal", "gas", "oil"];
 export const lowCarbonSources: MixSource[] = ["nuclear", "hydro", "wind", "solar", "bioenergy", "otherRenewables"];
 
-export const plantFuels = ["coal", "gas", "oil", "nuclear", "hydro", "wind", "solar", "bioenergy", "geothermal", "waste", "storage", "tidal", "other"] as const;
-export type PlantFuel = (typeof plantFuels)[number];
-
 export type CountryMix = { name: string; iso3: string; year: number; intensity: number; mix: Mix };
 export type CountryShape = { iso2: string; polygons: number[][][] };
-export type PlantRow = [latitude: number, longitude: number, capacityMw: number, fuel: number, name: string, iso3: string];
-
-export type Plant = { name: string; fuel: PlantFuel; capacityMw: number; distanceKm?: number };
 
 export type EnergyReport = {
   location: { country: string; name: string; region?: string; method: "timezone" | "precise" };
@@ -49,6 +43,4 @@ export type EnergyReport = {
   live: boolean;
   period: string;
   source: string;
-  plants: Plant[];
-  plantsNearby: boolean;
 };

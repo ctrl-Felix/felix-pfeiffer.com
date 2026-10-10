@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { energyReport, locate, parseEnergyQuery } from "./energy";
-import { countryMixes, parseCsv, powerPlants, timezoneCountries } from "./energyData";
-import { countryAt, countryFromTimezone, distanceKm, nearestPlants } from "./energyGeo";
+import { countryMixes, parseCsv, timezoneCountries } from "./energyData";
+import { countryAt, countryFromTimezone, countryOfNearestBorder, distanceKm } from "./energyGeo";
 import { energyChartsSource, intensityFromMix, mixFromCarbonIntensity, mixFromEnergyCharts } from "./energyLive";
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" } });
@@ -25,11 +25,6 @@ test("yearly country mixes take the latest year and fill the rest as other", () 
   assert.deepEqual(mixes, { GB: { name: "United Kingdom", iso3: "GBR", year: 2024, intensity: 210, mix: { gas: 30, wind: 32, other: 38 } } });
 });
 
-test("power plants keep position, capacity, fuel, name and country", () => {
-  const [plant] = powerPlants([{ latitude: "51.5", longitude: "-0.1234", capacity_mw: "100", primary_fuel: "Wind", name: " Test ", country: "GBR" }]);
-  assert.deepEqual(plant, [51.5, -0.123, 100, 5, "Test", "GBR"]);
-});
-
 test("time zones map to countries, including old link names", () => {
   const zones = timezoneCountries("# comment\nGB\t+513030-0000731\tEurope/London\nUA\t+5026+03031\tEurope/Kyiv\n", "L Europe/Kyiv Europe/Kiev\n");
   assert.deepEqual(zones, { "Europe/Kiev": "UA", "Europe/Kyiv": "UA", "Europe/London": "GB" });
@@ -38,16 +33,15 @@ test("time zones map to countries, including old link names", () => {
   assert.equal(countryFromTimezone("Mars/Base"), null);
 });
 
-test("coordinates are placed in the right country and plants are found nearby", () => {
+test("coordinates are placed in the right country, near a coast by the nearest border", () => {
   assert.equal(countryAt(51.5, -0.12), "GB");
   assert.equal(countryAt(48.86, 2.35), "FR");
   assert.equal(countryAt(52.52, 13.4), "DE");
   assert.equal(countryAt(40.78, -73.96), "US");
   assert.equal(countryAt(0, -30), null);
   assert.ok(Math.abs(distanceKm(51.5, -0.12, 48.86, 2.35) - 343) < 5);
-  const plants = nearestPlants(51.5, -0.12, 3);
-  assert.equal(plants.length, 3);
-  assert.ok(plants.every((plant) => (plant.distanceKm ?? 999) < 60));
+  assert.equal(countryOfNearestBorder(40.75, -73.99, 50), "US");
+  assert.equal(countryOfNearestBorder(0, -30, 50), null);
 });
 
 test("live grid data is parsed defensively", () => {
@@ -80,18 +74,16 @@ test("queries are validated and rounded", () => {
   assert.equal(parseEnergyQuery(new URLSearchParams("")), null);
   assert.deepEqual(locate({ timezone: "Europe/Paris", latitude: 51.5, longitude: -0.12 }), { country: "GB", method: "precise" });
   assert.deepEqual(locate({ timezone: "Europe/Paris", latitude: 0, longitude: -30 }), { country: "FR", method: "timezone" });
-  assert.deepEqual(locate({ latitude: 40.75, longitude: -73.99 }), { country: "US", method: "precise" }, "a point on the coast falls back to the nearest plant");
+  assert.deepEqual(locate({ latitude: 40.75, longitude: -73.99 }), { country: "US", method: "precise" }, "a point on the coast falls back to the nearest border");
 });
 
-test("without live data the report falls back to the yearly mix and the largest plants", async () => {
+test("without live data the report falls back to the yearly mix", async () => {
   const report = await energyReport({ timezone: "America/New_York" }, offline);
   assert.ok(report);
   assert.equal(report.location.country, "US");
   assert.equal(report.live, false);
   assert.match(report.period, /^\d{4}$/);
   assert.ok(Math.abs(report.mix.reduce((sum, item) => sum + item.share, 0) - 100) < 1);
-  assert.equal(report.plants.length, 5);
-  assert.equal(report.plantsNearby, false);
 });
 
 test("Great Britain uses the live regional carbon intensity with a precise location", async () => {
@@ -109,5 +101,5 @@ test("Great Britain uses the live regional carbon intensity with a precise locat
   assert.equal(report.intensity, 150);
   assert.equal(report.location.region, "London");
   assert.deepEqual(report.mix, [{ source: "wind", share: 60 }, { source: "gas", share: 40 }]);
-  assert.equal(report.plantsNearby, true);
+  assert.equal(report.location.method, "precise");
 });
