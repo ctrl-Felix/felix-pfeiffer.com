@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import coverage from "@/data/tldCoverage.json";
+import run from "@/data/tldCoverageRun.json";
 
 type Filter = "all" | "supported" | "missing";
 
@@ -31,7 +32,7 @@ export default function TldCoverage() {
   return (
     <div className="panel-fade space-y-3">
       <p className="text-[13px] text-black/60">
-        {supportedCount} of {entries.length} top level domains are supported ({Math.round((supportedCount / entries.length) * 100)}%). Updated automatically from the IANA list.
+        {supportedCount} of {entries.length} top level domains are supported ({Math.round((supportedCount / entries.length) * 100)}%). Checked weekly against the IANA list{run.lastRun ? `, last on ${run.lastRun}` : ""}.
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <input

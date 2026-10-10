@@ -73,3 +73,14 @@ test("the committed coverage file maps lowercase TLDs to true or false", () => {
     assert.equal(typeof value, "boolean", tld);
   }
 });
+
+test("the last run date is stored and CI only checks again after 7 days", () => {
+  const run = JSON.parse(readFileSync("src/data/tldCoverageRun.json", "utf8"));
+  assert.deepEqual(Object.keys(run), ["lastRun"]);
+  assert.match(run.lastRun, /^\d{4}-\d{2}-\d{2}$/);
+  const workflow = readFileSync(".github/workflows/ci.yml", "utf8");
+  const job = workflow.split(/^  tld-coverage:\n/m)[1].split(/^  [a-z-]+:\n/m)[0];
+  assert.match(job, /-lt 604800/);
+  assert.match(job, /if: steps\.due\.outputs\.due == 'true'\n\s+run: npm ci/);
+  assert.match(job, /if: steps\.due\.outputs\.due == 'true'\n\s+run: npm run tld:update/);
+});
