@@ -1,19 +1,10 @@
 import { connect } from "node:net";
 import { domainToASCII } from "node:url";
+import { parseRdap } from "./rdapParser";
+import { hasUsefulData, notFoundPattern, parseWhoisText } from "./whoisTextParser";
+import { emptyResult, type WhoisResult } from "./whoisTypes";
 
-export type WhoisResult = {
-  domain: string;
-  source: "rdap" | "whois";
-  registered: boolean;
-  registrar: string | null;
-  created: string | null;
-  updated: string | null;
-  expires: string | null;
-  status: string[];
-  nameservers: string[];
-  dnssec: boolean | null;
-  raw: string;
-};
+export type { WhoisResult } from "./whoisTypes";
 
 type Bootstrap = { services: [string[], string[]][] };
 type Attempt = WhoisResult | "unregistered" | null;
@@ -26,7 +17,6 @@ const whoisTestMode = Boolean(process.env.WHOIS_ROOT_SERVER);
 const timeoutMs = 8000;
 const maxJsonBytes = 512 * 1024;
 const maxWhoisBytes = 64 * 1024;
-const maxRawChars = 20_000;
 const resultTtlMs = 10 * 60_000;
 const bootstrapTtlMs = 24 * 60 * 60_000;
 const maxCacheEntries = 500;
@@ -72,44 +62,6 @@ export function rdapBaseFor(tld: string, bootstrap: Bootstrap) {
   return url.endsWith("/") ? url : `${url}/`;
 }
 
-const toIso = (value: unknown) => {
-  if (typeof value !== "string") return null;
-  const time = Date.parse(value);
-  return Number.isNaN(time) ? value : new Date(time).toISOString();
-};
-
-function rdapEvent(json: Record<string, unknown>, action: string) {
-  const events = Array.isArray(json.events) ? (json.events as Record<string, unknown>[]) : [];
-  return toIso(events.find((event) => event.eventAction === action)?.eventDate);
-}
-
-function rdapRegistrar(json: Record<string, unknown>) {
-  const entities = Array.isArray(json.entities) ? (json.entities as Record<string, unknown>[]) : [];
-  const registrar = entities.find((entity) => Array.isArray(entity.roles) && entity.roles.includes("registrar"));
-  const card = (registrar?.vcardArray as unknown[] | undefined)?.[1];
-  if (!Array.isArray(card)) return null;
-  const name = card.find((property) => Array.isArray(property) && property[0] === "fn") as unknown[] | undefined;
-  return typeof name?.[3] === "string" ? name[3] : null;
-}
-
-function parseRdap(json: Record<string, unknown>, domain: string): WhoisResult {
-  const nameservers = Array.isArray(json.nameservers) ? (json.nameservers as Record<string, unknown>[]) : [];
-  const secureDns = json.secureDNS as Record<string, unknown> | undefined;
-  return {
-    domain: typeof json.ldhName === "string" ? json.ldhName.toLowerCase() : domain,
-    source: "rdap",
-    registered: true,
-    registrar: rdapRegistrar(json),
-    created: rdapEvent(json, "registration"),
-    updated: rdapEvent(json, "last changed"),
-    expires: rdapEvent(json, "expiration"),
-    status: Array.isArray(json.status) ? json.status.map(String) : [],
-    nameservers: nameservers.flatMap((server) => (typeof server.ldhName === "string" ? [server.ldhName.toLowerCase()] : [])),
-    dnssec: typeof secureDns?.delegationSigned === "boolean" ? secureDns.delegationSigned : null,
-    raw: JSON.stringify(json, null, 2).slice(0, maxRawChars),
-  };
-}
-
 async function rdapLookup(domain: string): Promise<Attempt> {
   try {
     const tld = domain.slice(domain.lastIndexOf(".") + 1);
@@ -124,7 +76,7 @@ async function rdapLookup(domain: string): Promise<Attempt> {
     if (!response.ok) return null;
     const text = await response.text();
     if (text.length > maxJsonBytes) return null;
-    return parseRdap(JSON.parse(text), domain);
+    return parseRdap(JSON.parse(text), domain, new URL(base).hostname);
   } catch {
     return null;
   }
@@ -158,36 +110,10 @@ export function isPublicHostname(host: string) {
   return !/(^|\.)(localhost|local|internal|lan)$/i.test(host);
 }
 
-const notFoundPattern = /no match|not found|no entries found|no data found|status:\s*free|is available|available for registration/i;
-
-function whoisField(text: string, names: string[]) {
-  for (const name of names) {
-    const match = text.match(new RegExp(`^\\s*${name}\\s*:\\s*(.+)$`, "im"));
-    if (match) return match[1].trim();
-  }
-  return null;
-}
-
-function whoisList(text: string, names: string[]) {
-  const values = names.flatMap((name) => [...text.matchAll(new RegExp(`^\\s*${name}\\s*:\\s*(.+)$`, "gim"))].map((match) => match[1].trim()));
-  return [...new Set(values)];
-}
-
-function parseWhois(text: string, domain: string): Attempt {
+function readWhois(text: string, domain: string, server: string): Attempt {
   if (notFoundPattern.test(text)) return "unregistered";
-  return {
-    domain,
-    source: "whois",
-    registered: true,
-    registrar: whoisField(text, ["Registrar", "Sponsoring Registrar"]),
-    created: toIso(whoisField(text, ["Creation Date", "Created", "Registered on", "Registered"])),
-    updated: toIso(whoisField(text, ["Updated Date", "Last Updated", "Last modified", "Changed"])),
-    expires: toIso(whoisField(text, ["Registry Expiry Date", "Registrar Registration Expiration Date", "Expiry Date", "Expiration Date", "Expires"])),
-    status: whoisList(text, ["Domain Status", "Status"]).map((status) => status.split(/\s+/)[0]),
-    nameservers: whoisList(text, ["Name Server", "Nserver"]).map((server) => server.split(/\s+/)[0].toLowerCase()),
-    dnssec: null,
-    raw: text.slice(0, maxRawChars),
-  };
+  const result = parseWhoisText(text, domain, server);
+  return hasUsefulData(result) ? result : null;
 }
 
 async function whoisLookup(domain: string): Promise<Attempt> {
@@ -196,9 +122,9 @@ async function whoisLookup(domain: string): Promise<Attempt> {
     const tld = domain.slice(domain.lastIndexOf(".") + 1);
     const root = await queryWhois(rootHost, Number(rootPort ?? 43), tld);
     const referral = root.match(/^whois:\s*(\S+)/im)?.[1]?.toLowerCase();
-    if (whoisTestMode) return parseWhois(await queryWhois(rootHost, Number(rootPort ?? 43), domain), domain);
+    if (whoisTestMode) return readWhois(await queryWhois(rootHost, Number(rootPort ?? 43), domain), domain, rootHost);
     if (!referral || !isPublicHostname(referral)) return null;
-    return parseWhois(await queryWhois(referral, 43, domain), domain);
+    return readWhois(await queryWhois(referral, 43, domain), domain, referral);
   } catch {
     return null;
   }
@@ -224,17 +150,5 @@ export async function lookupDomain(domain: string): Promise<WhoisResult> {
     const result = await lookupExact(candidate);
     if (result !== "unregistered") return result;
   }
-  return {
-    domain,
-    source: "rdap",
-    registered: false,
-    registrar: null,
-    created: null,
-    updated: null,
-    expires: null,
-    status: [],
-    nameservers: [],
-    dnssec: null,
-    raw: "",
-  };
+  return emptyResult(domain, "rdap", false);
 }
