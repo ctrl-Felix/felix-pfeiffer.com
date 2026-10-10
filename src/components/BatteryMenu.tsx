@@ -8,8 +8,6 @@ import { Battery } from "./Icons";
 type Props = { open: boolean; onToggle: () => void };
 type State = { status: "idle" | "loading" | "ready" | "error"; report?: EnergyReport; message?: string };
 
-const fuelLabels: Record<string, string> = { ...mixLabels, geothermal: "Geothermal", waste: "Waste", storage: "Storage", tidal: "Tidal" };
-
 const grams = (value: number) => (value >= 10 ? value.toFixed(0) : value >= 1 ? value.toFixed(1) : value.toFixed(2));
 
 function timezone() {
@@ -40,7 +38,7 @@ function Report({ report }: { report: EnergyReport }) {
         <div className="text-2xl font-semibold tabular-nums">{report.intensity} g</div>
         <div className="text-xs text-black/55">CO₂ per kWh, {report.live ? "live" : `yearly average ${report.period}`}</div>
         <div className="mt-2 text-xs text-black/70">
-          Each watt for an hour: <b>{grams(perWattHour)} g</b> · Phone charge (15 Wh): <b>{grams(perWattHour * 15)} g</b> · Laptop, 1 hour (50 W): <b>{grams(perWattHour * 50)} g</b>
+          CO₂ per Wh: <b>{grams(perWattHour)} g</b> · Phone charge (15 Wh): <b>{grams(perWattHour * 15)} g</b> · Laptop hour: <b>{grams(perWattHour * 50)} g</b>
         </div>
       </div>
       <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-black/10">
@@ -60,24 +58,9 @@ function Report({ report }: { report: EnergyReport }) {
       <p className="mt-2 text-xs text-black/60">
         Low carbon {share(lowCarbonSources)}% · Fossil {share(fossilSources)}%
       </p>
-      {report.plants.length > 0 && (
-        <div className="mt-3">
-          <p className="text-xs font-semibold">{report.plantsNearby ? "Power plants near you" : `Largest power plants in ${report.location.name}`}</p>
-          <ul className="mt-1 space-y-0.5 text-xs">
-            {report.plants.map((plant) => (
-              <li key={plant.name + plant.capacityMw} className="flex gap-2">
-                <span className="min-w-0 flex-1 truncate">{plant.name}</span>
-                <span className="shrink-0 text-black/55">
-                  {fuelLabels[plant.fuel] ?? plant.fuel}, {plant.capacityMw.toLocaleString("en-US")} MW{plant.distanceKm === undefined ? "" : `, ${plant.distanceKm} km`}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
       <p className="mt-3 text-[11px] leading-snug text-black/45">
         These are estimations. Mix from {report.source}
-        {report.live ? "" : ", a yearly national average"}. Grams per kWh {report.live && report.source.startsWith("Energy") ? "calculated with IPCC lifecycle medians" : "as published by the source"}. Power plants from the WRI Global Power Plant Database (2021), some may have closed since. Your electricity comes from the whole grid, not only the nearest plant. Your location is used once for this estimate and not stored.
+        {report.live ? "" : ", a yearly national average"}. Grams per kWh {report.live && report.source.startsWith("Energy") ? "calculated with IPCC lifecycle medians" : "as published by the source"}. Your location is used once for this estimate and not stored.
       </p>
     </>
   );

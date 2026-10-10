@@ -5,6 +5,7 @@ import { loadBootstrap } from "../src/lib/whois";
 
 const listUrl = process.env.TLD_LIST_URL ?? "https://data.iana.org/TLD/tlds-alpha-by-domain.txt";
 const file = join(__dirname, "..", "src", "data", "tldCoverage.json");
+const runFile = join(__dirname, "..", "src", "data", "tldCoverageRun.json");
 
 async function readPrevious(): Promise<Coverage> {
   try {
@@ -24,6 +25,7 @@ async function main() {
   const previous = await readPrevious();
   const { coverage, unknown } = await buildCoverage(tlds, previous);
   await writeFile(file, `${JSON.stringify(coverage, null, 2)}\n`);
+  await writeFile(runFile, `${JSON.stringify({ lastRun: new Date().toISOString().slice(0, 10) }, null, 2)}\n`);
 
   const supported = Object.values(coverage).filter(Boolean).length;
   console.log(`${supported} of ${tlds.length} TLDs supported, ${tlds.length - supported} not.`);

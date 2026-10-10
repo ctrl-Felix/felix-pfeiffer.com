@@ -164,21 +164,38 @@ jobs:
       changed: ${{ steps.diff.outputs.changed }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - name: Run only when the last check is 7 days old or more
+        id: due
+        run: |
+          last=$(jq -r '.lastRun // empty' src/data/tldCoverageRun.json 2>/dev/null || true)
+          last_seconds=$(date -u -d "${last:-1970-01-01}" +%s 2>/dev/null || echo 0)
+          if [ $(( $(date -u +%s) - last_seconds )) -lt 604800 ]; then
+            echo "due=false" >> "$GITHUB_OUTPUT"
+            echo "TLD coverage last checked on $last, less than 7 days ago. Skipped." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "due=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.due.outputs.due == 'true'
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - if: steps.due.outputs.due == 'true'
+        run: npm ci
       - name: Check every TLD for a WHOIS or RDAP server
+        if: steps.due.outputs.due == 'true'
         run: npm run tld:update | tee -a "$GITHUB_STEP_SUMMARY"
       - id: diff
+        if: steps.due.outputs.due == 'true'
         run: |
-          if git diff --quiet -- src/data/tldCoverage.json; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
+          if git diff --quiet -- src/data/tldCoverage.json src/data/tldCoverageRun.json; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
       - if: steps.diff.outputs.changed == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: tld-coverage
-          path: src/data/tldCoverage.json
+          path: |
+            src/data/tldCoverage.json
+            src/data/tldCoverageRun.json
           retention-days: 14
 
   vulnerability-record:
@@ -253,6 +270,11 @@ jobs:
             jq -e 'type == "object" and length > 100 and all(to_entries[]; (.key | test("^[a-z0-9-]{2,63}$")) and (.value | type == "boolean"))' "$RUNNER_TEMP/coverage/tldCoverage.json" > /dev/null
             cp "$RUNNER_TEMP/coverage/tldCoverage.json" src/data/tldCoverage.json
             git add src/data/tldCoverage.json
+          fi
+          if [ -f "$RUNNER_TEMP/coverage/tldCoverageRun.json" ]; then
+            jq -e '(keys == ["lastRun"]) and (.lastRun | type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"))' "$RUNNER_TEMP/coverage/tldCoverageRun.json" > /dev/null
+            cp "$RUNNER_TEMP/coverage/tldCoverageRun.json" src/data/tldCoverageRun.json
+            git add src/data/tldCoverageRun.json
           fi
           if [ -d "$RUNNER_TEMP/vulns" ]; then
             mkdir -p security/vulnerabilities

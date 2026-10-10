@@ -1,4 +1,4 @@
-import { plantFuels, type CountryMix, type CountryShape, type Mix, type PlantFuel, type PlantRow } from "./energyTypes";
+import type { CountryMix, CountryShape, Mix } from "./energyTypes";
 
 export function parseCsv(text: string): Record<string, string>[] {
   const rows: string[][] = [];
@@ -69,35 +69,6 @@ export function countryMixes(rows: Record<string, string>[], iso3ToIso2: Map<str
     result[iso3ToIso2.get(iso3)!] = { name: row.country, iso3, year: Number(row.year), intensity: Math.round(Number(row.carbon_intensity_elec)), mix };
   }
   return result;
-}
-
-const wriFuels: Record<string, PlantFuel> = {
-  Coal: "coal",
-  Petcoke: "coal",
-  Gas: "gas",
-  Oil: "oil",
-  Nuclear: "nuclear",
-  Hydro: "hydro",
-  Wind: "wind",
-  Solar: "solar",
-  Biomass: "bioenergy",
-  Geothermal: "geothermal",
-  Waste: "waste",
-  Storage: "storage",
-  "Wave and Tidal": "tidal",
-};
-
-export function powerPlants(rows: Record<string, string>[]): PlantRow[] {
-  return rows
-    .map((row): PlantRow | null => {
-      const latitude = Number(row.latitude);
-      const longitude = Number(row.longitude);
-      const capacity = Number(row.capacity_mw);
-      if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !(capacity > 0)) return null;
-      const fuel = plantFuels.indexOf(wriFuels[row.primary_fuel] ?? "other");
-      return [round(latitude, 3), round(longitude, 3), round(capacity, 1), fuel, row.name.trim().slice(0, 60), row.country];
-    })
-    .filter((row): row is PlantRow => row !== null);
 }
 
 type Feature = { properties: Record<string, string | number>; geometry: { type: string; coordinates: number[][][] | number[][][][] } };
