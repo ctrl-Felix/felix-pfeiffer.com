@@ -12,7 +12,7 @@ export function modelName(model: string) {
 
 export function tokenTotals() {
   const perModel = new Map<string, ModelTotals>();
-  for (const [model, input, output, cacheWrite, cacheRead] of Object.values(usage.messages as Record<string, Entry>)) {
+  for (const [model, input, output, cacheWrite, cacheRead] of Object.values(usage.messages as unknown as Record<string, Entry>)) {
     const totals = perModel.get(model) ?? { model, processed: 0, written: 0 };
     totals.processed += input + output + cacheWrite + cacheRead;
     totals.written += output;
