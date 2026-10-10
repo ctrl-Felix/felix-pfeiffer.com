@@ -9,6 +9,7 @@
     "lint": "eslint",
     "tld:update": "tsx scripts/update-tld-coverage.ts",
     "tokens:update": "tsx scripts/update-token-usage.ts",
+    "vulns:record": "tsx scripts/record-vulnerabilities.ts",
     "test": "tsx --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\""
   },
   "dependencies": {

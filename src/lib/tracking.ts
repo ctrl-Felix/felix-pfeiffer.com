@@ -4,6 +4,7 @@ export const trackTargets = {
   github: "GitHub",
   mail: "Mail",
   seo: "SEO tracker",
+  vulnerabilities: "Vulnerability tracker",
   tools: "Tools",
   stats: "Stats",
   paths: "Public paths",

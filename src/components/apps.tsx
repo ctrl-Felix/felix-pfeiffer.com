@@ -1,6 +1,6 @@
 import { links } from "@/config";
 import FinderWindow from "./FinderWindow";
-import { FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, StatsIcon, SeoIcon, ToolsIcon } from "./Icons";
+import { FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, StatsIcon, SeoIcon, ShieldIcon, ToolsIcon } from "./Icons";
 import MailWindow from "./MailWindow";
 import PathsWindow from "./paths/PathsWindow";
 import ProfileWindow from "./ProfileWindow";
@@ -9,6 +9,7 @@ import SecurityWindow from "./reader/SecurityWindow";
 import SeoTrackerWindow from "./seo/SeoTrackerWindow";
 import StatsWindow from "./stats/StatsWindow";
 import TokenUsageWindow from "./tokens/TokenUsageWindow";
+import VulnerabilityWindow from "./security/VulnerabilityWindow";
 import ToolsApp from "./tools/ToolsApp";
 
 export type App = {
@@ -78,6 +79,13 @@ export const apps: App[] = [
     desktopLabel: "Security.md",
     desktopAnchor: "bottom-right",
     window: { Content: SecurityWindow, width: 640, height: 480, minWidth: 360, minHeight: 280 },
+  },
+  {
+    id: "vulnerabilities",
+    label: "Vulnerability Tracker",
+    Icon: ShieldIcon,
+    transient: true,
+    window: { Content: VulnerabilityWindow, width: 680, height: 600, minWidth: 380, minHeight: 320 },
   },
   {
     id: "stats",

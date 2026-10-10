@@ -152,6 +152,18 @@ export function DnsIcon() {
   );
 }
 
+export function ShieldIcon() {
+  return (
+    <Tile id="sh" from="#ff7a6b" to="#d6204a">
+      <g fill="none" stroke="white" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M32 13l15 5v11c0 9-6 15-15 19-9-4-15-10-15-19V18z" />
+        <path d="M32 24v10" strokeWidth="4" />
+      </g>
+      <circle cx="32" cy="40" r="2.4" fill="white" />
+    </Tile>
+  );
+}
+
 export function LogoIcon() {
   return (
     <Tile id="lg" from="#5ac8fa" to="#0a64e6">

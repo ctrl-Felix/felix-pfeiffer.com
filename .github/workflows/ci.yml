@@ -22,6 +22,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Keep the npm audit result for the vulnerability tracker
+        run: npm audit --omit=dev --json > "$RUNNER_TEMP/npm-audit.json" || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scan-npm-audit
+          path: ${{ runner.temp }}/npm-audit.json
+          retention-days: 7
       - run: npm run lint
       - run: npm test
       - run: npm run build
@@ -97,6 +104,15 @@ jobs:
           languages: javascript-typescript
           queries: security-extended
       - uses: github/codeql-action/analyze@v3
+        with:
+          output: ${{ runner.temp }}/codeql-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scan-codeql
+          path: ${{ runner.temp }}/codeql-results/*.sarif
+          retention-days: 7
+          if-no-files-found: ignore
 
   container:
     runs-on: ubuntu-latest
@@ -114,6 +130,20 @@ jobs:
           docker compose config --quiet
           docker compose build db migrate
       - run: docker build -t portfolio-web .
+      - name: Keep the Trivy result for the vulnerability tracker
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: portfolio-web
+          format: json
+          output: trivy-image.json
+          scanners: vuln
+          ignore-unfixed: true
+          exit-code: "0"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scan-trivy
+          path: trivy-image.json
+          retention-days: 7
       - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: portfolio-web
@@ -151,9 +181,51 @@ jobs:
           path: src/data/tldCoverage.json
           retention-days: 14
 
-  tld-coverage-commit:
-    needs: tld-coverage
-    if: needs.tld-coverage.outputs.changed == 'true' && ((github.event_name == 'pull_request' && github.head_ref == 'staging' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging'))
+  vulnerability-record:
+    needs: [quality, codeql, container]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: scan-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/scans
+      - name: Record real vulnerabilities and fail on CVSS 7.0 or higher
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set +e
+          npm run --silent vulns:record -- --scans "$RUNNER_TEMP/scans" --pr "$PR_NUMBER" --fail-on-high | tee -a "$GITHUB_STEP_SUMMARY"
+          code=${PIPESTATUS[0]}
+          if [ "$code" -eq 2 ]; then
+            echo "::warning::The vulnerability recorder failed to run. Nothing was recorded."
+            exit 0
+          fi
+          exit "$code"
+      - id: diff
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain -- security/vulnerabilities)" ]; then echo "changed=true" >> "$GITHUB_OUTPUT"; else echo "changed=false" >> "$GITHUB_OUTPUT"; fi
+      - if: always() && steps.diff.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerabilities
+          path: security/vulnerabilities/*.json
+          retention-days: 14
+
+  commit-generated:
+    needs: [tld-coverage, vulnerability-record]
+    if: always() && (needs.tld-coverage.outputs.changed == 'true' || needs.vulnerability-record.outputs.changed == 'true') && ((github.event_name == 'pull_request' && github.head_ref == 'staging' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -163,19 +235,39 @@ jobs:
         with:
           ref: staging
       - uses: actions/download-artifact@v4
+        if: needs.tld-coverage.outputs.changed == 'true'
         with:
           name: tld-coverage
           path: ${{ runner.temp }}/coverage
-      - name: Validate and commit the coverage file to staging
+      - uses: actions/download-artifact@v4
+        if: needs.vulnerability-record.outputs.changed == 'true'
+        with:
+          name: vulnerabilities
+          path: ${{ runner.temp }}/vulns
+      - name: Validate and commit the generated files to staging
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          jq -e 'type == "object" and length > 100 and all(to_entries[]; (.key | test("^[a-z0-9-]{2,63}$")) and (.value | type == "boolean"))' "$RUNNER_TEMP/coverage/tldCoverage.json" > /dev/null
-          cp "$RUNNER_TEMP/coverage/tldCoverage.json" src/data/tldCoverage.json
+          set -euo pipefail
+          if [ -f "$RUNNER_TEMP/coverage/tldCoverage.json" ]; then
+            jq -e 'type == "object" and length > 100 and all(to_entries[]; (.key | test("^[a-z0-9-]{2,63}$")) and (.value | type == "boolean"))' "$RUNNER_TEMP/coverage/tldCoverage.json" > /dev/null
+            cp "$RUNNER_TEMP/coverage/tldCoverage.json" src/data/tldCoverage.json
+            git add src/data/tldCoverage.json
+          fi
+          if [ -d "$RUNNER_TEMP/vulns" ]; then
+            mkdir -p security/vulnerabilities
+            for file in "$RUNNER_TEMP"/vulns/*.json; do
+              name=$(basename "$file")
+              echo "$name" | grep -Eq '^[0-9a-f]{12}\.json$'
+              jq -e --arg name "$name" '(.id + ".json" == $name) and (.title | type == "string" and length > 0 and length <= 200) and (.explanation | type == "string" and length > 0 and length <= 1200) and (.severity | IN("critical", "high", "medium", "low")) and (.cvss.score | type == "number" and . > 0 and . <= 10) and (.scanner | IN("codeql", "npm-audit", "trivy")) and (.status | IN("open", "fixed")) and (.detected | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")) and (.url == null or (.url | test("^https://")))' "$file" > /dev/null
+              cp "$file" "security/vulnerabilities/$name"
+            done
+            git add security/vulnerabilities
+          fi
+          if git diff --cached --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/tldCoverage.json
-          git commit -m "Update TLD coverage"
+          git commit -m "Update generated data: TLD coverage and vulnerability tracker"
           git pull --rebase origin staging
           git push origin HEAD:staging
           gh workflow run ci.yml --ref staging

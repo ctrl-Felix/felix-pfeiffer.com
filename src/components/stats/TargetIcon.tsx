@@ -1,4 +1,4 @@
-import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, ReaderIcon, SeoIcon, StatsIcon, ToolsIcon } from "@/components/Icons";
+import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, ReaderIcon, SeoIcon, ShieldIcon, StatsIcon, ToolsIcon } from "@/components/Icons";
 
 const icons: Record<string, () => React.JSX.Element> = {
   finder: FinderIcon,
@@ -6,6 +6,7 @@ const icons: Record<string, () => React.JSX.Element> = {
   github: GithubIcon,
   mail: MailIcon,
   seo: SeoIcon,
+  vulnerabilities: ShieldIcon,
   stats: StatsIcon,
   tools: ToolsIcon,
   reader: ReaderIcon,
