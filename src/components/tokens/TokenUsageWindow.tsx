@@ -2,6 +2,7 @@
 
 import { useWindow } from "@/components/windows/context";
 import TrafficLights from "@/components/windows/TrafficLights";
+import { messageTotal } from "@/lib/messageCount";
 import { formatMillions, modelName, tokenTotals } from "@/lib/tokenUsage";
 
 const totals = tokenTotals();
@@ -16,17 +17,17 @@ export default function TokenUsageWindow() {
         <h1 className="flex-1 pr-14 text-center text-[13px] font-semibold">Token Usage</h1>
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-        <p className="text-[13px] text-black/60">Tokens used to build this page.</p>
+        <p className="text-[13px] text-black/60">What it took to build this page.</p>
         <div className="grid grid-cols-3 gap-3 text-center">
           {[
             { label: "Processed", hint: "tokens read", value: formatMillions(totals.processed) },
             { label: "Written", hint: "tokens generated", value: formatMillions(totals.written) },
-            { label: "Requests", hint: "model calls", value: totals.calls.toLocaleString("en-US") },
+            { label: "Messages", hint: "sent by Felix", value: messageTotal().toLocaleString("en-US") },
           ].map((item) => (
             <div key={item.label} className="rounded-xl bg-white/80 px-2 py-3 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
               <div className="text-lg font-semibold">{item.value}</div>
               <div className="text-xs font-medium text-black/60">{item.label}</div>
-              <div className="text-[11px] text-black/40">{item.hint}</div>
+              <div className="text-[11px] text-black/50">{item.hint}</div>
             </div>
           ))}
         </div>
@@ -46,7 +47,7 @@ export default function TokenUsageWindow() {
                       <div className="h-full rounded-full bg-[#0a84ff]" style={{ width: `${Math.max(share, 1)}%` }} />
                     </div>
                     <div className="mt-1.5 text-xs text-black/55">
-                      {formatMillions(item.processed)} read, {formatMillions(item.written)} generated, {item.calls.toLocaleString("en-US")} calls
+                      {formatMillions(item.processed)} read, {formatMillions(item.written)} generated
                     </div>
                   </li>
                 );
@@ -56,7 +57,7 @@ export default function TokenUsageWindow() {
             <p className="py-4 text-center text-[13px] text-black/45">No usage recorded yet.</p>
           )}
         </section>
-        <p className="text-center text-[11px] text-black/40">Read includes context re-read on every call.</p>
+        <p className="text-center text-[11px] text-black/40">Read includes context re-read on every step. Each message is counted once.</p>
       </div>
     </div>
   );
