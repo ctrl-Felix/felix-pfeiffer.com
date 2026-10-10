@@ -13,9 +13,9 @@ for name in db_superuser_password db_migrator_password db_app_password; do
   fi
 done
 
-for name in smtp_password twelve_data_api_key; do
+for name in smtp_password alpaca_key_id alpaca_secret_key; do
   [ -e "secrets/$name" ] || : > "secrets/$name"
 done
 
 chmod 444 secrets/*
-echo "Done. Put the SMTP password into secrets/smtp_password and your Twelve Data API key into secrets/twelve_data_api_key. Never commit the secrets directory."
+echo "Done. Put the SMTP password into secrets/smtp_password and your Alpaca key id and secret into secrets/alpaca_key_id and secrets/alpaca_secret_key. Never commit the secrets directory."

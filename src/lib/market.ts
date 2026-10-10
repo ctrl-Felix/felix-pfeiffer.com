@@ -1,21 +1,29 @@
 import { readSecret } from "./secrets";
 import { ranges, type ChartData, type Quote, type QuoteSummary, type RangeKey, type SearchHit } from "./stocks";
 
-const base = process.env.MARKET_DATA_BASE ?? "https://api.twelvedata.com";
-const creditsPerMinute = 8;
-const creditsPerDay = 780;
-const maxWaitMs = 30_000;
-const maxBatch = 8;
+const dataBase = process.env.MARKET_DATA_BASE ?? "https://data.alpaca.markets";
+const tradingBase = process.env.MARKET_TRADING_BASE ?? "https://paper-api.alpaca.markets";
+const callsPerMinute = 150;
+const maxWaitMs = 20_000;
+const snapshotBatch = 50;
 const maxCacheEntries = 1000;
+const delayedMs = 16 * 60_000;
+const dayMs = 86_400_000;
+const regularOpenMinute = 9 * 60 + 30;
+const regularCloseMinute = 16 * 60;
 
 const minute = 60_000;
-const quoteTtlMs = 15 * minute;
-const searchTtlMs = 24 * 60 * minute;
-const seriesTtlMs: Record<string, number> = { "5min": 5 * minute, "30min": 15 * minute };
+const quoteTtlMs = minute;
+const assetsTtlMs = 24 * 60 * minute;
+const intradayTtlMs = 5 * minute;
+const longTtlMs = 30 * minute;
+
+type Bar = { t: string; o: number; h: number; l: number; c: number; v: number };
+type Snapshot = { latestTrade?: { p?: number }; dailyBar?: Bar; prevDailyBar?: Bar };
+type Asset = { symbol: string; name: string; exchange: string };
 
 const cache = new Map<string, { expires: number; value: unknown }>();
-const spent: { at: number; credits: number }[] = [];
-let day = { key: "", credits: 0 };
+const calls: number[] = [];
 
 async function cached<T>(key: string, ttlMs: number, load: () => Promise<T>): Promise<T> {
   const hit = cache.get(key);
@@ -31,80 +39,88 @@ async function cached<T>(key: string, ttlMs: number, load: () => Promise<T>): Pr
   }
 }
 
-async function spend(credits: number) {
-  const today = new Date().toISOString().slice(0, 10);
-  if (day.key !== today) day = { key: today, credits: 0 };
-  if (day.credits + credits > creditsPerDay) throw new Error("daily credit budget used up");
+async function takeCallSlot() {
   const deadline = Date.now() + maxWaitMs;
   for (;;) {
     const now = Date.now();
-    while (spent.length && now - spent[0].at >= minute) spent.shift();
-    const used = spent.reduce((sum, entry) => sum + entry.credits, 0);
-    if (used + credits <= creditsPerMinute) {
-      spent.push({ at: now, credits });
-      day.credits += credits;
+    while (calls.length && now - calls[0] >= minute) calls.shift();
+    if (calls.length < callsPerMinute) {
+      calls.push(now);
       return;
     }
-    if (now + 500 > deadline) throw new Error("per-minute credit budget used up");
+    if (now + 500 > deadline) throw new Error("rate budget used up");
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
 }
 
-async function getJson(path: string, credits: number) {
-  const key = readSecret("TWELVE_DATA_API_KEY");
-  if (!key) throw new Error("market data is not configured");
-  await spend(credits);
+async function getJson(base: string, path: string) {
+  const keyId = readSecret("ALPACA_KEY_ID");
+  const secretKey = readSecret("ALPACA_SECRET_KEY");
+  if (!keyId || !secretKey) throw new Error("market data is not configured");
+  await takeCallSlot();
   const response = await fetch(base + path, {
-    headers: { Authorization: `apikey ${key}`, Accept: "application/json" },
+    headers: { "APCA-API-KEY-ID": keyId, "APCA-API-SECRET-KEY": secretKey, Accept: "application/json" },
     cache: "no-store",
     signal: AbortSignal.timeout(10_000),
   });
-  const json = await response.json().catch(() => null);
-  if (!response.ok || json?.status === "error") throw new Error(`upstream error ${json?.code ?? response.status}`);
-  return json;
+  if (!response.ok) throw new Error(`upstream error ${response.status}`);
+  return response.json();
 }
 
-const toNumber = (value: unknown) => {
-  const number = typeof value === "string" ? Number(value) : value;
-  return typeof number === "number" && Number.isFinite(number) ? number : null;
-};
+const isNumber = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 
-function toSummary(raw: Record<string, unknown> | undefined): QuoteSummary | null {
-  const price = toNumber(raw?.close);
-  const previous = toNumber(raw?.previous_close);
-  if (!raw || typeof raw.symbol !== "string" || price === null || previous === null) return null;
-  const year = (raw.fifty_two_week ?? {}) as Record<string, unknown>;
-  return {
-    symbol: raw.symbol.toUpperCase(),
-    name: String(raw.name ?? raw.symbol),
-    currency: String(raw.currency ?? ""),
-    exchange: String(raw.exchange ?? ""),
-    price,
-    baseline: previous,
-    previousClose: previous,
-    dayHigh: toNumber(raw.high),
-    dayLow: toNumber(raw.low),
-    yearHigh: toNumber(year.high),
-    yearLow: toNumber(year.low),
-    volume: toNumber(raw.volume),
-  };
+const cleanName = (name: string) =>
+  name.replace(/ (Common Stock|Class [A-Z] Common Stock|Ordinary Shares|American Depositary Shares).*$/, "");
+
+function loadAssets() {
+  return cached<Asset[]>("assets", assetsTtlMs, async () => {
+    const json: Record<string, unknown>[] = await getJson(tradingBase, "/v2/assets?status=active&asset_class=us_equity");
+    return json
+      .filter((asset) => asset.tradable === true && typeof asset.symbol === "string")
+      .map((asset) => ({
+        symbol: String(asset.symbol),
+        name: cleanName(String(asset.name ?? asset.symbol)),
+        exchange: String(asset.exchange ?? ""),
+      }));
+  });
 }
 
 const quotes = new Map<string, { expires: number; value: QuoteSummary }>();
 
-async function fetchQuoteBatch(symbols: string[]) {
-  const json = await getJson(`/quote?symbol=${encodeURIComponent(symbols.join(","))}`, symbols.length);
-  const byRequested: Record<string, unknown> = symbols.length === 1 && "symbol" in json ? { [symbols[0]]: json } : json;
+async function fetchSnapshots(symbols: string[]) {
+  const json = await getJson(dataBase, `/v2/stocks/snapshots?symbols=${encodeURIComponent(symbols.join(","))}&feed=iex`);
+  const snapshots: Record<string, Snapshot | undefined> = json?.snapshots ?? json;
+  const assets = await loadAssets().catch(() => [] as Asset[]);
   for (const symbol of symbols) {
-    const summary = toSummary(byRequested[symbol] as Record<string, unknown> | undefined);
-    if (summary) quotes.set(symbol, { expires: Date.now() + quoteTtlMs, value: summary });
+    const snapshot = snapshots[symbol];
+    const price = snapshot?.latestTrade?.p ?? snapshot?.dailyBar?.c;
+    const previous = snapshot?.prevDailyBar?.c;
+    if (!isNumber(price) || !isNumber(previous)) continue;
+    const asset = assets.find((candidate) => candidate.symbol === symbol);
+    quotes.set(symbol, {
+      expires: Date.now() + quoteTtlMs,
+      value: {
+        symbol,
+        name: asset?.name ?? symbol,
+        currency: "USD",
+        exchange: asset?.exchange ?? "",
+        price,
+        baseline: previous,
+        previousClose: previous,
+        dayHigh: snapshot?.dailyBar?.h ?? null,
+        dayLow: snapshot?.dailyBar?.l ?? null,
+        yearHigh: null,
+        yearLow: null,
+        volume: snapshot?.dailyBar?.v ?? null,
+      },
+    });
   }
 }
 
 export async function getQuotes(symbols: string[]): Promise<Quote[]> {
   const missing = symbols.filter((symbol) => !((quotes.get(symbol)?.expires ?? 0) > Date.now()));
-  for (let index = 0; index < missing.length; index += maxBatch) {
-    await fetchQuoteBatch(missing.slice(index, index + maxBatch)).catch(() => {});
+  for (let index = 0; index < missing.length; index += snapshotBatch) {
+    await fetchSnapshots(missing.slice(index, index + snapshotBatch)).catch(() => {});
   }
   if (quotes.size > maxCacheEntries) quotes.clear();
   return symbols.flatMap((symbol) => {
@@ -113,49 +129,64 @@ export async function getQuotes(symbols: string[]): Promise<Quote[]> {
   });
 }
 
-function parseTime(datetime: string) {
-  const iso = datetime.length === 10 ? `${datetime}T00:00:00Z` : `${datetime.replace(" ", "T")}Z`;
-  return Math.floor(Date.parse(iso) / 1000);
+const easternDate = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+
+function easternMinute(iso: string) {
+  const [hours, minutes] = new Date(iso)
+    .toLocaleTimeString("en-GB", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false })
+    .split(":")
+    .map(Number);
+  return hours * 60 + minutes;
+}
+
+function getBars(symbol: string, rangeKey: RangeKey) {
+  const config = ranges[rangeKey];
+  const intraday = config.sessions !== undefined;
+  return cached<Bar[]>(`bars:${symbol}:${rangeKey}`, intraday ? intradayTtlMs : longTtlMs, async () => {
+    const now = Date.now();
+    const start = config.ytd ? `${new Date().getUTCFullYear()}-01-01T00:00:00Z` : new Date(now - (config.days ?? 30) * dayMs).toISOString();
+    const end = new Date(now - delayedMs).toISOString();
+    const json = await getJson(
+      dataBase,
+      `/v2/stocks/bars?symbols=${encodeURIComponent(symbol)}&timeframe=${config.timeframe}&start=${start}&end=${end}&limit=10000&adjustment=split&feed=iex&sort=asc`,
+    );
+    const raw = json?.bars;
+    let bars: Bar[] = (Array.isArray(raw) ? raw : (raw?.[symbol] ?? [])).filter((bar: Bar) => isNumber(bar.c) && !Number.isNaN(Date.parse(bar.t)));
+    if (intraday) {
+      bars = bars.filter((bar) => easternMinute(bar.t) >= regularOpenMinute && easternMinute(bar.t) < regularCloseMinute);
+      const dates = [...new Set(bars.map((bar) => easternDate(bar.t)))].slice(-(config.sessions ?? 1));
+      bars = bars.filter((bar) => dates.includes(easternDate(bar.t)));
+    }
+    return bars;
+  });
 }
 
 export async function getChart(symbol: string, rangeKey: RangeKey): Promise<ChartData> {
   const [quote] = await getQuotes([symbol]);
   if (!quote) throw new Error("no quote");
-  const { interval, outputsize } = ranges[rangeKey];
-  const startDate = rangeKey === "YTD" ? `&start_date=${new Date().getUTCFullYear()}-01-01` : "";
-  const points = await cached<[number, number][]>(`series:${symbol}:${rangeKey}`, seriesTtlMs[interval] ?? 60 * minute, async () => {
-    const json = await getJson(
-      `/time_series?symbol=${encodeURIComponent(symbol)}&interval=${interval}&outputsize=${outputsize}&timezone=UTC${startDate}`,
-      1,
-    );
-    const values: Record<string, string>[] = json?.values ?? [];
-    return values
-      .flatMap((value) => {
-        const close = toNumber(value.close);
-        const time = parseTime(String(value.datetime));
-        return close !== null && Number.isFinite(time) ? [[time, close] as [number, number]] : [];
-      })
-      .sort((a, b) => a[0] - b[0]);
-  });
-  if (!points.length) throw new Error("no series");
+  const [bars, yearBars] = await Promise.all([getBars(symbol, rangeKey), getBars(symbol, "1Y").catch(() => [] as Bar[])]);
+  if (!bars.length) throw new Error("no series");
   const { requested, ...summary } = quote;
   void requested;
-  return { ...summary, baseline: rangeKey === "1D" ? quote.baseline : points[0][1], points };
+  return {
+    ...summary,
+    yearHigh: yearBars.length ? Math.max(...yearBars.map((bar) => bar.h)) : null,
+    yearLow: yearBars.length ? Math.min(...yearBars.map((bar) => bar.l)) : null,
+    baseline: rangeKey === "1D" ? quote.baseline : bars[0].c,
+    points: bars.map((bar) => [Math.floor(Date.parse(bar.t) / 1000), bar.c] as [number, number]),
+  };
 }
 
-export function searchSymbols(query: string) {
-  return cached<SearchHit[]>(`search:${query.toLowerCase()}`, searchTtlMs, async () => {
-    const json = await getJson(`/symbol_search?symbol=${encodeURIComponent(query)}&outputsize=12`, 1);
-    const seen = new Set<string>();
-    const data: Record<string, unknown>[] = json?.data ?? [];
-    return data
-      .filter((item) => typeof item.symbol === "string" && item.country === "United States" && !seen.has(item.symbol as string) && seen.add(item.symbol as string))
-      .slice(0, 8)
-      .map((item) => ({
-        symbol: String(item.symbol),
-        name: String(item.instrument_name ?? item.symbol),
-        exchange: String(item.exchange ?? ""),
-        type: String(item.instrument_type ?? ""),
-      }));
-  });
+export async function searchSymbols(query: string): Promise<SearchHit[]> {
+  const needle = query.trim().toUpperCase();
+  const assets = await loadAssets();
+  return assets
+    .flatMap((asset) => {
+      const name = asset.name.toUpperCase();
+      const rank = asset.symbol === needle ? 0 : asset.symbol.startsWith(needle) ? 1 : name.startsWith(needle) ? 2 : name.includes(needle) ? 3 : -1;
+      return rank < 0 ? [] : [{ asset, rank }];
+    })
+    .sort((a, b) => a.rank - b.rank || a.asset.symbol.length - b.asset.symbol.length)
+    .slice(0, 8)
+    .map(({ asset }) => ({ symbol: asset.symbol, name: asset.name, exchange: asset.exchange, type: "" }));
 }

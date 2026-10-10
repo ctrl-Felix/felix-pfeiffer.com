@@ -84,7 +84,7 @@ export default function Detail({ symbol }: { symbol: string }) {
           </div>
         ))}
       </dl>
-      <p className="mt-1 text-[10px] text-white/35">Market data by Twelve Data, may be delayed. Not financial advice.</p>
+      <p className="mt-1 text-[10px] text-white/35">Market data by Alpaca (IEX), may be delayed. Not financial advice.</p>
     </div>
   );
 }

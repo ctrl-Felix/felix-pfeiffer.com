@@ -75,11 +75,13 @@ services:
       DB_HOST: db
       DB_PASSWORD_FILE: /run/secrets/db_app_password
       SMTP_PASS_FILE: /run/secrets/smtp_password
-      TWELVE_DATA_API_KEY_FILE: /run/secrets/twelve_data_api_key
+      ALPACA_KEY_ID_FILE: /run/secrets/alpaca_key_id
+      ALPACA_SECRET_KEY_FILE: /run/secrets/alpaca_secret_key
     secrets:
       - db_app_password
       - smtp_password
-      - twelve_data_api_key
+      - alpaca_key_id
+      - alpaca_secret_key
     tmpfs:
       - /tmp
     networks:
@@ -100,8 +102,10 @@ secrets:
     file: ./secrets/db_app_password
   smtp_password:
     file: ./secrets/smtp_password
-  twelve_data_api_key:
-    file: ./secrets/twelve_data_api_key
+  alpaca_key_id:
+    file: ./secrets/alpaca_key_id
+  alpaca_secret_key:
+    file: ./secrets/alpaca_secret_key
 
 volumes:
   db-data: {}

@@ -1,16 +1,18 @@
-export const ranges = {
-  "1D": { interval: "5min", outputsize: 78 },
-  "1W": { interval: "30min", outputsize: 65 },
-  "1M": { interval: "1day", outputsize: 22 },
-  "6M": { interval: "1day", outputsize: 126 },
-  YTD: { interval: "1day", outputsize: 260 },
-  "1Y": { interval: "1day", outputsize: 252 },
-  "5Y": { interval: "1week", outputsize: 260 },
-  MAX: { interval: "1month", outputsize: 600 },
-} as const;
+export const rangeKeys = ["1D", "1W", "1M", "6M", "YTD", "1Y", "5Y", "MAX"] as const;
+export type RangeKey = (typeof rangeKeys)[number];
 
-export type RangeKey = keyof typeof ranges;
-export const rangeKeys = Object.keys(ranges) as RangeKey[];
+export type RangeConfig = { timeframe: string; days?: number; ytd?: boolean; sessions?: number };
+
+export const ranges: Record<RangeKey, RangeConfig> = {
+  "1D": { timeframe: "5Min", days: 6, sessions: 1 },
+  "1W": { timeframe: "30Min", days: 9, sessions: 5 },
+  "1M": { timeframe: "1Day", days: 31 },
+  "6M": { timeframe: "1Day", days: 183 },
+  YTD: { timeframe: "1Day", ytd: true },
+  "1Y": { timeframe: "1Day", days: 366 },
+  "5Y": { timeframe: "1Week", days: 1827 },
+  MAX: { timeframe: "1Month", days: 3650 },
+};
 
 export const symbolPattern = /^[A-Za-z0-9.\-]{1,15}$/;
 
