@@ -76,7 +76,7 @@ export const toolInfos: ToolInfo[] = [
   {
     id: "dns",
     name: "DNS Records",
-    description: "Look up the DNS records of a domain: addresses, mail servers, name servers, TXT and CAA.",
+    description: "Look up the DNS records of a domain: addresses, mail servers, TXT and CAA.",
     keywords: ["dns", "records", "mx", "txt", "spf", "dmarc", "caa", "nameserver", "lookup"],
     updated: "2026-10-10",
     seo: {
@@ -132,5 +132,16 @@ export const toolInfos: ToolInfo[] = [
     },
   },
 ];
+
+export const toolsHub = {
+  path: "/tools",
+  updated: "2026-10-10",
+  title: "Free Online Tools: Whois and DNS Lookup",
+  description: "Free online security tools: whois lookup and DNS record checker. No sign up, nothing stored, and usable from AI assistants through MCP.",
+  heading: "Free online tools",
+  intro:
+    "Small, free tools to check domains: look up who registered a domain and when it expires, or read its DNS records. No account, no tracking of your lookups, and every tool is also available to AI assistants through one open MCP server.",
+  keywords: ["free online tools", "whois lookup", "dns lookup", "domain tools", "security tools", "mcp server"],
+};
 
 export const findToolInfo = (id: string) => toolInfos.find((tool) => tool.id === id);

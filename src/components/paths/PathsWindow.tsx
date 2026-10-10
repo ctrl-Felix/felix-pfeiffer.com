@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { LogoIcon, PathsIcon, StatsIcon } from "@/components/Icons";
+import { LogoIcon, PathsIcon, StatsIcon, ToolsIcon } from "@/components/Icons";
 import { tools } from "@/components/tools/registry";
 import { useWindow } from "@/components/windows/context";
 import TrafficLights from "@/components/windows/TrafficLights";
-import { absoluteUrl, publicPaths, type PublicPath } from "@/data/publicPaths";
+import { absoluteUrl, pathGroups, publicPaths, type PublicPath } from "@/data/publicPaths";
 
 function PathIcon({ entry }: { entry: PublicPath }) {
+  if (entry.icon === "tools") return <ToolsIcon />;
   if (entry.kind === "tool") {
     const Icon = tools.find((tool) => tool.id === entry.toolId)?.Icon;
     return Icon ? <Icon /> : <LogoIcon />;
@@ -18,9 +19,9 @@ function PathIcon({ entry }: { entry: PublicPath }) {
 }
 
 const mapsTo = (entry: PublicPath) => {
-  if (entry.kind === "tool") return `Desktop → Tools → ${entry.title}, maximized`;
+  if (entry.kind === "tool") return entry.toolId ? `Desktop → Tools → ${entry.title}, maximized` : "Desktop → Tools, maximized";
   if (entry.kind === "page") return "Standalone page";
-  if (entry.kind === "api") return "AI assistants (MCP, JSON-RPC over POST)";
+  if (entry.kind === "file") return "Plain text file";
   return "Desktop";
 };
 
@@ -37,7 +38,7 @@ function Row({ entry }: { entry: PublicPath }) {
   };
 
   return (
-    <li className="flex items-start gap-3 px-4 py-3">
+    <li className={`flex items-start gap-3 py-3 pr-4 ${entry.parent ? "pl-10" : "pl-4"}`}>
       <span className="mt-0.5 block h-10 w-10 shrink-0"><PathIcon entry={entry} /></span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -51,11 +52,9 @@ function Row({ entry }: { entry: PublicPath }) {
         <p className="mt-0.5 text-xs text-black/55">{entry.description}</p>
       </div>
       <div className="flex shrink-0 flex-col gap-1.5 @max-lg:hidden">
-        {entry.kind !== "api" && (
-          <a href={entry.path} target="_blank" rel="noopener noreferrer" className="rounded-md bg-[#0a84ff] px-2.5 py-1 text-center text-xs font-medium text-white">
+        <a href={entry.path} target="_blank" rel="noopener noreferrer" className="rounded-md bg-[#0a84ff] px-2.5 py-1 text-center text-xs font-medium text-white">
             Open ↗
           </a>
-        )}
         <button type="button" onClick={copy} className="rounded-md bg-black/7 px-2.5 py-1 text-xs font-medium hover:bg-black/12">
           {copied ? "Copied" : "Copy link"}
         </button>
@@ -77,11 +76,18 @@ export default function PathsWindow() {
         <p className="mb-3 text-[13px] text-black/60">
           Addresses that can be opened directly.
         </p>
-        <ul className="divide-y divide-black/10 overflow-hidden rounded-xl bg-white/80 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
-          {publicPaths.map((entry) => (
-            <Row key={entry.path} entry={entry} />
+        <div className="space-y-4">
+          {pathGroups.map((group) => (
+            <section key={group.id}>
+              <h2 className="mb-1.5 px-1 text-xs font-medium uppercase tracking-wide text-black/45">{group.title}</h2>
+              <ul className="divide-y divide-black/10 overflow-hidden rounded-xl bg-white/80 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
+                {publicPaths.filter((entry) => entry.group === group.id).map((entry) => (
+                  <Row key={entry.path} entry={entry} />
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );

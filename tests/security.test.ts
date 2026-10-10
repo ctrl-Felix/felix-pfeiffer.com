@@ -71,12 +71,12 @@ test("workflows are least privilege and do not use dangerous triggers", () => {
   assert.match(workflow, /pull_request:\n\s+branches: \["main"\]/);
 });
 
-test("only the TLD commit job has write permissions and it never runs repository code", () => {
+test("only the generated data commit job has write permissions and it never runs repository code", () => {
   const workflow = read(".github/workflows/ci.yml");
   const jobs = workflow.split(/^jobs:\n/m)[1].split(/^  (?=[a-z-]+:\n)/m).filter(Boolean);
   const writers = jobs.filter((job) => /(contents|actions|pull-requests|security-events): write/.test(job) && !job.startsWith("codeql:"));
   assert.equal(writers.length, 1);
-  assert.match(writers[0], /^tld-coverage-commit:/);
+  assert.match(writers[0], /^commit-generated:/);
   assert.match(writers[0], /head_ref == 'staging'/);
   assert.match(writers[0], /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/);
   assert.doesNotMatch(writers[0], /npm |npx |tsx |node /);

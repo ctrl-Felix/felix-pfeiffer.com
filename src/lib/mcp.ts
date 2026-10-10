@@ -1,7 +1,9 @@
 import { mcpTools } from "./mcpTools";
 import { toolSummary } from "./mcpTools/types";
+import { isMcpTarget, type McpTarget } from "./tracking";
 
 type Id = string | number | null;
+export type McpOptions = { onToolCall?: (tool: McpTarget) => void };
 type RpcResponse = { jsonrpc: "2.0"; id: Id; result?: unknown; error?: { code: number; message: string } };
 
 const protocolVersions = ["2025-06-18", "2025-03-26", "2024-11-05"];
@@ -13,7 +15,7 @@ const instructions =
 const ok = (id: Id, result: unknown): RpcResponse => ({ jsonrpc: "2.0", id, result });
 const fail = (id: Id, code: number, message: string): RpcResponse => ({ jsonrpc: "2.0", id, error: { code, message } });
 
-async function handleOne(message: unknown, ip: string): Promise<RpcResponse | null> {
+async function handleOne(message: unknown, ip: string, options: McpOptions): Promise<RpcResponse | null> {
   const request = message as { jsonrpc?: unknown; id?: unknown; method?: unknown; params?: unknown } | null;
   if (!request || typeof request !== "object" || request.jsonrpc !== "2.0" || typeof request.method !== "string") {
     return fail(null, -32600, "Invalid request");
@@ -40,6 +42,7 @@ async function handleOne(message: unknown, ip: string): Promise<RpcResponse | nu
     case "tools/call": {
       const tool = mcpTools.find((candidate) => candidate.name === params.name);
       if (!tool) return fail(id, -32602, `Unknown tool: ${String(params.name)}`);
+      if (isMcpTarget(tool.name)) options.onToolCall?.(tool.name);
       return ok(id, await tool.call(params.arguments, ip));
     }
     default:
@@ -47,11 +50,11 @@ async function handleOne(message: unknown, ip: string): Promise<RpcResponse | nu
   }
 }
 
-export async function handleRpc(body: unknown, ip: string): Promise<RpcResponse | RpcResponse[] | null> {
+export async function handleRpc(body: unknown, ip: string, options: McpOptions = {}): Promise<RpcResponse | RpcResponse[] | null> {
   if (Array.isArray(body)) {
     if (!body.length || body.length > maxBatch) return fail(null, -32600, "Invalid batch size");
-    const responses = (await Promise.all(body.map((message) => handleOne(message, ip)))).filter((response): response is RpcResponse => response !== null);
+    const responses = (await Promise.all(body.map((message) => handleOne(message, ip, options)))).filter((response): response is RpcResponse => response !== null);
     return responses.length ? responses : null;
   }
-  return handleOne(body, ip);
+  return handleOne(body, ip, options);
 }

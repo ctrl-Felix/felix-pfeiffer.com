@@ -15,7 +15,9 @@ function routeMcp(request: NextRequest) {
 }
 
 export function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname === "/mcp") return routeMcp(request);
+  const path = request.nextUrl.pathname;
+  if (path === "/mcp") return routeMcp(request);
+  if (path === "/tools" || path === "/tools/") return NextResponse.next();
   const tool = request.nextUrl.pathname.split("/")[2] ?? "";
   if (findToolInfo(tool)) return NextResponse.next();
   return new NextResponse("Not found", {

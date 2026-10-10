@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Stats } from "@/lib/stats";
-import { barsFor } from "./ranges";
+import { barsFor, mcpBarsFor } from "./ranges";
 
 const days = Array.from({ length: 30 }, (_, index) => ({ day: `2026-09-${String(index + 1).padStart(2, "0")}`, visitors: index }));
 const stats: Stats = {
@@ -10,7 +10,12 @@ const stats: Stats = {
   daily: days,
   monthly: [{ month: "2025-12", visitors: 4 }, { month: "2026-02", visitors: 9 }],
   clicks: [],
-  recent: [],
+  mcp: {
+    totals: { "7d": 0, "30d": 0, year: 0, all: 0 },
+    daily: days.map(({ day, visitors }) => ({ day, calls: visitors * 2 })),
+    monthly: [{ month: "2026-02", calls: 5 }],
+    tools: [],
+  },
 };
 
 test("barsFor builds the right number of bars per range", () => {
@@ -24,4 +29,10 @@ test("barsFor zero fills the current year by month", () => {
   assert.equal(bars.length, 12);
   assert.equal(bars[1].value, 9);
   assert.equal(bars[0].value, 0);
+});
+
+test("mcpBarsFor uses the call counts, not the visitors", () => {
+  assert.equal(mcpBarsFor("30d", stats)[10].value, 20);
+  assert.equal(mcpBarsFor("year", stats)[1].value, 5);
+  assert.equal(mcpBarsFor("all", stats).length, 1);
 });

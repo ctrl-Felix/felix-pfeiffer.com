@@ -15,20 +15,36 @@ function dayLabel(day: string) {
   return new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
 }
 
-export function barsFor(period: Period, stats: Stats): Bar[] {
+type Series = { year: number; daily: { day: string; value: number }[]; monthly: { month: string; value: number }[] };
+
+function barsFromSeries(period: Period, series: Series): Bar[] {
   if (period === "7d" || period === "30d") {
-    const days = period === "7d" ? stats.daily.slice(-7) : stats.daily;
-    return days.map(({ day, visitors }) => ({ key: day, label: dayLabel(day), short: String(Number(day.slice(8))), value: visitors }));
+    const days = period === "7d" ? series.daily.slice(-7) : series.daily;
+    return days.map(({ day, value }) => ({ key: day, label: dayLabel(day), short: String(Number(day.slice(8))), value }));
   }
-  const known = new Map(stats.monthly.map(({ month, visitors }) => [month, visitors]));
+  const known = new Map(series.monthly.map(({ month, value }) => [month, value]));
   if (period === "year") {
     return monthNames.map((name, index) => {
-      const key = `${stats.year}-${String(index + 1).padStart(2, "0")}`;
-      return { key, label: `${name} ${stats.year}`, short: name.slice(0, 1), value: known.get(key) ?? 0 };
+      const key = `${series.year}-${String(index + 1).padStart(2, "0")}`;
+      return { key, label: `${name} ${series.year}`, short: name.slice(0, 1), value: known.get(key) ?? 0 };
     });
   }
-  return stats.monthly.map(({ month, visitors }) => {
+  return series.monthly.map(({ month, value }) => {
     const name = monthNames[Number(month.slice(5)) - 1];
-    return { key: month, label: `${name} ${month.slice(0, 4)}`, short: name.slice(0, 1), value: visitors };
+    return { key: month, label: `${name} ${month.slice(0, 4)}`, short: name.slice(0, 1), value };
   });
 }
+
+export const barsFor = (period: Period, stats: Stats) =>
+  barsFromSeries(period, {
+    year: stats.year,
+    daily: stats.daily.map(({ day, visitors }) => ({ day, value: visitors })),
+    monthly: stats.monthly.map(({ month, visitors }) => ({ month, value: visitors })),
+  });
+
+export const mcpBarsFor = (period: Period, stats: Stats) =>
+  barsFromSeries(period, {
+    year: stats.year,
+    daily: stats.mcp.daily.map(({ day, calls }) => ({ day, value: calls })),
+    monthly: stats.mcp.monthly.map(({ month, calls }) => ({ month, value: calls })),
+  });

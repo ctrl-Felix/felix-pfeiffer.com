@@ -55,12 +55,12 @@ export default function ToolsApp() {
                       event.preventDefault();
                       setActiveId(tool.id);
                     }}
-                    className="flex w-full items-center gap-3 rounded-2xl bg-white/80 p-3 text-left shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)] hover:bg-white"
+                    className="flex h-[88px] w-full items-center gap-3 rounded-2xl bg-white/80 p-3 text-left shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)] hover:bg-white"
                   >
                     <span className="block h-11 w-11 shrink-0"><tool.Icon /></span>
                     <span className="min-w-0">
                       <span className="block text-sm font-semibold">{tool.name}</span>
-                      <span className="block text-xs text-black/55">{tool.description}</span>
+                      <span className="line-clamp-2 block text-xs text-black/55">{tool.description}</span>
                     </span>
                   </a>
                 </li>
