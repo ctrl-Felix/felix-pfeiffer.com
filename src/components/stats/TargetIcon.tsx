@@ -1,4 +1,4 @@
-import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, StatsIcon, StocksIcon } from "@/components/Icons";
+import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, StatsIcon, StocksIcon, ToolsIcon } from "@/components/Icons";
 
 const icons: Record<string, () => React.JSX.Element> = {
   finder: FinderIcon,
@@ -7,6 +7,7 @@ const icons: Record<string, () => React.JSX.Element> = {
   mail: MailIcon,
   stocks: StocksIcon,
   stats: StatsIcon,
+  tools: ToolsIcon,
 };
 
 export default function TargetIcon({ target }: { target: string }) {

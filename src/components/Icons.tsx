@@ -81,6 +81,28 @@ export function StatsIcon() {
   );
 }
 
+export function ToolsIcon() {
+  return (
+    <Tile id="tl" from="#a1a7b3" to="#4b505b">
+      <g transform="translate(14 14) scale(1.5)" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.5 6.5a4 4 0 0 0-5 5L3 18l3 3 6.5-6.5a4 4 0 0 0 5-5l-3 3-2-2z" />
+      </g>
+    </Tile>
+  );
+}
+
+export function WhoisIcon() {
+  return (
+    <Tile id="wh" from="#6bd3ff" to="#0a64e6">
+      <g fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
+        <circle cx="29" cy="29" r="14" />
+        <path d="M15 29h28M29 15c-6 6-6 22 0 28M29 15c6 6 6 22 0 28" strokeWidth="2.2" />
+        <path d="M40 40l10 10" strokeWidth="4.5" />
+      </g>
+    </Tile>
+  );
+}
+
 export function FinderIcon() {
   return (
     <Tile id="fn" from="#8fdcff" to="#3a9af0">

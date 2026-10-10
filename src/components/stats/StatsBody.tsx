@@ -52,7 +52,7 @@ function Transparency({ card }: { card: string }) {
       <p className="mt-4 text-xs text-white/50">
         Each anonymous visitor counts once per day. Your IP address only lives in memory for a moment to create that ID and to limit abuse.
         Bots and visitors who send Do Not Track or Global Privacy Control are not counted. The contact form sends your message by email
-        and does not save it on this site. The Stocks app currently shows placeholder data generated on this server and stores nothing.
+        and does not save it on this site. The Stocks app currently shows placeholder data generated on this server and stores nothing. Tools such as Whois send the domain you enter through this server to public registry servers and do not store it.
       </p>
     </section>
   );

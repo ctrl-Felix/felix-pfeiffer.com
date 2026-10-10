@@ -1,10 +1,11 @@
 import { links } from "@/config";
 import FinderWindow from "./FinderWindow";
-import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, StatsIcon, StocksIcon } from "./Icons";
+import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, StatsIcon, StocksIcon, ToolsIcon } from "./Icons";
 import MailWindow from "./MailWindow";
 import ProfileWindow from "./ProfileWindow";
 import StatsWindow from "./stats/StatsWindow";
 import StocksApp from "./stocks/StocksApp";
+import ToolsApp from "./tools/ToolsApp";
 
 export type App = {
   id: string;
@@ -40,6 +41,12 @@ export const apps: App[] = [
     label: "Stocks",
     Icon: StocksIcon,
     window: { Content: StocksApp, width: 860, height: 600, minWidth: 560, minHeight: 440 },
+  },
+  {
+    id: "tools",
+    label: "Tools",
+    Icon: ToolsIcon,
+    window: { Content: ToolsApp, width: 720, height: 560, minWidth: 420, minHeight: 340 },
   },
   {
     id: "stats",

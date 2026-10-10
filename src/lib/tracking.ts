@@ -4,6 +4,7 @@ export const trackTargets = {
   github: "GitHub",
   mail: "Mail",
   stocks: "Stocks",
+  tools: "Tools",
   stats: "Stats",
   linkedin: "LinkedIn",
   email: "Email",
