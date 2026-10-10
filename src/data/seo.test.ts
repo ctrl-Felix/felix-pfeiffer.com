@@ -85,8 +85,7 @@ test("there is no em dash in the profile texts", () => {
 test("the person entity has one id and links to the same profiles as the site", () => {
   const person = personNode();
   assert.equal(person["@id"], "https://felix-pfeiffer.com/#person");
-  assert.ok(person.sameAs.includes("https://github.com/ctrl-Felix"));
-  assert.ok(person.sameAs.includes("https://www.linkedin.com/in/felixpf"));
+  assert.deepEqual(person.sameAs, ["https://github.com/ctrl-Felix", "https://www.linkedin.com/in/felixpf"]);
   assert.ok(person.affiliation.some((org) => org.name === "University College London"));
   assert.ok(llmsText().includes("/about"));
 });
