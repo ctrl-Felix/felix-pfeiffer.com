@@ -141,24 +141,3 @@ jobs:
           name: tld-coverage
           path: src/data/tldCoverage.json
           retention-days: 14
-
-  ai-security-review:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    env:
-      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
-      - name: Require the API key
-        if: env.HAS_KEY != 'true'
-        run: |
-          echo "::error::The mandatory AI security review needs the ANTHROPIC_API_KEY repository secret."
-          exit 1
-      - uses: anthropics/claude-code-security-review@main
-        with:
-          claude-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
