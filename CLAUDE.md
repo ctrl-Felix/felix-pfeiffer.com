@@ -30,7 +30,7 @@ Site config and facts live in `src/config.ts`.
 - First run: `scripts/init-secrets.sh`, put the SMTP password into `secrets/smtp_password`, copy `.env.example` to `.env`, then `docker compose up -d --build`.
 - Migrations live in `db/migrations` as dbmate SQL with `-- migrate:up` and `-- migrate:down`. Always write both. Roll back with `docker compose run --rm migrate rollback`, check with `docker compose run --rm migrate status`. Roles are created once by `db/roles.sql` on first database init: `portfolio_migrator` owns the schema, `portfolio_app` only gets the grants a migration gives it (currently select and insert on `events`).
 - Next.js connects to the database in server code only: `src/lib/db.ts` (the only place that imports `pg`), route handlers, and `use cache` queries in `src/lib/stats.ts`.
-- Source in `src/app` (pages, `stats`, `api/contact`, `api/stocks`, `api/track`) and `src/components` (macOS UI: menu bar, dock, desktop icons, window manager in `windows/`, Profile, Mail, Stocks and Stats).
+- Source in `src/app` (pages, `stats`, `api/contact`, `api/stocks`, `api/track`) and `src/components` (macOS UI: menu bar, dock, desktop icons, window manager in `windows/`, Profile, Mail, Stocks, Stats and Finder).
 - Windows: `windows/WindowManager.tsx` owns state (one window per app id), `windows/Window.tsx` is the frame (drag, resize, minimize, zoom, close). App content uses `useWindow()` for traffic lights and drag handles. Register new apps in `src/components/apps.tsx`.
 - Stocks data is placeholder data for now: `src/lib/placeholderMarket.ts` generates deterministic fake quotes, charts and search results for a fixed list of symbols, and `src/lib/market.ts` is the single switch point (a `MarketProvider` with `getQuotes`, `getChart`, `searchSymbols`). The request layer stays real: `api/stocks/*` routes with rate limiting, `src/components/stocks/api.ts` fetchers and the hooks. The UI says the data is placeholder. A real provider (needs free keys, US stocks only, no index symbols) replaces `placeholderMarket` in `market.ts`; keys must be Docker secrets read with `readSecret()`. The market overview tracks US-listed index funds (`src/components/stocks/indices.ts`).
 - Profile content lives only in `src/data/profile.ts` and feeds the Profile window, the hidden SEO text and JSON-LD. Never put the phone number on the site.
@@ -41,7 +41,7 @@ Site config and facts live in `src/config.ts`.
 
 # Privacy and tracking
 
-- The only tracking is `/api/track`, shown in full on `/stats`. It stores time, kind (visit or click), a whitelisted target and a daily anonymous visitor hash. No cookies, no IP, no user agent storage. DNT, GPC and bots are ignored.
+- The only tracking is `/api/track`, shown in full on `/stats` and in the Stats window (same `StatsBody`, data from `/api/stats`). It stores time, kind (visit or click), a whitelisted target and a daily anonymous visitor hash. No cookies, no IP, no user agent storage. DNT, GPC and bots are ignored.
 - Anything new that is tracked must be added to the whitelist in `src/lib/tracking.ts`, shown on `/stats` and described in the transparency text there. Never add third-party analytics.
 
 # Security rules

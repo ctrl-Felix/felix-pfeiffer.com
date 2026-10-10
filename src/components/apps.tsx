@@ -3,6 +3,7 @@ import FinderWindow from "./FinderWindow";
 import { FinderIcon, GithubIcon, MailIcon, ProfileIcon, StatsIcon, StocksIcon } from "./Icons";
 import MailWindow from "./MailWindow";
 import ProfileWindow from "./ProfileWindow";
+import StatsWindow from "./stats/StatsWindow";
 import StocksApp from "./stocks/StocksApp";
 
 export type App = {
@@ -40,7 +41,12 @@ export const apps: App[] = [
     Icon: StocksIcon,
     window: { Content: StocksApp, width: 860, height: 600, minWidth: 560, minHeight: 440 },
   },
-  { id: "stats", label: "Stats", Icon: StatsIcon, href: "/stats" },
+  {
+    id: "stats",
+    label: "Stats",
+    Icon: StatsIcon,
+    window: { Content: StatsWindow, width: 760, height: 640, minWidth: 420, minHeight: 360 },
+  },
 ];
 
 export const finder: App = {
