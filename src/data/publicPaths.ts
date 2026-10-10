@@ -40,19 +40,11 @@ export const publicPaths: PublicPath[] = [
   },
   {
     path: mcpPage.path,
-    title: "MCP servers",
-    description: "Explains MCP and how to connect AI assistants to the open servers on this site.",
+    title: "MCP server",
+    description: "Explains MCP and the single address (POST) that gives AI assistants the whois and DNS tools.",
     kind: "page",
     indexed: true,
     updated: mcpPage.updated,
-    icon: "paths",
-  },
-  {
-    path: "/mcp/whois",
-    title: "Whois MCP server",
-    description: "Model Context Protocol endpoint (Streamable HTTP, no login) that gives AI assistants the whois_lookup tool. Not a web page.",
-    kind: "api",
-    indexed: false,
     icon: "paths",
   },
 ];

@@ -14,12 +14,12 @@ test("every tool has search friendly metadata", () => {
   }
 });
 
-test("every tool is a public path and the MCP endpoint is not indexed", () => {
+test("every tool is a public path and the MCP page is indexed", () => {
   for (const tool of toolInfos) {
     const entry = publicPaths.find((item) => item.path === `/tools/${tool.id}`);
     assert.ok(entry?.indexed, `${tool.id} must be indexed`);
   }
-  assert.equal(publicPaths.find((item) => item.path === "/mcp/whois")?.indexed, false);
+  assert.equal(publicPaths.find((item) => item.path === "/mcp")?.indexed, true);
   assert.equal(new Set(publicPaths.map((item) => item.path)).size, publicPaths.length);
 });
 
@@ -36,6 +36,6 @@ test("robots.txt never blocks an indexed path", () => {
   for (const entry of publicPaths.filter((item) => item.indexed)) {
     for (const rule of rules.disallow) assert.equal(blocks(rule, entry.path), false, `${rule} blocks ${entry.path}`);
   }
-  assert.ok(rules.disallow.some((rule) => blocks(rule, "/mcp/whois")));
   assert.equal(rules.disallow.some((rule) => blocks(rule, "/mcp")), false);
+  assert.ok(rules.disallow.some((rule) => blocks(rule, "/api/mcp")));
 });

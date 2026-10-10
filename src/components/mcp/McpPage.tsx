@@ -32,7 +32,7 @@ export default function McpPage() {
         </div>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold">Available servers</h2>
+          <h2 className="text-xl font-semibold">Server and tools</h2>
           {mcpConnectors.map((connector) => (
             <article key={connector.id} id={connector.id} className={card}>
               <h3 className="text-lg font-semibold">{connector.name}</h3>

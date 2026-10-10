@@ -38,7 +38,7 @@ export const toolInfos: ToolInfo[] = [
       paragraphs: [
         "Enter a domain name such as example.com to see whether it is registered, which registrar manages it, when it was created, last updated and when it expires. The result also shows the domain status flags, the name servers and whether DNSSEC is enabled.",
         "The lookup uses RDAP, the modern JSON based successor of the classic WHOIS protocol, and falls back to the WHOIS text protocol on port 43 for domain endings that do not offer RDAP. Personal registrant details are usually redacted by registries and are not shown.",
-        "The tool is free, needs no account and does not store the domains you look up. AI assistants such as Claude can use the same lookup through an open MCP server at https://felix-pfeiffer.com/mcp/whois.",
+        "The tool is free, needs no account and does not store the domains you look up. AI assistants such as Claude can use the same lookup through an open MCP server at https://felix-pfeiffer.com/mcp, together with a DNS record lookup.",
       ],
       steps: [
         "Open the tool and type a domain name or paste a link.",
@@ -64,7 +64,7 @@ export const toolInfos: ToolInfo[] = [
         },
         {
           question: "Can an AI assistant use this whois lookup?",
-          answer: "Yes. The tool is available as an MCP server at https://felix-pfeiffer.com/mcp/whois. Add it as a custom connector in Claude or with the command claude mcp add --transport http whois https://felix-pfeiffer.com/mcp/whois in Claude Code.",
+          answer: "Yes. The tool is available as an MCP server at https://felix-pfeiffer.com/mcp. Add it as a custom connector in Claude or with the command claude mcp add --transport http security https://felix-pfeiffer.com/mcp in Claude Code.",
         },
         {
           question: "Are my lookups stored?",

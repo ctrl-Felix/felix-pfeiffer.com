@@ -6,6 +6,6 @@ export function GET() {
     .filter((entry) => entry.kind === "tool")
     .map((entry) => `- [${entry.title}](${absoluteUrl(entry.path)}): ${entry.description}`)
     .join("\n");
-  const body = `# ${site.name}\n\n> ${site.description}\n\n${site.summary}\n\n- [Website](${site.url})\n- [GitHub](${links.github})\n- [LinkedIn](${links.linkedin})\n\n## Tools\n\n${tools}\n\n## MCP\n\n- [How to connect AI assistants to the MCP servers](${site.url}/mcp)\n- [Whois MCP server](${site.url}/mcp/whois): Streamable HTTP MCP endpoint without login. Tool: whois_lookup (registrar, dates, status, name servers, DNSSEC).\n`;
+  const body = `# ${site.name}\n\n> ${site.description}\n\n${site.summary}\n\n- [Website](${site.url})\n- [GitHub](${links.github})\n- [LinkedIn](${links.linkedin})\n\n## Tools\n\n${tools}\n\n## MCP\n\n- [MCP server and how to connect AI assistants](${site.url}/mcp): the same address answers MCP requests (Streamable HTTP, POST, no login). Tools: whois_lookup (registrar, dates, status, name servers, DNSSEC) and dns_records (A, AAAA, CNAME, MX, NS, TXT, SOA, CAA).\n`;
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }

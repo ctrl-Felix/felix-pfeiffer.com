@@ -12,15 +12,20 @@ export type McpConnector = {
 
 export const mcpConnectors: McpConnector[] = [
   {
-    id: "whois",
-    name: "Whois",
-    description: "Domain registration lookup: registrar, dates, name servers and DNSSEC.",
-    path: "/mcp/whois",
+    id: "security",
+    name: "Security research",
+    description: "One server with several read only lookup tools. Connect once and use all of them.",
+    path: "/mcp",
     tools: [
       {
         name: "whois_lookup",
-        description: "Looks up a domain via RDAP, with a WHOIS fallback. Returns status, registrar, dates, name servers and DNSSEC.",
+        description: "Registration data of a domain via RDAP, with a WHOIS fallback: registrar, dates, statuses, name servers and DNSSEC.",
         example: "When does example.com expire and who is its registrar?",
+      },
+      {
+        name: "dns_records",
+        description: "DNS records of a domain through public resolvers: A, AAAA, CNAME, MX, NS, TXT, SOA and CAA.",
+        example: "Which mail servers and SPF policy does example.com use?",
       },
     ],
   },
@@ -29,13 +34,13 @@ export const mcpConnectors: McpConnector[] = [
 export const mcpPage = {
   path: "/mcp",
   updated: "2026-10-11",
-  title: "MCP Servers for AI Assistants: Free Whois Lookup",
+  title: "Free MCP Server for AI Assistants: Whois and DNS Lookup",
   description:
-    "What MCP is and how to connect Claude, Claude Code, Cursor or VS Code to free MCP servers, starting with a whois lookup. No account or API key.",
-  heading: "MCP servers: connect your AI assistant",
-  keywords: ["mcp", "model context protocol", "mcp server", "claude connector", "whois mcp", "remote mcp server", "claude code mcp"],
+    "Connect Claude, Claude Code, Cursor or VS Code to one free MCP server with whois and DNS record lookup tools. No account or API key.",
+  heading: "MCP server: connect your AI assistant",
+  keywords: ["mcp", "model context protocol", "mcp server", "claude connector", "whois mcp", "dns mcp", "remote mcp server", "claude code mcp"],
   intro:
-    "The Model Context Protocol (MCP) lets AI assistants such as Claude call tools and fetch live data. The servers below are open: no account, no API key.",
+    "The Model Context Protocol (MCP) lets AI assistants such as Claude call tools and fetch live data. The server below is open: no account, no API key. It offers several tools behind one address.",
   faq: [
     {
       question: "What is MCP?",
@@ -43,7 +48,7 @@ export const mcpPage = {
     },
     {
       question: "Do I need an account or API key?",
-      answer: "No. The servers on this page are free and open. They only limit how many requests one address can send per minute.",
+      answer: "No. The server on this page is free and open. It only limits how many requests one address can send per minute.",
     },
     {
       question: "Are my requests stored?",
@@ -69,18 +74,18 @@ export const clientSetups: ClientSetup[] = [
   {
     id: "claude-code",
     name: "Claude Code",
-    code: (url: string) => `claude mcp add --transport http whois ${url}`,
+    code: (url: string) => `claude mcp add --transport http security ${url}`,
   },
   {
     id: "cursor",
     name: "Cursor",
     hint: "Add to ~/.cursor/mcp.json",
-    code: (url: string) => JSON.stringify({ mcpServers: { whois: { url } } }, null, 2),
+    code: (url: string) => JSON.stringify({ mcpServers: { security: { url } } }, null, 2),
   },
   {
     id: "vscode",
     name: "VS Code",
     hint: "Add to .vscode/mcp.json",
-    code: (url: string) => JSON.stringify({ servers: { whois: { type: "http", url } } }, null, 2),
+    code: (url: string) => JSON.stringify({ servers: { security: { type: "http", url } } }, null, 2),
   },
 ];

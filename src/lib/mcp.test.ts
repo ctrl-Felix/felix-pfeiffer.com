@@ -13,11 +13,11 @@ test("initialize negotiates the protocol version", async () => {
   assert.equal(unknown.result?.protocolVersion, "2025-06-18");
 });
 
-test("tools/list exposes whois_lookup as read only", async () => {
+test("tools/list exposes the whois and DNS tools as read only", async () => {
   const reply = (await handleRpc(rpc("tools/list"), ip)) as Reply;
   const tools = reply.result?.tools as { name: string; annotations: { readOnlyHint: boolean } }[];
-  assert.deepEqual(tools.map((tool) => tool.name), ["whois_lookup"]);
-  assert.equal(tools[0].annotations.readOnlyHint, true);
+  assert.deepEqual(tools.map((tool) => tool.name), ["whois_lookup", "dns_records"]);
+  assert.ok(tools.every((tool) => tool.annotations.readOnlyHint === true));
 });
 
 test("notifications get no response and unknown methods fail", async () => {
@@ -31,6 +31,12 @@ test("tool errors are reported as results, protocol errors as errors", async () 
   assert.equal(invalid.result?.isError, true);
   const missing = (await handleRpc(rpc("tools/call", { name: "whois_lookup", arguments: {} }), ip)) as Reply;
   assert.equal(missing.result?.isError, true);
+  const dnsInvalid = (await handleRpc(rpc("tools/call", { name: "dns_records", arguments: { domain: "localhost" } }), ip)) as Reply;
+  assert.equal(dnsInvalid.result?.isError, true);
+  const dnsMissing = (await handleRpc(rpc("tools/call", { name: "dns_records", arguments: {} }), ip)) as Reply;
+  assert.equal(dnsMissing.result?.isError, true);
+  const dnsBadTypes = (await handleRpc(rpc("tools/call", { name: "dns_records", arguments: { domain: "example.com", types: ["AXFR"] } }), ip)) as Reply;
+  assert.equal(dnsBadTypes.result?.isError, true);
   const unknownTool = (await handleRpc(rpc("tools/call", { name: "nope" }), ip)) as Reply;
   assert.equal(unknownTool.error?.code, -32602);
 });
