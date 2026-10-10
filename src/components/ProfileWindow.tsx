@@ -59,9 +59,9 @@ function Content({ section }: { section: SectionId }) {
           <Group>
             <Row label="Location" value={profile.location} />
             <Row label="Languages" value={profile.languages} />
-            <Row label="Email" value={links.email} href={links.mail} />
-            <Row label="GitHub" value="ctrl-Felix" href={links.github} external />
-            <Row label="LinkedIn" value="felixpf" href={links.linkedin} external />
+            <Row label="Email" value={links.email} href={links.mail} track="email" />
+            <Row label="GitHub" value="ctrl-Felix" href={links.github} external track="github" />
+            <Row label="LinkedIn" value="felixpf" href={links.linkedin} external track="linkedin" />
           </Group>
         </>
       );

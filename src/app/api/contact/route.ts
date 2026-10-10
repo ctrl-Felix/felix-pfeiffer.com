@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { links } from "@/config";
 import { clientIp, tooMany } from "@/lib/rateLimit";
+import { readSecret } from "@/lib/secrets";
 
 const limits = { name: 100, email: 200, subject: 200, message: 5000 };
 function text(value: unknown, max: number) {
@@ -23,7 +24,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "Please fill in name, a valid email and a message." }, { status: 400 });
   }
 
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, CONTACT_TO } = process.env;
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, CONTACT_TO } = process.env;
+  const SMTP_PASS = readSecret("SMTP_PASS");
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
     return Response.json({ error: "Contact form is not configured yet." }, { status: 503 });
   }

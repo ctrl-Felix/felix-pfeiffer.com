@@ -1,5 +1,6 @@
 import { allApps } from "./apps";
 import { links } from "@/config";
+import { trackClick } from "@/lib/track";
 import type { WindowState } from "./windows/context";
 import type { useWindows } from "./windows/WindowManager";
 
@@ -12,7 +13,9 @@ const separator: MenuItem = { separator: true };
 
 function openApp(id: string, windows: Windows) {
   const app = allApps.find((candidate) => candidate.id === id);
-  if (app?.href) window.open(app.href, "_blank", "noopener,noreferrer");
+  trackClick(id);
+  if (app?.external && app.href) window.open(app.href, "_blank", "noopener,noreferrer");
+  else if (app?.href) window.location.assign(app.href);
   else windows.open(id);
 }
 
@@ -40,7 +43,7 @@ export function buildMenus(windows: Windows, active: WindowState | undefined): M
       compactHidden: true,
       items: allApps
         .filter((app) => app.href || app.window)
-        .map((app) => ({ label: app.href ? `${app.label} ↗` : app.label, onSelect: () => openApp(app.id, windows) })),
+        .map((app) => ({ label: app.external ? `${app.label} ↗` : app.label, onSelect: () => openApp(app.id, windows) })),
     },
     {
       id: "window",
@@ -60,6 +63,7 @@ export function buildMenus(windows: Windows, active: WindowState | undefined): M
       compactHidden: true,
       items: [
         { label: "Contact Felix…", onSelect: () => windows.open("mail") },
+        { label: "Privacy & Statistics", onSelect: () => openApp("stats", windows) },
         { label: "Source Code on GitHub ↗", onSelect: () => window.open(links.source, "_blank", "noopener,noreferrer") },
       ],
     },

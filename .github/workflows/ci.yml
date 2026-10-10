@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=high
+
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: ci-superuser
+          POSTGRES_DB: portfolio
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d portfolio"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DBMATE_SHA256: 4a3814fdb7253348d6b3cd60a2e315fba69e1a3a794a31ec75af2ca6019c835c
+      PGHOST: localhost
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dbmate
+        run: |
+          curl -fsSL -o dbmate https://github.com/amacneil/dbmate/releases/download/v2.28.0/dbmate-linux-amd64
+          echo "$DBMATE_SHA256  dbmate" | sha256sum -c -
+          chmod +x dbmate
+      - name: Create roles
+        run: |
+          PGPASSWORD=ci-superuser psql -v ON_ERROR_STOP=1 -U postgres -d portfolio \
+            -v migrator_password=ci-migrator -v app_password=ci-app -f db/roles.sql
+      - name: Migrate up, down, up
+        env:
+          DATABASE_URL: postgres://portfolio_migrator:ci-migrator@localhost:5432/portfolio?sslmode=disable
+        run: |
+          ./dbmate --no-dump-schema up
+          ./dbmate --no-dump-schema rollback
+          ./dbmate --no-dump-schema up
+          ./dbmate --no-dump-schema status
+      - name: App role has least privilege
+        env:
+          PGPASSWORD: ci-app
+        run: |
+          psql -v ON_ERROR_STOP=1 -U portfolio_app -d portfolio -c "insert into events (kind, target) values ('click', 'stocks')"
+          psql -U portfolio_app -d portfolio -c "update events set target = 'x'" && exit 1 || true
+          psql -U portfolio_app -d portfolio -c "delete from events" && exit 1 || true
+          psql -U portfolio_app -d portfolio -c "drop table events" && exit 1 || true
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+      - name: Create placeholder secrets
+        run: |
+          mkdir secrets
+          for name in db_superuser_password db_migrator_password db_app_password smtp_password; do echo placeholder > "secrets/$name"; done
+      - run: docker compose config --quiet
+      - run: docker build -t portfolio-web .
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: portfolio-web
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+  ai-security-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+      - if: env.HAS_KEY == 'true'
+        uses: anthropics/claude-code-security-review@main
+        with:
+          claude-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

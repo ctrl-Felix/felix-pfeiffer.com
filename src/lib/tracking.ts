@@ -1,0 +1,15 @@
+export const trackTargets = {
+  finder: "Finder",
+  profile: "Profile",
+  github: "GitHub",
+  mail: "Mail",
+  stocks: "Stocks",
+  stats: "Stats",
+  linkedin: "LinkedIn",
+  email: "Email",
+} as const;
+
+export type TrackTarget = keyof typeof trackTargets;
+
+export const isTrackTarget = (value: unknown): value is TrackTarget =>
+  typeof value === "string" && Object.hasOwn(trackTargets, value);

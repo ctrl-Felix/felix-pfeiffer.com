@@ -71,6 +71,16 @@ export function StocksIcon() {
   );
 }
 
+export function StatsIcon() {
+  return (
+    <Tile id="sx" from="#ff9f0a" to="#ff375f">
+      <rect x="13" y="34" width="8" height="16" rx="2.5" fill="white" />
+      <rect x="28" y="22" width="8" height="28" rx="2.5" fill="white" />
+      <rect x="43" y="12" width="8" height="38" rx="2.5" fill="white" />
+    </Tile>
+  );
+}
+
 export function FinderIcon() {
   return (
     <Tile id="fn" from="#8fdcff" to="#3a9af0">

@@ -1,4 +1,5 @@
 import type { Entry } from "@/data/profile";
+import { trackClick } from "@/lib/track";
 
 export function Group({ children }: { children: React.ReactNode }) {
   return (
@@ -8,15 +9,15 @@ export function Group({ children }: { children: React.ReactNode }) {
   );
 }
 
-type RowProps = { label: string; value: string; href?: string; external?: boolean; stacked?: boolean };
+type RowProps = { label: string; value: string; href?: string; external?: boolean; stacked?: boolean; track?: string };
 
-export function Row({ label, value, href, external, stacked }: RowProps) {
+export function Row({ label, value, href, external, stacked, track }: RowProps) {
   const valueClass = "text-[13px] text-black/55";
   return (
     <div className={`flex gap-4 px-4 py-2.5 text-[13px] ${stacked ? "flex-col gap-0.5" : "items-center justify-between"}`}>
       <span className="font-medium">{label}</span>
       {href ? (
-        <a href={href} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="text-[#0a6cf0] hover:underline">
+        <a href={href} onClick={() => track && trackClick(track)} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="text-[#0a6cf0] hover:underline">
           {value}
         </a>
       ) : (

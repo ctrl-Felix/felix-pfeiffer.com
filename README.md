@@ -10,3 +10,13 @@ This project is an experiment to see how far AI can go.
 The goal is to rank first when someone searches for my name, and to be easy for AI assistants to find and cite.
 
 The rules the AI follows are in [CLAUDE.md](CLAUDE.md).
+
+## Run it
+
+```sh
+scripts/init-secrets.sh
+cp .env.example .env
+docker compose up -d --build
+```
+
+Visitor statistics are public at `/stats`.

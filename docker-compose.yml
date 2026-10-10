@@ -1,16 +1,103 @@
+name: portfolio
+
+x-hardened: &hardened
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+
 services:
-  web:
-    build: .
-    ports:
-      - "3000:3000"
+  db:
+    <<: *hardened
+    image: postgres:17-alpine
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: portfolio
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_superuser_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    secrets:
+      - db_superuser_password
+      - db_migrator_password
+      - db_app_password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - ./db/roles.sql:/db/roles.sql:ro
+    tmpfs:
+      - /tmp
+      - /run/postgresql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d portfolio"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    <<: *hardened
+    image: ghcr.io/amacneil/dbmate:2
+    entrypoint: ["/bin/sh", "/db/migrate.sh"]
+    command: ["up"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    secrets:
+      - db_migrator_password
+    volumes:
+      - ./db/migrations:/db/migrations:ro
+      - ./db/migrate.sh:/db/migrate.sh:ro
+    networks:
+      - backend
+
+  web:
+    <<: *hardened
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     env_file:
       - path: .env
         required: false
-    read_only: true
+    environment:
+      DB_HOST: db
+      DB_PASSWORD_FILE: /run/secrets/db_app_password
+      SMTP_PASS_FILE: /run/secrets/smtp_password
+    secrets:
+      - db_app_password
+      - smtp_password
     tmpfs:
       - /tmp
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
+    networks:
+      - frontend
+      - backend
+
+networks:
+  frontend: {}
+  backend:
+    internal: true
+
+secrets:
+  db_superuser_password:
+    file: ./secrets/db_superuser_password
+  db_migrator_password:
+    file: ./secrets/db_migrator_password
+  db_app_password:
+    file: ./secrets/db_app_password
+  smtp_password:
+    file: ./secrets/smtp_password
+
+volumes:
+  db-data: {}
