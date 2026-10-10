@@ -16,14 +16,18 @@ Personal portfolio of Felix Pfeiffer (MSc Information Security @ UCL, ex Fraunho
 # Mission
 
 1. Rank first on Google for "Felix Pfeiffer".
-2. Be easy for AI assistants and AI search to find, read and cite.
+2. Be the source AI assistants and AI search (ChatGPT, Claude, Perplexity, Gemini, Google AI Overviews, Copilot) use when someone asks who Felix Pfeiffer is (generative engine optimization, GEO).
 
-SEO and AI optimization come before visual polish when the two conflict. Every change must keep:
-- Real, crawlable text in the HTML (no content only inside images or client-only code).
-- Correct metadata, canonical URL, JSON-LD `Person`, `sitemap.xml`, `robots.txt`, `llms.txt`.
+Both goals have equal weight and come before visual polish when they conflict. Every change must keep:
+- Real, crawlable text in the server HTML (AI crawlers do not run JavaScript; no content only inside images or client-only code).
+- Correct metadata, canonical URL, `sitemap.xml`, `robots.txt`, `llms.txt`.
+- One person entity: JSON-LD `Person` with `@id` `https://felix-pfeiffer.com/#person`, built only in `src/lib/personSchema.ts`. Every page that names Felix as author uses `personRef` from there. Organizations carry a Wikipedia `sameAs` where one exists (`src/data/organizations.ts`, a test fails when a profile organization is missing).
+- `/about` as the citable answer page: visible text, first sentence "Felix Pfeiffer is ...", quick facts, FAQ starting with "Who is Felix Pfeiffer?", `ProfilePage` JSON-LD, visible updated date. Bump `aboutPage.updated` when facts change.
+- Facts written as short, self-contained sentences with names, numbers and dates, so a single sentence can be quoted.
+- AI search and training crawlers allowed in `robots.txt` (`aiCrawlers` in `src/app/robots.ts`). Never block them and never add a firewall or CDN rule that does.
 - Fast loads and good Core Web Vitals.
-- Facts consistent with LinkedIn and GitHub (name, role, links).
-Site config and facts live in `src/config.ts`.
+- Facts consistent with LinkedIn and GitHub (name, role, links) and the same on the site, `/about`, `llms.txt` and JSON-LD.
+Site config and facts live in `src/config.ts`, `src/data/profile.ts` and `src/data/about.ts`.
 
 # Stack and structure
 
@@ -45,7 +49,8 @@ Site config and facts live in `src/config.ts`.
 - Reader apps: `README.md` and `Security.md` icons (bottom right by default) open the `Reader` and `Security` windows (`components/reader`, both use `DocumentReader`) showing `src/data/readme.ts` and `src/data/security.ts`, rendered by the small safe parser in `src/lib/markdown.ts`. The text is written in the first person as Felix, short, no em dashes. Both are transient in the dock, as are Tools, SEO Tracker and Stats.
 - Desktop icons are draggable and snap to a grid (`DesktopIcons.tsx`), default layout in columns on the left, positions saved per browser in localStorage (`desktop.icons`).
 - Tool pages are SEO pages: absolute title and description in `src/data/tools.ts`, FAQ and breadcrumb JSON-LD, generated Open Graph image, sitemap `lastmod`, 404 for unknown tool paths via `src/proxy.ts` (otherwise the first request would be a soft 404 with status 200).
-- Profile content lives only in `src/data/profile.ts` and feeds the Profile window, the hidden SEO text and JSON-LD. Never put the phone number on the site.
+- Profile content lives only in `src/data/profile.ts` (experience, ventures, education, open source, skills) and feeds the Profile window, the hidden SEO text, `/about`, `llms.txt` and JSON-LD. Never put the phone number on the site.
+- About page: `/about` (`src/app/about/page.tsx`, `components/about/AboutPage.tsx` and `AboutSeo.tsx`, text in `src/data/about.ts`) is a standalone plain page like `/mcp`, linked from the hidden homepage text and the Profile window. `llms.txt` is built by `src/lib/llmsText.ts` from the same data (full profile, facts, FAQ, tools, MCP).
 - Mail window posts to `/api/contact` (nodemailer, SMTP settings in `.env`, honeypot and per-IP rate limit).
 - Glass look is the `.glass` class in `globals.css`. Keep it inside `@layer components` so Tailwind utilities can override it. Glass is for the functional layer (dock, toolbars, menus). Content cards use plain translucent fills.
 - Brand icon: `src/app/icon.svg` (F and P monogram on a blue tile). `favicon.ico` and `apple-icon.png` are rendered from it. Regenerate them if the SVG changes.

@@ -3,6 +3,7 @@ export type Entry = {
   org: string;
   period: string;
   points: string[];
+  current?: boolean;
 };
 
 export const profile = {
@@ -17,6 +18,7 @@ export const profile = {
       title: "MSc Information Security",
       org: "University College London",
       period: "Oct 2026 – Sep 2027",
+      current: true,
       points: ["Modules: Introduction to Cryptography, Computer Security I & II, Cybercrime"],
     },
     {
@@ -66,6 +68,7 @@ export const profile = {
       title: "Co-founder",
       org: "Pakt",
       period: "Jan 2026 – Present",
+      current: true,
       points: [
         "Goal-tracking app, live on iOS and Android, where users commit a self-chosen amount that is charged only if they miss their goal",
         "Designed and built the entire tech stack: Flutter app, Litestar API, PostgreSQL, Keycloak, Stripe and OneSignal",
@@ -82,6 +85,18 @@ export const profile = {
       ],
     },
   ] satisfies Entry[],
+  openSource: [
+    {
+      name: "mospy",
+      url: "https://github.com/ctrl-Felix/mospy",
+      description: "Extendable Python library for the Cosmos ecosystem, published on PyPI as mospy-wallet",
+    },
+    {
+      name: "cosmospy-protobuf",
+      url: "https://github.com/ctrl-Felix/cosmospy-protobuf",
+      description: "Python Protobuf library for the Cosmos ecosystem, published on PyPI",
+    },
+  ],
   skills: [
     { label: "Security tools", value: "Contrast Security (IAST), SonarQube and CodeQL (SAST), Dependabot, Wireshark, Nmap, OpenSSL, Keycloak (OAuth/OIDC)" },
     { label: "Security concepts", value: "OWASP Top 10, MITRE ATT&CK, threshold cryptography, remote attestation" },

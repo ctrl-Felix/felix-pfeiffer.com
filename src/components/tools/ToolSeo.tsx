@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { links, site } from "@/config";
+import { site } from "@/config";
 import { toolInfos, toolsHub, type ToolInfo } from "@/data/tools";
+import { personRef } from "@/lib/personSchema";
 
 export default function ToolSeo({ tool }: { tool: ToolInfo }) {
   const url = `${site.url}/tools/${tool.id}`;
@@ -22,7 +23,7 @@ export default function ToolSeo({ tool }: { tool: ToolInfo }) {
         featureList: tool.seo.features,
         dateModified: tool.updated,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-        author: { "@type": "Person", name: site.name, url: site.url, sameAs: [links.github, links.linkedin] },
+        author: personRef,
       },
       {
         "@type": "FAQPage",

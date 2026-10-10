@@ -62,6 +62,7 @@ function Content({ section }: { section: SectionId }) {
             <Row label="Email" value={links.email} href={links.mail} track="email" />
             <Row label="GitHub" value="ctrl-Felix" href={links.github} external track="github" />
             <Row label="LinkedIn" value="felixpf" href={links.linkedin} external track="linkedin" />
+            <Row label="Profile page" value="felix-pfeiffer.com/about" href="/about" />
           </Group>
         </>
       );

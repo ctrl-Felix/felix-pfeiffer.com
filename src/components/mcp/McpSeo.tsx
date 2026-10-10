@@ -1,5 +1,6 @@
-import { links, site } from "@/config";
+import { site } from "@/config";
 import { mcpConnectors, mcpPage, mcpServerUrl } from "@/data/mcp";
+import { personRef } from "@/lib/personSchema";
 
 export default function McpSeo() {
   const url = `${site.url}${mcpPage.path}`;
@@ -16,7 +17,7 @@ export default function McpSeo() {
         dateModified: mcpPage.updated,
         about: { "@type": "Thing", name: "Model Context Protocol" },
         keywords: mcpPage.keywords.join(", "),
-        author: { "@type": "Person", name: site.name, url: site.url, sameAs: [links.github, links.linkedin] },
+        author: personRef,
       },
       {
         "@type": "ItemList",

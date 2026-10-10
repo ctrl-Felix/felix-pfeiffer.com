@@ -1,35 +1,23 @@
 import Link from "next/link";
 import { links, site } from "@/config";
+import { aboutPage } from "@/data/about";
 import { profile } from "@/data/profile";
 import { toolInfos } from "@/data/tools";
+import { personNode, websiteNode } from "@/lib/personSchema";
 
-const person = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  name: site.name,
-  url: site.url,
-  description: site.description,
-  jobTitle: "Information Security Student",
-  alumniOf: [
-    { "@type": "CollegeOrUniversity", name: "University College London" },
-    { "@type": "CollegeOrUniversity", name: "University of Bonn" },
-  ],
-  worksFor: { "@type": "Organization", name: "Pakt" },
-  address: { "@type": "PostalAddress", addressLocality: "London", addressCountry: "GB" },
-  knowsAbout: profile.skills.flatMap((skill) => skill.value.split(", ")),
-  sameAs: [links.github, links.linkedin],
-};
+const graph = { "@context": "https://schema.org", "@graph": [personNode(), websiteNode] };
 
 export default function Seo() {
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(person) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }}
       />
       <div className="sr-only">
         <h1>{site.name}</h1>
         <p>{site.summary}</p>
+        <p><Link href={aboutPage.path}>Full profile of {site.name}</Link></p>
         {[
           ["Experience", profile.experience],
           ["Ventures", profile.ventures],
@@ -47,6 +35,8 @@ export default function Seo() {
         ))}
         <h2>Skills</h2>
         <ul>{profile.skills.map((skill) => <li key={skill.label}>{skill.label}: {skill.value}</li>)}</ul>
+        <h2>Open source</h2>
+        <ul>{profile.openSource.map((project) => <li key={project.name}><a href={project.url}>{project.name}</a>: {project.description}</li>)}</ul>
         <h2>Tools</h2>
         <ul>
           {toolInfos.map((tool) => (
@@ -54,7 +44,7 @@ export default function Seo() {
           ))}
         </ul>
         <h2>For AI assistants</h2>
-        <p><Link href="/mcp">MCP servers</Link>: connect Claude and other assistants to the open whois lookup.</p>
+        <p><Link href="/mcp">MCP servers</Link>: connect Claude and other assistants to the open whois and DNS lookup.</p>
         <ul>
           <li><a href={links.github}>GitHub</a></li>
           <li><a href={links.linkedin}>LinkedIn</a></li>
