@@ -32,7 +32,8 @@ function setup() {
   return { project, run };
 }
 
-test("the routine marker gives a clean name", () => {
+test("the routine name comes from the trigger note or the marker line", () => {
+  assert.equal(routineName('Handle the PRs.\n\n<system-reminder>This task fired at Sat 2026-10-10 23:51:26 UTC. Fired by routine "Dependency update check" (trigger_id: trig_1).</system-reminder>'), "Dependency update check");
   assert.equal(routineName("Routine: Weekly SEO check\nDo things."), "Weekly SEO check");
   assert.equal(routineName("\n  routine:  Dependabot <b>merge</b>  \n"), "Dependabot bmerge/b");
   assert.equal(routineName("Please look at the routine: it fails"), null);
@@ -50,7 +51,7 @@ test("routine turns, their subagents and executions go to the routine ledger, on
       reply("a2", "2026-10-10T08:01:00.000Z", 20),
       prompt("h1", "2026-10-10T09:00:00.000Z", "Thanks, now fix the footer.", "human"),
       reply("a3", "2026-10-10T09:00:05.000Z", 5),
-      prompt("r2", "2026-10-11T08:00:00.000Z", "Routine: Weekly check\nCheck the site.", "human"),
+      prompt("r2", "2026-10-11T08:00:00.000Z", 'Check the site.\n<system-reminder>Fired by routine "Weekly check" (trigger_id: trig_1).</system-reminder>', "human"),
       reply("a4", "2026-10-11T08:00:05.000Z", 7),
     ].join("\n"),
   );
