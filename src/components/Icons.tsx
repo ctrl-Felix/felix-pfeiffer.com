@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 export function AppleLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -8,7 +10,12 @@ export function AppleLogo({ className }: { className?: string }) {
 
 const RADIUS = 14.4;
 
-function Tile({ id, from, to, children }: { id: string; from: string; to: string; children: React.ReactNode }) {
+function useSvgId(prefix: string) {
+  return `${prefix}-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+}
+
+function Tile({ id: prefix, from, to, children }: { id: string; from: string; to: string; children: React.ReactNode }) {
+  const id = useSvgId(prefix);
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full [filter:drop-shadow(0_3px_5px_rgba(0,0,0,0.28))]">
       <defs>
@@ -85,38 +92,39 @@ export function StatsIcon() {
 }
 
 export function ToolsIcon() {
+  const id = useSvgId("tl");
   return (
     <Tile id="tl" from="#8a91a0" to="#2d3039">
       <defs>
-        <linearGradient id="tl-metal" x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id={`${id}-metal`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#ffffff" />
           <stop offset="0.55" stopColor="#e6e9f0" />
           <stop offset="1" stopColor="#aeb5c4" />
         </linearGradient>
-        <linearGradient id="tl-grip" x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id={`${id}-grip`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#ffbe4d" />
           <stop offset="1" stopColor="#ff7a00" />
         </linearGradient>
-        <mask id="tl-wrench" maskUnits="userSpaceOnUse" x="-20" y="-40" width="40" height="80">
+        <mask id={`${id}-wrench`} maskUnits="userSpaceOnUse" x="-20" y="-40" width="40" height="80">
           <rect x="-20" y="-40" width="40" height="80" fill="#fff" />
           <rect x="-4.6" y="-34" width="9.2" height="14" rx="1.8" fill="#000" />
           <circle cx="0" cy="24" r="2.3" fill="#000" />
         </mask>
-        <filter id="tl-shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <filter id={`${id}-shadow`} x="-30%" y="-30%" width="160%" height="160%">
           <feDropShadow dx="0" dy="1.4" stdDeviation="1.2" floodColor="#000" floodOpacity="0.4" />
         </filter>
       </defs>
-      <g transform="translate(32 32) rotate(45) scale(0.96)" filter="url(#tl-shadow)">
-        <g mask="url(#tl-wrench)" fill="url(#tl-metal)">
+      <g transform="translate(32 32) rotate(45) scale(0.96)" filter={`url(#${id}-shadow)`}>
+        <g mask={`url(#${id}-wrench)`} fill={`url(#${id}-metal)`}>
           <circle cx="0" cy="-19" r="10.6" />
           <rect x="-3.4" y="-14" width="6.8" height="36" />
           <circle cx="0" cy="24" r="5.4" />
         </g>
       </g>
-      <g transform="translate(32 32) rotate(-45) scale(0.96)" filter="url(#tl-shadow)">
-        <path d="M-1.7 -29h3.4l0.9 6v21h-5.2v-21z" fill="url(#tl-metal)" />
+      <g transform="translate(32 32) rotate(-45) scale(0.96)" filter={`url(#${id}-shadow)`}>
+        <path d="M-1.7 -29h3.4l0.9 6v21h-5.2v-21z" fill={`url(#${id}-metal)`} />
         <rect x="-3.2" y="-4" width="6.4" height="4" rx="1" fill="#c9cfdb" />
-        <rect x="-5.4" y="-1" width="10.8" height="30" rx="5.2" fill="url(#tl-grip)" />
+        <rect x="-5.4" y="-1" width="10.8" height="30" rx="5.2" fill={`url(#${id}-grip)`} />
         <g stroke="#fff" strokeOpacity="0.28" strokeWidth="1.2" strokeLinecap="round">
           <path d="M-3.4 8h6.8M-3.4 13h6.8M-3.4 18h6.8" />
         </g>
@@ -200,15 +208,16 @@ export function ReaderIcon() {
 }
 
 export function MarkdownFileIcon() {
+  const id = useSvgId("md");
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full [filter:drop-shadow(0_3px_5px_rgba(0,0,0,0.28))]">
       <defs>
-        <linearGradient id="md-page" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={`${id}-page`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#ffffff" />
           <stop offset="1" stopColor="#e6e9ef" />
         </linearGradient>
       </defs>
-      <path d="M14 4h26l12 12v42a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z" fill="url(#md-page)" />
+      <path d="M14 4h26l12 12v42a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z" fill={`url(#${id}-page)`} />
       <path d="M40 4l12 12H43a3 3 0 0 1-3-3z" fill="#cfd3dc" />
       <rect x="18" y="14" width="14" height="3" rx="1.5" fill="#c4c9d4" />
       <rect x="18" y="21" width="22" height="3" rx="1.5" fill="#c4c9d4" />
