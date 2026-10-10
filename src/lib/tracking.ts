@@ -9,6 +9,7 @@ export const trackTargets = {
   paths: "Public paths",
   mcp: "MCP",
   reader: "README",
+  security: "Security",
   linkedin: "LinkedIn",
   email: "Email",
 } as const;

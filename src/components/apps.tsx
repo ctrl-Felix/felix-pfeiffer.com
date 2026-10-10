@@ -5,6 +5,7 @@ import MailWindow from "./MailWindow";
 import PathsWindow from "./paths/PathsWindow";
 import ProfileWindow from "./ProfileWindow";
 import ReaderWindow from "./reader/ReaderWindow";
+import SecurityWindow from "./reader/SecurityWindow";
 import StatsWindow from "./stats/StatsWindow";
 import StocksApp from "./stocks/StocksApp";
 import ToolsApp from "./tools/ToolsApp";
@@ -47,6 +48,7 @@ export const apps: App[] = [
     id: "stocks",
     label: "Stocks",
     Icon: StocksIcon,
+    transient: true,
     window: { Content: StocksApp, width: 860, height: 600, minWidth: 560, minHeight: 440 },
   },
   {
@@ -65,6 +67,16 @@ export const apps: App[] = [
     desktopLabel: "README.md",
     desktopAnchor: "bottom-right",
     window: { Content: ReaderWindow, width: 640, height: 480, minWidth: 360, minHeight: 280 },
+  },
+  {
+    id: "security",
+    label: "Security",
+    Icon: ReaderIcon,
+    transient: true,
+    desktopIcon: MarkdownFileIcon,
+    desktopLabel: "Security.md",
+    desktopAnchor: "bottom-right",
+    window: { Content: SecurityWindow, width: 640, height: 480, minWidth: 360, minHeight: 280 },
   },
   {
     id: "stats",

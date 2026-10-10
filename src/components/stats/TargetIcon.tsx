@@ -9,6 +9,7 @@ const icons: Record<string, () => React.JSX.Element> = {
   stats: StatsIcon,
   tools: ToolsIcon,
   reader: ReaderIcon,
+  security: ReaderIcon,
 };
 
 export default function TargetIcon({ target }: { target: string }) {
