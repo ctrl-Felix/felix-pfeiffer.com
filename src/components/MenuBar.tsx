@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AppleLogo, Battery } from "./Icons";
+import BatteryMenu from "./BatteryMenu";
+import { AppleLogo } from "./Icons";
 import McpMenu from "./McpMenu";
 import { buildMenus } from "./menus";
 import WifiMenu from "./WifiMenu";
@@ -90,7 +91,7 @@ export default function MenuBar() {
       </nav>
       <div className="flex items-center gap-3 px-2">
         <McpMenu open={openId === "mcp"} onToggle={() => setOpenId(openId === "mcp" ? null : "mcp")} onClose={() => setOpenId(null)} />
-        <span className="hidden sm:block"><Battery /></span>
+        <BatteryMenu open={openId === "energy"} onToggle={() => setOpenId(openId === "energy" ? null : "energy")} />
         <WifiMenu open={openId === "wifi"} onToggle={() => setOpenId(openId === "wifi" ? null : "wifi")} />
         <span className="min-w-32 text-right tabular-nums">{clock}</span>
       </div>

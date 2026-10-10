@@ -15,6 +15,7 @@ export const trackTargets = {
   linkedin: "LinkedIn",
   email: "Email",
   speedtest: "Speed test",
+  energy: "Power mix",
 } as const;
 
 export const mcpTargets = {
