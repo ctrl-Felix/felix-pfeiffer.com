@@ -102,11 +102,14 @@ jobs:
       - uses: hadolint/hadolint-action@v3.3.0
         with:
           dockerfile: Dockerfile
-      - name: Create placeholder secrets
+      - name: Validate and build compose stack
+        env:
+          DB_SUPERUSER_PASSWORD: placeholder
+          DB_MIGRATOR_PASSWORD: placeholder
+          DB_APP_PASSWORD: placeholder
         run: |
-          mkdir secrets
-          for name in db_superuser_password db_migrator_password db_app_password smtp_password; do echo placeholder > "secrets/$name"; done
-      - run: docker compose config --quiet
+          docker compose config --quiet
+          docker compose build db migrate
       - run: docker build -t portfolio-web .
       - uses: aquasecurity/trivy-action@v0.36.0
         with:

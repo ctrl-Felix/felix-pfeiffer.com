@@ -10,27 +10,24 @@ x-hardened: &hardened
 services:
   db:
     <<: *hardened
-    image: postgres:17-alpine
+    build:
+      context: ./db
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: portfolio
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_superuser_password
+      POSTGRES_PASSWORD: ${DB_SUPERUSER_PASSWORD:?Set DB_SUPERUSER_PASSWORD}
       POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      DB_MIGRATOR_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Set DB_MIGRATOR_PASSWORD}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?Set DB_APP_PASSWORD}
     cap_add:
       - CHOWN
       - DAC_OVERRIDE
       - FOWNER
       - SETGID
       - SETUID
-    secrets:
-      - db_superuser_password
-      - db_migrator_password
-      - db_app_password
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./db/init:/docker-entrypoint-initdb.d:ro
-      - ./db/roles.sql:/db/roles.sql:ro
     tmpfs:
       - /tmp
       - /run/postgresql
@@ -44,18 +41,15 @@ services:
 
   migrate:
     <<: *hardened
-    image: ghcr.io/amacneil/dbmate:2
-    entrypoint: ["/bin/sh", "/db/migrate.sh"]
-    command: ["up"]
+    build:
+      context: ./db
+      dockerfile: migrate.Dockerfile
     restart: "no"
     depends_on:
       db:
         condition: service_healthy
-    secrets:
-      - db_migrator_password
-    volumes:
-      - ./db/migrations:/db/migrations:ro
-      - ./db/migrate.sh:/db/migrate.sh:ro
+    environment:
+      DB_MIGRATOR_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Set DB_MIGRATOR_PASSWORD}
     networks:
       - backend
 
@@ -63,21 +57,19 @@ services:
     <<: *hardened
     build: .
     restart: unless-stopped
-    ports:
-      - "${WEB_BIND:-127.0.0.1}:3000:3000"
+    expose:
+      - "3000"
     depends_on:
       migrate:
         condition: service_completed_successfully
-    env_file:
-      - path: .env
-        required: false
     environment:
       DB_HOST: db
-      DB_PASSWORD_FILE: /run/secrets/db_app_password
-      SMTP_PASS_FILE: /run/secrets/smtp_password
-    secrets:
-      - db_app_password
-      - smtp_password
+      DB_PASSWORD: ${DB_APP_PASSWORD:?Set DB_APP_PASSWORD}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      CONTACT_TO: ${CONTACT_TO:-}
     tmpfs:
       - /tmp
     networks:
@@ -88,16 +80,6 @@ networks:
   frontend: {}
   backend:
     internal: true
-
-secrets:
-  db_superuser_password:
-    file: ./secrets/db_superuser_password
-  db_migrator_password:
-    file: ./secrets/db_migrator_password
-  db_app_password:
-    file: ./secrets/db_app_password
-  smtp_password:
-    file: ./secrets/smtp_password
 
 volumes:
   db-data: {}

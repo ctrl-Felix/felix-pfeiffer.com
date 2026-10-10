@@ -14,9 +14,8 @@ The rules the AI follows are in [CLAUDE.md](CLAUDE.md).
 ## Run it
 
 ```sh
-scripts/init-secrets.sh
-cp .env.example .env
-docker compose up -d --build
+scripts/init-env.sh
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
 ```
 
 Visitor statistics are public at `/stats`.
