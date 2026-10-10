@@ -7,6 +7,7 @@ export const trackTargets = {
   tools: "Tools",
   stats: "Stats",
   paths: "Public paths",
+  tokens: "Token usage",
   mcp: "MCP",
   reader: "README",
   security: "Security",

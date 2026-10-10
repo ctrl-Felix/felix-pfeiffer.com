@@ -7,6 +7,7 @@ import ProfileWindow from "./ProfileWindow";
 import ReaderWindow from "./reader/ReaderWindow";
 import SecurityWindow from "./reader/SecurityWindow";
 import StatsWindow from "./stats/StatsWindow";
+import TokenUsageWindow from "./tokens/TokenUsageWindow";
 import StocksApp from "./stocks/StocksApp";
 import ToolsApp from "./tools/ToolsApp";
 
@@ -102,6 +103,14 @@ export const pathsApp: App = {
   window: { Content: PathsWindow, width: 720, height: 540, minWidth: 420, minHeight: 340 },
 };
 
-export const allApps = [finder, ...apps, pathsApp];
+export const tokensApp: App = {
+  id: "tokens",
+  label: "Token Usage",
+  Icon: StatsIcon,
+  hidden: true,
+  window: { Content: TokenUsageWindow, width: 460, height: 420, minWidth: 340, minHeight: 300 },
+};
+
+export const allApps = [finder, ...apps, pathsApp, tokensApp];
 
 export const visibleApps = allApps.filter((app) => !app.hidden);
