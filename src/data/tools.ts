@@ -73,6 +73,64 @@ export const toolInfos: ToolInfo[] = [
       ],
     },
   },
+  {
+    id: "dns",
+    name: "DNS Records",
+    description: "Look up the DNS records of a domain: addresses, mail servers, name servers, TXT and CAA.",
+    keywords: ["dns", "records", "mx", "txt", "spf", "dmarc", "caa", "nameserver", "lookup"],
+    updated: "2026-10-10",
+    seo: {
+      title: "Free DNS Lookup: A, MX, NS, TXT and CAA Records",
+      description:
+        "Free DNS record lookup: check the A, AAAA, CNAME, MX, NS, TXT, SOA and CAA records of any domain. No sign up, nothing stored. Works with AI assistants via MCP.",
+      heading: "Free DNS record lookup: check any domain",
+      features: [
+        "A and AAAA addresses with TTL",
+        "CNAME aliases",
+        "MX mail servers by priority",
+        "NS name servers",
+        "TXT records with SPF and DMARC detection",
+        "SOA and CAA records",
+        "MCP server for AI assistants",
+      ],
+      paragraphs: [
+        "Enter a domain name such as example.com to see its DNS records: the IPv4 and IPv6 addresses with their time to live, the mail servers in order of priority, the authoritative name servers, the TXT records such as SPF and DMARC policies, the start of authority record and the certificate authorities that may issue certificates through CAA records.",
+        "The records are fetched live from public resolvers. Subdomains and underscore names such as _dmarc.example.com work as well. Private and internal names are not looked up.",
+        "The tool is free, needs no account and does not store the domains you look up. AI assistants such as Claude can use the same lookup through an open MCP server at https://felix-pfeiffer.com/mcp, together with a whois lookup.",
+      ],
+      steps: [
+        "Open the tool and type a domain name or paste a link.",
+        "Press Look up.",
+        "Read the records grouped by type. Types without records are listed at the end.",
+      ],
+      faq: [
+        {
+          question: "What are DNS records?",
+          answer: "DNS records are entries in the domain name system that tell the internet where a domain points: which addresses serve the website, which servers receive its mail and which name servers are responsible for it.",
+        },
+        {
+          question: "How can I check the MX records of a domain?",
+          answer: "Look up the domain and read the MX group. It lists the mail servers and their priority. A lower number is tried first.",
+        },
+        {
+          question: "How do I find the SPF or DMARC record?",
+          answer: "SPF is a TXT record on the domain itself and starts with v=spf1. DMARC is a TXT record on the name _dmarc in front of the domain, for example _dmarc.example.com.",
+        },
+        {
+          question: "What does the TTL mean?",
+          answer: "The TTL is the time in seconds that resolvers may keep an answer before asking again. Short values make changes spread faster.",
+        },
+        {
+          question: "Can an AI assistant use this DNS lookup?",
+          answer: "Yes. The tool is available as an MCP server at https://felix-pfeiffer.com/mcp. Add it as a custom connector in Claude or with the command claude mcp add --transport http security https://felix-pfeiffer.com/mcp in Claude Code.",
+        },
+        {
+          question: "Are my lookups stored?",
+          answer: "No. The domain you enter is sent through this server to public DNS resolvers, cached for a minute and never saved.",
+        },
+      ],
+    },
+  },
 ];
 
 export const findToolInfo = (id: string) => toolInfos.find((tool) => tool.id === id);
