@@ -29,7 +29,7 @@ export default function TldCoverage() {
   });
 
   return (
-    <div className="space-y-3">
+    <div className="panel-fade space-y-3">
       <p className="text-[13px] text-black/60">
         {supportedCount} of {entries.length} top level domains are supported ({Math.round((supportedCount / entries.length) * 100)}%). Updated automatically from the IANA list.
       </p>
