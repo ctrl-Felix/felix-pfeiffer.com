@@ -12,6 +12,7 @@ export const site = {
 
 export const links = {
   github: "https://github.com/ctrl-Felix",
+  source: "https://github.com/ctrl-Felix/felix-pfeiffer.com",
   linkedin: "https://www.linkedin.com/in/felixpf",
   email: "felixpfeifferbw@t-online.de",
   mail: "mailto:felixpfeifferbw@t-online.de",
