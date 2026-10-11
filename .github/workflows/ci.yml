@@ -24,7 +24,7 @@ jobs:
       - run: npm ci
       - name: Keep the npm audit result for the vulnerability tracker
         run: npm audit --omit=dev --json > "$RUNNER_TEMP/npm-audit.json" || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: scan-npm-audit
           path: ${{ runner.temp }}/npm-audit.json
@@ -106,7 +106,7 @@ jobs:
       - uses: github/codeql-action/analyze@v3
         with:
           output: ${{ runner.temp }}/codeql-results
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: scan-codeql
@@ -139,7 +139,7 @@ jobs:
           scanners: vuln
           ignore-unfixed: true
           exit-code: "0"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: scan-trivy
           path: trivy-image.json
@@ -190,7 +190,7 @@ jobs:
         run: |
           if git diff --quiet -- src/data/tldCoverage.json src/data/tldCoverageRun.json; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
       - if: steps.diff.outputs.changed == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tld-coverage
           path: |
@@ -234,7 +234,7 @@ jobs:
         run: |
           if [ -n "$(git status --porcelain -- security/vulnerabilities)" ]; then echo "changed=true" >> "$GITHUB_OUTPUT"; else echo "changed=false" >> "$GITHUB_OUTPUT"; fi
       - if: always() && steps.diff.outputs.changed == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vulnerabilities
           path: security/vulnerabilities/*.json
