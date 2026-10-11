@@ -25,5 +25,5 @@ My CV and the about me section are in **Profile**. This file explains what the p
 
 Before this project, I wrote all of my code myself. But I was curious how far AI and vibe coding can go. So I decided to vibe code my personal portfolio. That's what this page is.
 
-Not a single line of code on this page was written by me. Claude wrote all of it. All my other code I still write myself. This text is also written by AI, following my instructions.
+Not a single line of code in this repo was written by me. Claude wrote all of it. All my other code I still write myself. This text is also written by AI, following my instructions.
 ${tokenLine}`;
