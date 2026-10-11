@@ -13,7 +13,13 @@
       "Bash(git push origin *:main*)",
       "Bash(git push --force*)",
       "Bash(git push -f*)",
-      "Bash(git push --delete*)",
+      "Bash(git push --delete origin staging*)",
+      "Bash(git push --delete origin main*)",
+      "Bash(git push origin --delete staging*)",
+      "Bash(git push origin --delete main*)",
+      "Bash(git push origin -d staging*)",
+      "Bash(git push origin -d main*)",
+      "Bash(git push origin :staging*)",
       "Bash(git checkout -b*)",
       "Bash(git switch -c*)",
       "Bash(git branch -d*)",
@@ -26,7 +32,12 @@
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/update-tokens.sh" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/update-tokens.sh"
+          }
+        ]
       }
     ]
   }
