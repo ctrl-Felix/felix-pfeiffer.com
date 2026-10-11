@@ -29,6 +29,14 @@ async function load(params: Record<string, string>): Promise<State> {
   }
 }
 
+const monthName = (period: string) => {
+  const [year, month] = period.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString("en", { month: "long", year: "numeric", timeZone: "UTC" });
+};
+
+const averageLabel = (report: EnergyReport) =>
+  report.resolution === "live" ? "live" : report.resolution === "month" ? `monthly average ${monthName(report.period)}` : `yearly average ${report.period}`;
+
 function Report({ report }: { report: EnergyReport }) {
   const share = (sources: string[]) => Math.round(report.mix.filter((item) => sources.includes(item.source)).reduce((sum, item) => sum + item.share, 0));
   const perWattHour = report.intensity / 1000;
@@ -36,7 +44,7 @@ function Report({ report }: { report: EnergyReport }) {
     <>
       <div className="mt-3 rounded-lg bg-black/5 p-3 text-center">
         <div className="text-2xl font-semibold tabular-nums">{report.intensity} g</div>
-        <div className="text-xs text-black/55">CO₂ per kWh, {report.live ? "live" : `yearly average ${report.period}`}</div>
+        <div className="text-xs text-black/55">CO₂ per kWh, {averageLabel(report)}</div>
         <div className="mt-2 text-xs text-black/70">
           CO₂ per Wh: <b>{grams(perWattHour)} g</b> · Phone charge (15 Wh): <b>{grams(perWattHour * 15)} g</b> · Laptop hour: <b>{grams(perWattHour * 50)} g</b>
         </div>
@@ -60,7 +68,7 @@ function Report({ report }: { report: EnergyReport }) {
       </p>
       <p className="mt-3 text-[11px] leading-snug text-black/45">
         These are estimations. Mix from {report.source}
-        {report.live ? "" : ", a yearly national average"}. Grams per kWh {report.live && report.source.startsWith("Energy") ? "calculated with IPCC lifecycle medians" : "as published by the source"}. Your location is used once for this estimate and not stored.
+        {report.resolution === "live" ? "" : `, a ${report.resolution === "month" ? "monthly" : "yearly"} national average`}. Grams per kWh {report.live && report.source.startsWith("Energy") ? "calculated with IPCC lifecycle medians" : "as published by the source"}. Your location is used once for this estimate and not stored.
       </p>
     </>
   );

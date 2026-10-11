@@ -1,4 +1,4 @@
-import type { CountryMix, CountryShape, Mix } from "./energyTypes";
+import type { CountryMix, CountryMonthlyMix, CountryShape, Mix } from "./energyTypes";
 
 export function parseCsv(text: string): Record<string, string>[] {
   const rows: string[][] = [];
@@ -67,6 +67,49 @@ export function countryMixes(rows: Record<string, string>[], iso3ToIso2: Map<str
     }
     if (total < 100 - 0.5) mix.other = round(100 - total, 1);
     result[iso3ToIso2.get(iso3)!] = { name: row.country, iso3, year: Number(row.year), intensity: Math.round(Number(row.carbon_intensity_elec)), mix };
+  }
+  return result;
+}
+
+const emberFuels: Record<string, keyof Mix> = {
+  Bioenergy: "bioenergy",
+  Coal: "coal",
+  Gas: "gas",
+  Hydro: "hydro",
+  Nuclear: "nuclear",
+  "Other Fossil": "oil",
+  "Other Renewables": "otherRenewables",
+  Solar: "solar",
+  Wind: "wind",
+};
+
+export function countryMonthlyMixes(rows: Record<string, string>[], iso3ToIso2: Map<string, string>) {
+  const months = new Map<string, Map<string, { intensity?: number; mix: Mix; total: number }>>();
+  for (const row of rows) {
+    const iso3 = row["ISO 3 code"];
+    if (row["Area type"] !== "Country or economy" || !iso3ToIso2.has(iso3) || !/^\d{4}-\d{2}/.test(row.Date ?? "") || row.Value === "") continue;
+    const value = Number(row.Value);
+    if (!Number.isFinite(value)) continue;
+    const byMonth = months.get(iso3) ?? new Map();
+    months.set(iso3, byMonth);
+    const month = row.Date.slice(0, 7);
+    const entry = byMonth.get(month) ?? { mix: {}, total: 0 };
+    byMonth.set(month, entry);
+    if (row.Variable === "CO2 intensity" && row.Unit === "gCO2/kWh") entry.intensity = value;
+    const source = emberFuels[row.Variable];
+    if (source && row.Subcategory === "Fuel" && row.Unit === "%" && value > 0) {
+      entry.mix[source] = round((entry.mix[source] ?? 0) + value, 1);
+      entry.total += value;
+    }
+  }
+  const result: Record<string, CountryMonthlyMix> = {};
+  for (const [iso3, byMonth] of [...months.entries()].sort()) {
+    const complete = [...byMonth.entries()].filter(([, entry]) => entry.intensity !== undefined && entry.total > 95).sort(([a], [b]) => b.localeCompare(a));
+    if (!complete.length) continue;
+    const [month, entry] = complete[0];
+    const mix: Mix = { ...entry.mix };
+    if (entry.total < 100 - 0.5) mix.other = round(100 - entry.total, 1);
+    result[iso3ToIso2.get(iso3)!] = { month, intensity: Math.round(entry.intensity!), mix };
   }
   return result;
 }

@@ -1,5 +1,5 @@
 import { ageText, expiryText, expiryTone, formatDate, type ExpiryTone } from "@/lib/whoisFormat";
-import type { Contact, StatusSeverity, WhoisResult } from "@/lib/whoisTypes";
+import type { Contact, WhoisResult } from "@/lib/whoisTypes";
 
 const card = "overflow-hidden rounded-xl bg-white/80 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]";
 
@@ -9,15 +9,6 @@ const toneClass: Record<ExpiryTone, string> = {
   warning: "text-[#c4281e]",
   expired: "text-[#c4281e]",
   unknown: "text-black/60",
-};
-
-const severityDot: Record<StatusSeverity, string> = {
-  good: "bg-[#30b050]",
-  lock: "bg-[#0a84ff]",
-  pending: "bg-[#ff9500]",
-  warning: "bg-[#ff9500]",
-  danger: "bg-[#ff3b30]",
-  info: "bg-black/30",
 };
 
 function Group({ title, children }: { title?: string; children: React.ReactNode }) {
@@ -116,15 +107,9 @@ export default function WhoisResultView({ result }: { result: WhoisResult }) {
           {result.statusInfo.length > 0 && (
             <Group title="Status">
               {result.statusInfo.map((status) => (
-                <div key={status.code} className="flex items-start gap-3 px-4 py-2.5 text-[13px]">
-                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${severityDot[status.severity]}`} />
-                  <div className="min-w-0">
-                    <div className="font-medium">
-                      {status.label}
-                      {status.label.toLowerCase() !== status.code.toLowerCase() && <span className="ml-2 font-mono text-[11px] font-normal text-black/40">{status.code}</span>}
-                    </div>
-                    {status.explanation && <div className="text-xs text-black/55">{status.explanation}</div>}
-                  </div>
+                <div key={status.code} className="px-4 py-2.5 text-[13px]">
+                  <div className="break-all font-mono text-xs">{status.code}</div>
+                  {status.explanation && <div className="mt-0.5 text-xs text-black/55">{status.explanation}</div>}
                 </div>
               ))}
             </Group>
