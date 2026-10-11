@@ -1,9 +1,12 @@
 import mixes from "@/data/energy/countryMix.json";
+import monthlyMixes from "@/data/energy/countryMonthlyMix.json";
 import { countryAt, countryFromTimezone, countryOfNearestBorder } from "./energyGeo";
 import { energyChartsCountries, intensityFromMix, liveEnergyCharts, liveGreatBritain, outcodeAt } from "./energyLive";
-import type { CountryMix, EnergyReport, Mix, MixSource } from "./energyTypes";
+import type { CountryMix, CountryMonthlyMix, EnergyReport, Mix, MixSource } from "./energyTypes";
 
 const countryMixes = mixes as Record<string, CountryMix>;
+const countryMonthlyMixes = monthlyMixes as Record<string, CountryMonthlyMix>;
+const maxMonthlyAgeMonths = 12;
 const liveTtlMs = 15 * 60_000;
 const liveCache = new Map<string, { at: number; value: Live | null }>();
 
@@ -37,6 +40,15 @@ async function liveData(fetcher: typeof fetch, country: string, latitude?: numbe
   return null;
 }
 
+export function recentMonthly(country: string, now = new Date()) {
+  const monthly = countryMonthlyMixes[country];
+  if (!monthly) return null;
+  const [year, month] = monthly.month.split("-").map(Number);
+  const age = (now.getUTCFullYear() - year) * 12 + now.getUTCMonth() + 1 - month;
+  const yearly = countryMixes[country];
+  return age <= maxMonthlyAgeMonths && (!yearly || year >= yearly.year) ? monthly : null;
+}
+
 const sortedMix = (mix: Mix) =>
   (Object.entries(mix) as [MixSource, number][]).map(([source, share]) => ({ source, share })).sort((a, b) => b.share - a.share);
 
@@ -53,21 +65,19 @@ export function locate(query: EnergyQuery) {
   return country && isKnownCountry(country) ? { country, method: "timezone" as const } : null;
 }
 
-export async function energyReport(query: EnergyQuery, fetcher: typeof fetch = fetch): Promise<EnergyReport | null> {
+export async function energyReport(query: EnergyQuery, fetcher: typeof fetch = fetch, now = new Date()): Promise<EnergyReport | null> {
   const located = locate(query);
   if (!located) return null;
   const precise = located.method === "precise";
   const yearly = countryMixes[located.country];
   const live = await liveData(fetcher, located.country, precise ? query.latitude : undefined, precise ? query.longitude : undefined);
+  const location = { country: located.country, name: yearly.name, ...(live?.region ? { region: live.region } : {}), method: located.method };
+  if (live) return { location, mix: sortedMix(live.mix), intensity: live.intensity, live: true, resolution: "live", period: live.period, source: live.source };
 
-  return {
-    location: { country: located.country, name: yearly.name, ...(live?.region ? { region: live.region } : {}), method: located.method },
-    mix: sortedMix(live?.mix ?? yearly.mix),
-    intensity: live?.intensity ?? yearly.intensity,
-    live: Boolean(live),
-    period: live?.period ?? String(yearly.year),
-    source: live?.source ?? "Our World in Data (Ember, Energy Institute)",
-  };
+  const monthly = recentMonthly(located.country, now);
+  if (monthly) return { location, mix: sortedMix(monthly.mix), intensity: monthly.intensity, live: false, resolution: "month", period: monthly.month, source: "Ember monthly electricity data" };
+
+  return { location, mix: sortedMix(yearly.mix), intensity: yearly.intensity, live: false, resolution: "year", period: String(yearly.year), source: "Our World in Data (Ember, Energy Institute)" };
 }
 
 const timezonePattern = /^[A-Za-z][A-Za-z0-9_+\-/]{0,63}$/;

@@ -34,6 +34,7 @@ export const fossilSources: MixSource[] = ["coal", "gas", "oil"];
 export const lowCarbonSources: MixSource[] = ["nuclear", "hydro", "wind", "solar", "bioenergy", "otherRenewables"];
 
 export type CountryMix = { name: string; iso3: string; year: number; intensity: number; mix: Mix };
+export type CountryMonthlyMix = { month: string; intensity: number; mix: Mix };
 export type CountryShape = { iso2: string; polygons: number[][][] };
 
 export type EnergyReport = {
@@ -41,6 +42,7 @@ export type EnergyReport = {
   mix: { source: MixSource; share: number }[];
   intensity: number;
   live: boolean;
+  resolution: "live" | "month" | "year";
   period: string;
   source: string;
 };

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { energyReport, locate, parseEnergyQuery } from "./energy";
-import { countryMixes, parseCsv, timezoneCountries } from "./energyData";
+import monthlyMixes from "../data/energy/countryMonthlyMix.json";
+import { energyReport, locate, parseEnergyQuery, recentMonthly } from "./energy";
+import { countryMixes, countryMonthlyMixes, parseCsv, timezoneCountries } from "./energyData";
 import { countryAt, countryFromTimezone, countryOfNearestBorder, distanceKm } from "./energyGeo";
 import { energyChartsSource, intensityFromMix, mixFromCarbonIntensity, mixFromEnergyCharts } from "./energyLive";
 
@@ -23,6 +24,41 @@ test("yearly country mixes take the latest year and fill the rest as other", () 
   ];
   const mixes = countryMixes(rows, new Map([["GBR", "GB"]]));
   assert.deepEqual(mixes, { GB: { name: "United Kingdom", iso3: "GBR", year: 2024, intensity: 210, mix: { gas: 30, wind: 32, other: 38 } } });
+});
+
+test("monthly country mixes take the latest complete month and map Ember fuels", () => {
+  const row = (date: string, variable: string, unit: string, value: string, subcategory = "Fuel") => ({
+    "Area type": "Country or economy",
+    "ISO 3 code": "JPN",
+    Date: date,
+    Subcategory: subcategory,
+    Variable: variable,
+    Unit: unit,
+    Value: value,
+  });
+  const rows = [
+    row("2026-02-01", "CO2 intensity", "gCO2/kWh", "460.4", "CO2 intensity"),
+    row("2026-02-01", "Coal", "%", "40"),
+    row("2026-02-01", "Gas", "%", "60"),
+    row("2026-03-01", "CO2 intensity", "gCO2/kWh", "440.2", "CO2 intensity"),
+    row("2026-03-01", "Coal", "%", "30"),
+    row("2026-03-01", "Other Fossil", "%", "3"),
+    row("2026-03-01", "Solar", "%", "64"),
+    row("2026-03-01", "Coal", "TWh", "9"),
+    row("2026-04-01", "Coal", "%", "50"),
+    { ...row("2026-03-01", "Coal", "%", "99"), "Area type": "Region" },
+    { ...row("2026-03-01", "Coal", "%", "99"), "ISO 3 code": "XXX" },
+  ];
+  assert.deepEqual(countryMonthlyMixes(rows, new Map([["JPN", "JP"]])), { JP: { month: "2026-03", intensity: 440, mix: { coal: 30, oil: 3, solar: 64, other: 3 } } });
+});
+
+const usMonthEnd = new Date(`${monthlyMixes.US.month}-28T00:00:00Z`);
+
+test("monthly data is only used while it is recent", () => {
+  assert.ok(recentMonthly("US", usMonthEnd));
+  assert.ok(recentMonthly("US", new Date(usMonthEnd.getTime() + 300 * 86_400_000)));
+  assert.equal(recentMonthly("US", new Date(usMonthEnd.getTime() + 400 * 86_400_000)), null);
+  assert.equal(recentMonthly("ZZ"), null);
 });
 
 test("time zones map to countries, including old link names", () => {
@@ -77,13 +113,20 @@ test("queries are validated and rounded", () => {
   assert.deepEqual(locate({ latitude: 40.75, longitude: -73.99 }), { country: "US", method: "precise" }, "a point on the coast falls back to the nearest border");
 });
 
-test("without live data the report falls back to the yearly mix", async () => {
-  const report = await energyReport({ timezone: "America/New_York" }, offline);
-  assert.ok(report);
-  assert.equal(report.location.country, "US");
-  assert.equal(report.live, false);
-  assert.match(report.period, /^\d{4}$/);
-  assert.ok(Math.abs(report.mix.reduce((sum, item) => sum + item.share, 0) - 100) < 1);
+test("without live data the report uses the latest month, and without that the yearly mix", async () => {
+  const monthly = await energyReport({ timezone: "America/New_York" }, offline, usMonthEnd);
+  assert.ok(monthly);
+  assert.equal(monthly.location.country, "US");
+  assert.equal(monthly.live, false);
+  assert.equal(monthly.resolution, "month");
+  assert.match(monthly.period, /^\d{4}-\d{2}$/);
+  assert.ok(Math.abs(monthly.mix.reduce((sum, item) => sum + item.share, 0) - 100) < 1);
+
+  const yearly = await energyReport({ timezone: "Asia/Jakarta" }, offline, usMonthEnd);
+  assert.ok(yearly);
+  assert.equal(yearly.location.country, "ID");
+  assert.equal(yearly.resolution, "year");
+  assert.match(yearly.period, /^\d{4}$/);
 });
 
 test("Great Britain uses the live regional carbon intensity with a precise location", async () => {
