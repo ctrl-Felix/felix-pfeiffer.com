@@ -12,7 +12,7 @@ export default function ToolSeo({ tool }: { tool: ToolInfo }) {
         "@type": "WebApplication",
         "@id": `${url}#app`,
         name: tool.seo.heading,
-        alternateName: `${tool.name} lookup`,
+        alternateName: tool.name,
         url,
         description: tool.seo.description,
         applicationCategory: "UtilitiesApplication",

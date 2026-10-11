@@ -2,7 +2,7 @@ import { links } from "@/config";
 
 export const aboutPage = {
   path: "/about",
-  updated: "2026-10-10",
+  updated: "2026-10-11",
   title: "Felix Pfeiffer: Information Security Student at UCL",
   description:
     "Who is Felix Pfeiffer? Information security student at UCL, formerly at Fraunhofer IOSB, BaFin and AXA, co-founder of Cosmoshield and Pakt.",
@@ -44,7 +44,7 @@ export const aboutPage = {
     {
       question: "What open source software has Felix Pfeiffer written?",
       answer:
-        "He maintains mospy, a Python library for the Cosmos blockchain ecosystem published on PyPI as mospy-wallet, and cosmospy-protobuf, the Protobuf definitions for it. He also built this website and its free whois and DNS tools.",
+        "He maintains mospy, a Python library for the Cosmos blockchain ecosystem published on PyPI as mospy-wallet, and cosmospy-protobuf, the Protobuf definitions for it. He also built this website and its free whois, DNS, subdomain and IP lookup tools.",
     },
     {
       question: "How can I contact Felix Pfeiffer?",

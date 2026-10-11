@@ -160,6 +160,31 @@ export function DnsIcon() {
   );
 }
 
+export function SubdomainIcon() {
+  return (
+    <Tile id="sd" from="#c49bff" to="#6a2fd6">
+      <g fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 22v20c0 3 2 5 5 5h7M20 32h12" />
+        <path d="M36 32h12M36 47h12" strokeWidth="3.6" />
+      </g>
+      <g fill="white">
+        <rect x="13" y="13" width="14" height="10" rx="3" />
+      </g>
+    </Tile>
+  );
+}
+
+export function IpIcon() {
+  return (
+    <Tile id="ip" from="#ffc36b" to="#e8700a">
+      <g fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M32 50s-13-12.5-13-23a13 13 0 0 1 26 0c0 10.5-13 23-13 23z" />
+      </g>
+      <text x="32" y="31" textAnchor="middle" fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="10.5" fontWeight="700" fill="white">IP</text>
+    </Tile>
+  );
+}
+
 export function ShieldIcon() {
   return (
     <Tile id="sh" from="#ff7a6b" to="#d6204a">
