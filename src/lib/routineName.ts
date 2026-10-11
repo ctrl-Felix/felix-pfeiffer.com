@@ -1,7 +1,7 @@
 const markerPattern = /^Routine:\s*(.+)$/i;
 const firedPattern = /Fired by routine "([^"\n]{1,200})"/;
 
-function cleanName(raw: string) {
+export function cleanName(raw: string) {
   const name = raw
     .replace(/[^\p{L}\p{N} _.,()&/-]/gu, "")
     .replace(/\s+/g, " ")

@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { routineName } from "../src/lib/routineName";
+import { cleanName, routineName } from "../src/lib/routineName";
 
 type Counts = [input: number, output: number, cacheWrite: number, cacheRead: number];
 type Entry = [model: string, ...Counts];
@@ -10,7 +10,7 @@ type Ledger = Record<string, Entry>;
 
 type RoutineEntry = [model: string, routine: string, ...Counts];
 type Execution = [day: string, routine: string, model: string];
-type RoutineLedger = { executions: Record<string, Execution>; messages: Record<string, RoutineEntry> };
+type RoutineLedger = { sessions: Record<string, string>; executions: Record<string, Execution>; messages: Record<string, RoutineEntry> };
 
 type MessageEntry = [day: string, model: string];
 type MessageLedger = Record<string, MessageEntry>;
@@ -59,7 +59,7 @@ async function readMessageLedger(): Promise<MessageLedger> {
 
 async function readRoutineLedger(): Promise<RoutineLedger> {
   const stored = await readJson(routineFile);
-  return { executions: stored.executions ?? {}, messages: stored.messages ?? {} };
+  return { sessions: stored.sessions ?? {}, executions: stored.executions ?? {}, messages: stored.messages ?? {} };
 }
 
 async function transcriptFiles(directory: string): Promise<string[]> {
@@ -165,6 +165,7 @@ function addExecution(state: State, entry: TranscriptEntry, routine: string) {
 const maxCounts = (current: number[], counts: Counts) => counts.map((value, index) => Math.max(current[index] ?? 0, value)) as Counts;
 
 function mergeBuild(state: State, key: string, model: string, counts: Counts) {
+  if (state.routines.messages[key]) return;
   const current = state.ledger[key] ?? [unknownModel, 0, 0, 0, 0];
   state.ledger[key] = [model === unknownModel ? current[0] : model, ...maxCounts(current.slice(1) as number[], counts)];
 }
@@ -187,7 +188,9 @@ async function collect(state: State, timeline: Timeline, path: string) {
       if (key) awaitingExecutions.push(key);
       continue;
     }
-    if (line.includes('"human"')) {
+    const sessionKey = typeof entry.sessionId === "string" ? keyOf(entry.sessionId) : null;
+    const sessionRoutine = sessionKey ? state.routines.sessions[sessionKey] : undefined;
+    if (line.includes('"human"') && !sessionRoutine) {
       const key = collectHumanMessage(state.messages, entry);
       if (key) awaitingMessages.push(key);
     }
@@ -203,7 +206,9 @@ async function collect(state: State, timeline: Timeline, path: string) {
       awaitingExecutions = [];
     }
     const counts: Counts = [usage.input_tokens ?? 0, usage.output_tokens ?? 0, usage.cache_creation_input_tokens ?? 0, usage.cache_read_input_tokens ?? 0];
-    const turnRoutine = routineAt(timeline, entry.sessionId, entry.timestamp);
+    const sessionExecution = sessionKey ? state.routines.executions[sessionKey] : undefined;
+    if (sessionRoutine && sessionExecution?.[2] === unknownModel && !entry.isSidechain && model !== unknownModel) sessionExecution[2] = model;
+    const turnRoutine = sessionRoutine ?? routineAt(timeline, entry.sessionId, entry.timestamp);
     if (turnRoutine) mergeRoutine(state, keyOf(id), model, turnRoutine, counts);
     else mergeBuild(state, keyOf(id), model, counts);
   }
@@ -221,6 +226,26 @@ const renderSections = (sections: Record<string, Record<string, unknown>>) =>
     .map(([name, rows]) => `  "${name}": {\n${renderRows(rows)}\n  }`)
     .join(",\n")}\n}\n`;
 
+function routineArgument() {
+  const index = process.argv.indexOf("--routine");
+  if (index === -1) return null;
+  const name = cleanName(process.argv[index + 1] ?? "");
+  if (!name) throw new Error('Pass the routine name: npm run usage:update -- --routine "<name>"');
+  return name;
+}
+
+async function markCurrentSession(state: State, files: string[], routine: string) {
+  const mainFiles = files.filter((path) => !path.includes("/subagents/"));
+  const times = await Promise.all(mainFiles.map(async (path) => ({ path, modified: (await stat(path)).mtimeMs })));
+  const newest = times.sort((a, b) => b.modified - a.modified)[0];
+  if (!newest) throw new Error("No transcript of this session found.");
+  const sessionId = (await readFile(newest.path, "utf8")).match(/"sessionId":"([^"]+)"/)?.[1];
+  if (!sessionId) throw new Error("The newest transcript has no session id.");
+  const key = keyOf(sessionId);
+  state.routines.sessions[key] = routine;
+  state.routines.executions[key] ??= [new Date().toISOString().slice(0, 10), routine, unknownModel];
+}
+
 async function main() {
   const state: State = { ledger: await readLedger(), messages: await readMessageLedger(), routines: await readRoutineLedger() };
   const before = { tokens: Object.keys(state.ledger).length, messages: Object.keys(state.messages).length, executions: Object.keys(state.routines.executions).length };
@@ -230,11 +255,13 @@ async function main() {
   const timeline: Timeline = new Map();
   for (const path of files) addTurns(timeline, await readFile(path, "utf8"));
   for (const turns of timeline.values()) turns.sort((a, b) => a[0].localeCompare(b[0]));
+  const marked = routineArgument();
+  if (marked) await markCurrentSession(state, files, marked);
   for (const path of files) await collect(state, timeline, path);
 
   await writeFile(file, renderSections({ messages: state.ledger }));
   await writeFile(messageFile, renderSections({ userMessages: state.messages }));
-  await writeFile(routineFile, renderSections({ executions: state.routines.executions, messages: state.routines.messages }));
+  await writeFile(routineFile, renderSections({ sessions: state.routines.sessions, executions: state.routines.executions, messages: state.routines.messages }));
   console.log(`Read ${files.length} transcript file(s), ${Object.keys(state.ledger).length} API call(s) in the build ledger (was ${before.tokens}).`);
   console.log(`${Object.keys(state.messages).length - before.messages} new user message(s), ${Object.keys(state.messages).length} in total.`);
   console.log(`${Object.keys(state.routines.executions).length - before.executions} new routine execution(s), ${Object.keys(state.routines.executions).length} in total, ${Object.keys(state.routines.messages).length} routine API call(s).`);
