@@ -131,17 +131,75 @@ export const toolInfos: ToolInfo[] = [
       ],
     },
   },
+  {
+    id: "subdomains",
+    name: "Subdomain Finder",
+    description: "Find the subdomains of a domain in public certificate transparency logs.",
+    keywords: ["subdomain", "subdomains", "finder", "enumeration", "discovery", "certificate transparency", "crt.sh", "ssl", "tls", "recon"],
+    updated: "2026-10-11",
+    seo: {
+      title: "Free Subdomain Finder: Certificate Transparency Search",
+      description:
+        "Free subdomain finder: discover the subdomains of any domain from certificate transparency logs. No sign up, nothing stored. Works with AI assistants via MCP.",
+      heading: "Free subdomain finder: discover subdomains of any domain",
+      features: [
+        "Subdomains from certificate transparency logs",
+        "Wildcard certificates marked",
+        "First seen date and last certificate expiry",
+        "Current and expired names",
+        "Issuing certificate authorities",
+        "Copy the full list",
+        "MCP server for AI assistants",
+      ],
+      paragraphs: [
+        "Enter a domain name such as example.com to list every subdomain that appeared in a publicly trusted TLS certificate, for example www.example.com, api.example.com or mail.example.com. Each name shows when it was first seen, when its latest certificate expires and whether a certificate for it is still valid today.",
+        "Certificate authorities must publish every certificate they issue in public certificate transparency logs. This makes the names in those certificates public. The tool searches the logs through crt.sh, so the discovery is passive: the domain and its servers are never contacted.",
+        "The tool is free, needs no account and does not store the domains you search. AI assistants such as Claude can use the same search through an open MCP server at https://felix-pfeiffer.com/mcp, together with a whois and a DNS record lookup.",
+      ],
+      steps: [
+        "Open the tool and type a domain name or paste a link.",
+        "Press Search. Large domains can take up to a minute.",
+        "Filter the list, show only names with a valid certificate or copy all names.",
+      ],
+      faq: [
+        {
+          question: "How can I find all subdomains of a domain?",
+          answer: "Search the domain in certificate transparency logs. Every subdomain that ever had a publicly trusted TLS certificate is listed there. This tool does that search for you and merges the results into one list.",
+        },
+        {
+          question: "What is certificate transparency?",
+          answer: "Certificate transparency is a system of public, append only logs. Certificate authorities must record every TLS certificate they issue there, so anyone can check which certificates exist for a domain.",
+        },
+        {
+          question: "Does this find every subdomain?",
+          answer: "No. It finds names that appeared in a public certificate. Names that only exist in DNS, are internal or are covered by a wildcard certificate such as *.example.com do not show up by name.",
+        },
+        {
+          question: "Is subdomain discovery from certificate logs legal?",
+          answer: "Yes. The logs are public by design and the search is passive: the domain and its servers are not contacted. Only test systems further if you are allowed to.",
+        },
+        {
+          question: "Can an AI assistant use this subdomain finder?",
+          answer: "Yes. The tool is available as an MCP server at https://felix-pfeiffer.com/mcp. Add it as a custom connector in Claude or with the command claude mcp add --transport http security https://felix-pfeiffer.com/mcp in Claude Code.",
+        },
+        {
+          question: "Are my searches stored?",
+          answer: "No. The domain you enter is sent through this server to crt.sh, the result is cached for 30 minutes and never saved.",
+        },
+      ],
+    },
+  },
 ];
 
 export const toolsHub = {
   path: "/tools",
-  updated: "2026-10-10",
-  title: "Free Online Tools: Whois and DNS Lookup",
-  description: "Free online security tools: whois lookup and DNS record checker. No sign up, nothing stored, and usable from AI assistants through MCP.",
+  updated: "2026-10-11",
+  title: "Free Online Tools: Whois, DNS and Subdomain Finder",
+  description: "Free online security tools: whois lookup, DNS record checker and subdomain finder. No sign up, nothing stored, usable from AI assistants through MCP.",
   heading: "Free online tools",
   intro:
-    "Small, free tools to check domains: look up who registered a domain and when it expires, or read its DNS records. No account, no tracking of your lookups, and every tool is also available to AI assistants through one open MCP server.",
-  keywords: ["free online tools", "whois lookup", "dns lookup", "domain tools", "security tools", "mcp server"],
+    "Small, free tools to check domains: look up who registered a domain and when it expires, read its DNS records or find its subdomains in certificate transparency logs. No account, no tracking of your lookups, and every tool is also available to AI assistants through one open MCP server.",
+  keywords: ["free online tools", "whois lookup", "dns lookup", "subdomain finder", "domain tools", "security tools", "mcp server"],
 };
 
 export const findToolInfo = (id: string) => toolInfos.find((tool) => tool.id === id);

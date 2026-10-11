@@ -13,10 +13,10 @@ test("initialize negotiates the protocol version", async () => {
   assert.equal(unknown.result?.protocolVersion, "2025-06-18");
 });
 
-test("tools/list exposes the whois and DNS tools as read only", async () => {
+test("tools/list exposes the whois, DNS and subdomain tools as read only", async () => {
   const reply = (await handleRpc(rpc("tools/list"), ip)) as Reply;
   const tools = reply.result?.tools as { name: string; annotations: { readOnlyHint: boolean } }[];
-  assert.deepEqual(tools.map((tool) => tool.name), ["whois_lookup", "dns_records"]);
+  assert.deepEqual(tools.map((tool) => tool.name), ["whois_lookup", "dns_records", "subdomain_discovery"]);
   assert.ok(tools.every((tool) => tool.annotations.readOnlyHint === true));
 });
 
@@ -37,6 +37,12 @@ test("tool errors are reported as results, protocol errors as errors", async () 
   assert.equal(dnsMissing.result?.isError, true);
   const dnsBadTypes = (await handleRpc(rpc("tools/call", { name: "dns_records", arguments: { domain: "example.com", types: ["AXFR"] } }), ip)) as Reply;
   assert.equal(dnsBadTypes.result?.isError, true);
+  const subdomainInvalid = (await handleRpc(rpc("tools/call", { name: "subdomain_discovery", arguments: { domain: "printer.local" } }), ip)) as Reply;
+  assert.equal(subdomainInvalid.result?.isError, true);
+  const subdomainBadLimit = (await handleRpc(rpc("tools/call", { name: "subdomain_discovery", arguments: { domain: "example.com", limit: 0 } }), ip)) as Reply;
+  assert.equal(subdomainBadLimit.result?.isError, true);
+  const subdomainBadFlag = (await handleRpc(rpc("tools/call", { name: "subdomain_discovery", arguments: { domain: "example.com", currentOnly: "yes" } }), ip)) as Reply;
+  assert.equal(subdomainBadFlag.result?.isError, true);
   const unknownTool = (await handleRpc(rpc("tools/call", { name: "nope" }), ip)) as Reply;
   assert.equal(unknownTool.error?.code, -32602);
 });
