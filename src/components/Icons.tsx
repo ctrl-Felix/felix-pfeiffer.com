@@ -91,8 +91,34 @@ export function StatsIcon() {
   );
 }
 
+function Wrench({ fill }: { fill: string }) {
+  return (
+    <g fill={fill}>
+      <path d="M-4.6 -28.55A10.6 10.6 0 1 0 4.6 -28.55V-20H-4.6Z" />
+      <rect x="-3.4" y="-14" width="6.8" height="33" />
+      <path d="M0 18.6a5.4 5.4 0 1 1 0 10.8a5.4 5.4 0 1 1 0-10.8ZM0 21.7a2.3 2.3 0 1 0 0 4.6a2.3 2.3 0 1 0 0-4.6Z" fillRule="evenodd" />
+    </g>
+  );
+}
+
+function Screwdriver({ metal, grip, shadow }: { metal: string; grip: string; shadow?: boolean }) {
+  return (
+    <>
+      <path d="M-1.7 -29h3.4l0.9 6v21h-5.2v-21z" fill={metal} />
+      <rect x="-3.2" y="-4" width="6.4" height="4" rx="1" fill={shadow ? metal : "#c9cfdb"} />
+      <rect x="-5.4" y="-1" width="10.8" height="30" rx="5.2" fill={grip} />
+      {!shadow && (
+        <g stroke="#fff" strokeOpacity="0.28" strokeWidth="1.2" strokeLinecap="round">
+          <path d="M-3.4 8h6.8M-3.4 13h6.8M-3.4 18h6.8" />
+        </g>
+      )}
+    </>
+  );
+}
+
 export function ToolsIcon() {
   const id = useSvgId("tl");
+  const shadow = "rgba(0,0,0,0.3)";
   return (
     <Tile id="tl" from="#8a91a0" to="#2d3039">
       <defs>
@@ -105,29 +131,18 @@ export function ToolsIcon() {
           <stop offset="0" stopColor="#ffbe4d" />
           <stop offset="1" stopColor="#ff7a00" />
         </linearGradient>
-        <mask id={`${id}-wrench`} maskUnits="userSpaceOnUse" x="-20" y="-40" width="40" height="80">
-          <rect x="-20" y="-40" width="40" height="80" fill="#fff" />
-          <rect x="-4.6" y="-34" width="9.2" height="14" rx="1.8" fill="#000" />
-          <circle cx="0" cy="24" r="2.3" fill="#000" />
-        </mask>
-        <filter id={`${id}-shadow`} x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="1.4" stdDeviation="1.2" floodColor="#000" floodOpacity="0.4" />
-        </filter>
       </defs>
-      <g transform="translate(32 32) rotate(45) scale(0.96)" filter={`url(#${id}-shadow)`}>
-        <g mask={`url(#${id}-wrench)`} fill={`url(#${id}-metal)`}>
-          <circle cx="0" cy="-19" r="10.6" />
-          <rect x="-3.4" y="-14" width="6.8" height="36" />
-          <circle cx="0" cy="24" r="5.4" />
-        </g>
+      <g transform="translate(32 33.4) rotate(45) scale(0.96)">
+        <Wrench fill={shadow} />
       </g>
-      <g transform="translate(32 32) rotate(-45) scale(0.96)" filter={`url(#${id}-shadow)`}>
-        <path d="M-1.7 -29h3.4l0.9 6v21h-5.2v-21z" fill={`url(#${id}-metal)`} />
-        <rect x="-3.2" y="-4" width="6.4" height="4" rx="1" fill="#c9cfdb" />
-        <rect x="-5.4" y="-1" width="10.8" height="30" rx="5.2" fill={`url(#${id}-grip)`} />
-        <g stroke="#fff" strokeOpacity="0.28" strokeWidth="1.2" strokeLinecap="round">
-          <path d="M-3.4 8h6.8M-3.4 13h6.8M-3.4 18h6.8" />
-        </g>
+      <g transform="translate(32 32) rotate(45) scale(0.96)">
+        <Wrench fill={`url(#${id}-metal)`} />
+      </g>
+      <g transform="translate(32 33.4) rotate(-45) scale(0.96)">
+        <Screwdriver metal={shadow} grip={shadow} shadow />
+      </g>
+      <g transform="translate(32 32) rotate(-45) scale(0.96)">
+        <Screwdriver metal={`url(#${id}-metal)`} grip={`url(#${id}-grip)`} />
       </g>
     </Tile>
   );
