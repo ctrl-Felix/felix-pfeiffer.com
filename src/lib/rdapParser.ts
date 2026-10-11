@@ -9,8 +9,8 @@ const maxNotices = 6;
 const maxNoticeChars = 600;
 const redactedPattern = /redacted|privacy|withheld|not disclosed|data protected|gdpr/i;
 
-const asArray = (value: unknown): Json[] => (Array.isArray(value) ? value.filter((item): item is Json => typeof item === "object" && item !== null) : []);
-const asString = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
+export const asArray = (value: unknown): Json[] => (Array.isArray(value) ? value.filter((item): item is Json => typeof item === "object" && item !== null) : []);
+export const asString = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
 function toIso(value: unknown) {
   const text = asString(value);
@@ -19,7 +19,7 @@ function toIso(value: unknown) {
   return Number.isNaN(time) ? null : new Date(time).toISOString();
 }
 
-function eventDate(json: Json, ...actions: string[]) {
+export function eventDate(json: Json, ...actions: string[]) {
   const events = asArray(json.events);
   for (const action of actions) {
     const found = events.find((event) => event.eventAction === action);
@@ -28,10 +28,10 @@ function eventDate(json: Json, ...actions: string[]) {
   return null;
 }
 
-type Card = { fn: string | null; org: string | null; email: string | null; tel: string | null; url: string | null; country: string | null };
+type Card = { fn: string | null; org: string | null; email: string | null; tel: string | null; url: string | null; country: string | null; address: string | null };
 
-function readCard(entity: Json): Card {
-  const card: Card = { fn: null, org: null, email: null, tel: null, url: null, country: null };
+export function readCard(entity: Json): Card {
+  const card: Card = { fn: null, org: null, email: null, tel: null, url: null, country: null, address: null };
   const properties = (entity.vcardArray as unknown[] | undefined)?.[1];
   if (!Array.isArray(properties)) return card;
   for (const property of properties) {
@@ -46,12 +46,14 @@ function readCard(entity: Json): Card {
       const label = (property[1] as Json | undefined)?.cc;
       const parts = Array.isArray(value) ? value : [];
       card.country ??= asString(label) ?? asString(parts[6]);
+      const written = asString((property[1] as Json | undefined)?.label) ?? asString(parts.flat().map((part) => (typeof part === "string" ? part.trim() : "")).filter(Boolean).join(", "));
+      card.address ??= written?.replace(/\s*\n\s*/g, ", ") ?? null;
     }
   }
   return card;
 }
 
-function flattenEntities(entities: Json[]): Json[] {
+export function flattenEntities(entities: Json[]): Json[] {
   return entities.flatMap((entity) => [entity, ...flattenEntities(asArray(entity.entities))]);
 }
 

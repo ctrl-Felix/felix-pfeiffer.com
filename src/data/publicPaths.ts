@@ -76,7 +76,7 @@ export const publicPaths: PublicPath[] = [
   {
     path: mcpPage.path,
     title: "MCP server",
-    description: "Explains MCP and the single address (POST) that gives AI assistants the whois, DNS and subdomain tools.",
+    description: "Explains MCP and the single address (POST) that gives AI assistants the whois, DNS, subdomain and IP tools.",
     kind: "page",
     group: "ai",
     indexed: true,

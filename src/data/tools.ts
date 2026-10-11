@@ -192,17 +192,80 @@ export const toolInfos: ToolInfo[] = [
       ],
     },
   },
+  {
+    id: "ip",
+    name: "IP Lookup",
+    description: "Look up who owns an IP address: network, ASN, organization, country and reverse DNS.",
+    keywords: ["ip", "ip lookup", "ip whois", "asn", "bgp", "subnet", "cidr", "rdap", "reverse dns", "ptr", "network", "owner", "isp"],
+    updated: "2026-10-11",
+    seo: {
+      title: "Free IP Lookup: IP Whois, ASN, Subnet and Owner",
+      description:
+        "Free IP whois lookup: find the network, subnet, ASN, owner, country and reverse DNS of any IPv4 or IPv6 address. No sign up, nothing stored. Works via MCP.",
+      heading: "Free IP lookup: who owns an IP address",
+      features: [
+        "Network name, range and CIDR subnet",
+        "Origin ASN, AS name and BGP prefix",
+        "Owner organization with address and country",
+        "Regional internet registry and registration dates",
+        "Abuse contact",
+        "Reverse DNS (PTR)",
+        "IPv4 and IPv6",
+        "MCP server for AI assistants",
+      ],
+      paragraphs: [
+        "Enter an IPv4 or IPv6 address such as 1.1.1.1 to see which network it belongs to, its address range and CIDR subnet, the organization that holds it with its address and country, when the network was registered and where to report abuse.",
+        "The network data comes live from the responsible regional internet registry (ARIN, RIPE NCC, APNIC, LACNIC or AFRINIC) through RDAP, the modern successor of WHOIS. The origin ASN and BGP prefix come from the public IP to ASN service of Team Cymru, and the reverse DNS name from public resolvers.",
+        "The location shown is the country and address in the registry record, not a precise geolocation. Private, reserved and documentation addresses are not looked up. The tool is free, needs no account and does not store the addresses you look up. AI assistants such as Claude can use the same lookup through an open MCP server at https://felix-pfeiffer.com/mcp.",
+      ],
+      steps: [
+        "Open the tool and type or paste an IPv4 or IPv6 address.",
+        "Press Look up.",
+        "Read the network, owner, ASN, reverse DNS and abuse contact.",
+      ],
+      faq: [
+        {
+          question: "How can I find out who owns an IP address?",
+          answer: "Look up the address. The registry record shows the organization that holds the network, its address and country, and the abuse contact. The ASN shows which network announces the address on the internet.",
+        },
+        {
+          question: "What is an ASN?",
+          answer: "An autonomous system number identifies a network on the internet, such as an internet provider, a hosting company or a large company. Each address is announced in BGP by one origin ASN.",
+        },
+        {
+          question: "What is the difference between IP whois and RDAP?",
+          answer: "Both return the registry record of an address. RDAP is the newer standard with structured JSON and is offered by all five regional internet registries. This tool uses RDAP.",
+        },
+        {
+          question: "Does this show the exact location of an IP address?",
+          answer: "No. It shows the country and address from the registry record, which is where the holder of the network is registered. The device using the address can be somewhere else.",
+        },
+        {
+          question: "How do I report abuse from an IP address?",
+          answer: "Use the abuse contact shown in the result. It is the address the network holder publishes for spam, attacks and other abuse reports.",
+        },
+        {
+          question: "Can an AI assistant use this IP lookup?",
+          answer: "Yes. The tool is available as an MCP server at https://felix-pfeiffer.com/mcp. Add it as a custom connector in Claude or with the command claude mcp add --transport http security https://felix-pfeiffer.com/mcp in Claude Code.",
+        },
+        {
+          question: "Are my lookups stored?",
+          answer: "No. The address you enter is sent through this server to the registry and public DNS resolvers, cached for a few minutes and never saved.",
+        },
+      ],
+    },
+  },
 ];
 
 export const toolsHub = {
   path: "/tools",
   updated: "2026-10-11",
-  title: "Free Online Tools: Whois, DNS and Subdomain Finder",
-  description: "Free online security tools: whois lookup, DNS record checker and subdomain finder. No sign up, nothing stored, usable from AI assistants through MCP.",
+  title: "Free Online Tools: Whois, DNS, IP and Subdomain Lookup",
+  description: "Free online security tools: whois lookup, DNS records, subdomain finder and IP lookup. No sign up, nothing stored, usable from AI assistants through MCP.",
   heading: "Free online tools",
   intro:
-    "Small, free tools to check domains: look up who registered a domain and when it expires, read its DNS records or find its subdomains in certificate transparency logs. No account, no tracking of your lookups, and every tool is also available to AI assistants through one open MCP server.",
-  keywords: ["free online tools", "whois lookup", "dns lookup", "subdomain finder", "domain tools", "security tools", "mcp server"],
+    "Small, free tools to check domains: look up who registered a domain and when it expires, read its DNS records, find its subdomains in certificate transparency logs or see who owns an IP address. No account, no tracking of your lookups, and every tool is also available to AI assistants through one open MCP server.",
+  keywords: ["free online tools", "whois lookup", "dns lookup", "subdomain finder", "ip lookup", "asn lookup", "domain tools", "security tools", "mcp server"],
 };
 
 export const findToolInfo = (id: string) => toolInfos.find((tool) => tool.id === id);

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { peekPendingLaunch } from "@/components/deepLink";
 import { findToolInfo } from "@/data/tools";
 import type { Subdomain, SubdomainResult } from "@/lib/subdomains";
+import SearchProgress, { type ProgressStep } from "./SearchProgress";
 
 type State =
   | { kind: "idle" }
@@ -14,6 +15,13 @@ type State =
 const card = "overflow-hidden rounded-xl bg-white/80 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]";
 const field = "rounded-lg bg-black/6 px-3 py-2 text-[13px] outline-none placeholder:text-black/35 focus:ring-2 focus:ring-[#0a84ff]";
 const renderLimit = 1000;
+const progressSteps: ProgressStep[] = [
+  { label: "Searching the certificate transparency logs", after: 0 },
+  { label: "Checking common names like www, mail and api in DNS", after: 2 },
+  { label: "Waiting for the certificate database", after: 8 },
+  { label: "Asking the crt.sh website instead", after: 16 },
+  { label: "Still collecting certificates, large domains take longer", after: 35 },
+];
 
 const day = (iso: string | null) => (iso ? iso.slice(0, 10) : "unknown");
 
@@ -163,7 +171,7 @@ export default function SubdomainTool() {
           Search
         </button>
       </form>
-      {state.kind === "loading" && <p className="py-6 text-center text-sm text-black/45">Searching certificate logs… This can take up to a minute.</p>}
+      {state.kind === "loading" && <SearchProgress steps={progressSteps} expectedSeconds={12} />}
       {state.kind === "error" && <p className="rounded-xl bg-[#ff3b30]/10 px-4 py-3 text-[13px] text-[#c4281e]" role="alert">{state.message}</p>}
       {state.kind === "done" && <Result key={state.result.domain} result={state.result} />}
       {state.kind === "idle" && <About />}

@@ -13,10 +13,10 @@ test("initialize negotiates the protocol version", async () => {
   assert.equal(unknown.result?.protocolVersion, "2025-06-18");
 });
 
-test("tools/list exposes the whois, DNS and subdomain tools as read only", async () => {
+test("tools/list exposes the whois, DNS, subdomain and IP tools as read only", async () => {
   const reply = (await handleRpc(rpc("tools/list"), ip)) as Reply;
   const tools = reply.result?.tools as { name: string; annotations: { readOnlyHint: boolean } }[];
-  assert.deepEqual(tools.map((tool) => tool.name), ["whois_lookup", "dns_records", "subdomain_discovery"]);
+  assert.deepEqual(tools.map((tool) => tool.name), ["whois_lookup", "dns_records", "subdomain_discovery", "ip_info"]);
   assert.ok(tools.every((tool) => tool.annotations.readOnlyHint === true));
 });
 
@@ -43,6 +43,10 @@ test("tool errors are reported as results, protocol errors as errors", async () 
   assert.equal(subdomainBadLimit.result?.isError, true);
   const subdomainBadFlag = (await handleRpc(rpc("tools/call", { name: "subdomain_discovery", arguments: { domain: "example.com", currentOnly: "yes" } }), ip)) as Reply;
   assert.equal(subdomainBadFlag.result?.isError, true);
+  for (const ipArgument of ["10.0.0.1", "127.0.0.1", "::1", "2001:db8::1", "example.com"]) {
+    const ipInvalid = (await handleRpc(rpc("tools/call", { name: "ip_info", arguments: { ip: ipArgument } }), ip)) as Reply;
+    assert.equal(ipInvalid.result?.isError, true, ipArgument);
+  }
   const unknownTool = (await handleRpc(rpc("tools/call", { name: "nope" }), ip)) as Reply;
   assert.equal(unknownTool.error?.code, -32602);
 });

@@ -32,6 +32,11 @@ export const mcpConnectors: McpConnector[] = [
         description: "Subdomains of a domain from public certificate transparency logs (crt.sh) and a DNS check of common names, with first seen date, last expiry and issuers.",
         example: "Which subdomains of example.com have a valid certificate?",
       },
+      {
+        name: "ip_info",
+        description: "Network, subnet, owner organization, country, abuse contact, origin ASN and reverse DNS of an IPv4 or IPv6 address.",
+        example: "Who owns 1.1.1.1 and which ASN announces it?",
+      },
     ],
   },
 ];
@@ -39,11 +44,11 @@ export const mcpConnectors: McpConnector[] = [
 export const mcpPage = {
   path: "/mcp",
   updated: "2026-10-11",
-  title: "Free MCP Server: Whois, DNS and Subdomain Tools",
+  title: "Free MCP Server: Whois, DNS, IP and Subdomain Tools",
   description:
-    "Connect Claude, Claude Code, Cursor or VS Code to one free MCP server with whois, DNS record and subdomain discovery tools. No account or API key.",
+    "Connect Claude, Claude Code, Cursor or VS Code to one free MCP server with whois, DNS, IP lookup and subdomain discovery tools. No account or API key.",
   heading: "MCP server: connect your AI assistant",
-  keywords: ["mcp", "model context protocol", "mcp server", "claude connector", "whois mcp", "dns mcp", "subdomain mcp", "remote mcp server", "claude code mcp"],
+  keywords: ["mcp", "model context protocol", "mcp server", "claude connector", "whois mcp", "dns mcp", "subdomain mcp", "ip lookup mcp", "asn mcp", "remote mcp server", "claude code mcp"],
   intro:
     "The Model Context Protocol (MCP) lets AI assistants such as Claude call tools and fetch live data. The server below is open: no account, no API key. It offers several tools behind one address.",
   faq: [

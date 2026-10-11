@@ -10,7 +10,7 @@ const protocolVersions = ["2025-06-18", "2025-03-26", "2024-11-05"];
 const maxBatch = 10;
 
 const instructions =
-  "Security research tools for public data. Use whois_lookup for the registration data of a domain (registrar, dates, status flags, name servers, DNSSEC), dns_records for its DNS records (A, AAAA, CNAME, MX, NS, TXT, SOA, CAA) and subdomain_discovery for the subdomains found in public certificate transparency logs and a DNS check of common names. Registrant personal data is normally redacted by registries and is not available. All tools are read only, need no account and answers are cached for a short time.";
+  "Security research tools for public data. Use whois_lookup for the registration data of a domain (registrar, dates, status flags, name servers, DNSSEC), dns_records for its DNS records (A, AAAA, CNAME, MX, NS, TXT, SOA, CAA), subdomain_discovery for the subdomains found in public certificate transparency logs and a DNS check of common names, and ip_info for the network, owner, ASN and reverse DNS of an IP address. Registrant personal data is normally redacted by registries and is not available. All tools are read only, need no account and answers are cached for a short time.";
 
 const ok = (id: Id, result: unknown): RpcResponse => ({ jsonrpc: "2.0", id, result });
 const fail = (id: Id, code: number, message: string): RpcResponse => ({ jsonrpc: "2.0", id, error: { code, message } });

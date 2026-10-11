@@ -22,6 +22,7 @@ export const mcpTargets = {
   whois_lookup: "Whois lookup",
   dns_records: "DNS records",
   subdomain_discovery: "Subdomain discovery",
+  ip_info: "IP lookup",
 } as const;
 
 export type McpTarget = keyof typeof mcpTargets;
