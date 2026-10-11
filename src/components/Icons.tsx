@@ -160,6 +160,20 @@ export function DnsIcon() {
   );
 }
 
+export function SubdomainIcon() {
+  return (
+    <Tile id="sd" from="#c49bff" to="#6a2fd6">
+      <g fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 22v20c0 3 2 5 5 5h7M20 32h12" />
+        <path d="M36 32h12M36 47h12" strokeWidth="3.6" />
+      </g>
+      <g fill="white">
+        <rect x="13" y="13" width="14" height="10" rx="3" />
+      </g>
+    </Tile>
+  );
+}
+
 export function ShieldIcon() {
   return (
     <Tile id="sh" from="#ff7a6b" to="#d6204a">

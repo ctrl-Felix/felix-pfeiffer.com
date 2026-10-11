@@ -21,6 +21,7 @@ export const trackTargets = {
 export const mcpTargets = {
   whois_lookup: "Whois lookup",
   dns_records: "DNS records",
+  subdomain_discovery: "Subdomain discovery",
 } as const;
 
 export type McpTarget = keyof typeof mcpTargets;
