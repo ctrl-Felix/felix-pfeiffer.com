@@ -1,5 +1,9 @@
+import { logSearchFailure, searchDatabase, searchWebsite, TooManyCertificatesError, type CrtEntry, type DatabaseQuery, type Fetcher } from "./certificateSearch";
 import { normalizeDnsName } from "./dnsLookup";
+import { probeCommonSubdomains, type ProbeResolver, type ProbeResult } from "./subdomainProbe";
 import { normalizeDomain } from "./whois";
+
+export { TooManyCertificatesError } from "./certificateSearch";
 
 export type Subdomain = {
   name: string;
@@ -8,27 +12,29 @@ export type Subdomain = {
   firstSeen: string | null;
   lastExpires: string | null;
   current: boolean;
+  foundInDns: boolean;
 };
+
+export type CertificateStatus = "complete" | "incomplete" | "unexpired" | "too-many" | "failed";
 
 export type SubdomainResult = {
   domain: string;
-  scope: "all" | "unexpired";
+  certificateSearch: CertificateStatus;
+  certificateSource: "database" | "website" | null;
   certificates: number;
   subdomains: Subdomain[];
   issuers: { name: string; certificates: number }[];
   truncated: boolean;
+  dnsCheck: { checked: number; found: number; wildcardDns: boolean } | null;
 };
 
-type CrtEntry = { id?: unknown; issuer_name?: unknown; common_name?: unknown; name_value?: unknown; not_before?: unknown; not_after?: unknown };
-type Fetcher = (url: string, init: RequestInit) => Promise<Response>;
+export type SubdomainSources = { query?: DatabaseQuery; fetcher?: Fetcher; resolver?: ProbeResolver };
 
-export class TooManyCertificatesError extends Error {}
+type CertificateOutcome = { status: CertificateStatus; source: SubdomainResult["certificateSource"]; entries: CrtEntry[] };
 
-const searchUrl = "https://crt.sh/";
-const timeoutMs = 25_000;
-const maxResponseBytes = 12 * 1024 * 1024;
 const maxNames = 5000;
 const cacheTtlMs = 30 * 60_000;
+const failedCacheTtlMs = 2 * 60_000;
 const maxCacheEntries = 50;
 const labelPattern = /^_?[a-z0-9]([a-z0-9_-]{0,61}[a-z0-9])?$/;
 
@@ -39,40 +45,6 @@ export function normalizeSubdomainQuery(input: string) {
   const cleaned = input.trim().replace(/^(\*|%)\./, "");
   const domain = normalizeDomain(cleaned);
   return domain ? normalizeDnsName(domain) : null;
-}
-
-async function readCapped(response: Response) {
-  if (!response.body) return "";
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.byteLength;
-    if (size > maxResponseBytes) {
-      await reader.cancel();
-      throw new TooManyCertificatesError("response too large");
-    }
-    chunks.push(value);
-  }
-  return Buffer.concat(chunks).toString("utf8");
-}
-
-async function searchLogs(domain: string, unexpiredOnly: boolean, fetcher: Fetcher): Promise<CrtEntry[]> {
-  const params = new URLSearchParams({ q: `%.${domain}`, output: "json", deduplicate: "Y" });
-  if (unexpiredOnly) params.set("exclude", "expired");
-  const response = await fetcher(`${searchUrl}?${params}`, {
-    headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(timeoutMs),
-    cache: "no-store",
-  });
-  if (!response.ok) throw new Error(`certificate search failed with ${response.status}`);
-  const text = (await readCapped(response)).trim();
-  if (!text) return [];
-  const parsed: unknown = JSON.parse(text);
-  if (!Array.isArray(parsed)) throw new Error("unexpected certificate search response");
-  return parsed as CrtEntry[];
 }
 
 const isoDate = (value: unknown) => {
@@ -105,7 +77,7 @@ function namesOf(entry: CrtEntry, domain: string) {
 
 const reversedLabels = (name: string) => name.split(".").reverse().join(".");
 
-export function summarizeCertificates(domain: string, entries: CrtEntry[], scope: SubdomainResult["scope"], now = Date.now()): SubdomainResult {
+export function summarizeCertificates(domain: string, entries: CrtEntry[], now = Date.now()) {
   const found = new Map<string, Subdomain>();
   const seenIds = new Map<string, Set<string>>();
   const issuers = new Map<string, Set<string>>();
@@ -123,7 +95,7 @@ export function summarizeCertificates(domain: string, entries: CrtEntry[], scope
     issuers.set(issuer, (issuers.get(issuer) ?? new Set()).add(id));
 
     for (const [name, wildcard] of names) {
-      const item = found.get(name) ?? { name, wildcard: false, certificates: 0, firstSeen: null, lastExpires: null, current: false };
+      const item = found.get(name) ?? { name, wildcard: false, certificates: 0, firstSeen: null, lastExpires: null, current: false, foundInDns: false };
       const ids = seenIds.get(name) ?? new Set<string>();
       if (!ids.has(id)) item.certificates += 1;
       seenIds.set(name, ids.add(id));
@@ -135,37 +107,75 @@ export function summarizeCertificates(domain: string, entries: CrtEntry[], scope
     }
   });
 
-  const sorted = [...found.values()].sort((a, b) => reversedLabels(a.name).localeCompare(reversedLabels(b.name)));
-
   return {
-    domain,
-    scope,
+    names: found,
     certificates: certificateIds.size,
-    subdomains: sorted.slice(0, maxNames),
     issuers: [...issuers.entries()].map(([name, ids]) => ({ name, certificates: ids.size })).sort((a, b) => b.certificates - a.certificates || a.name.localeCompare(b.name)),
-    truncated: sorted.length > maxNames,
   };
 }
 
-async function discover(domain: string, fetcher: Fetcher): Promise<SubdomainResult> {
+export function buildResult(domain: string, outcome: CertificateOutcome, probe: ProbeResult | null, now = Date.now()): SubdomainResult {
+  const summary = summarizeCertificates(domain, outcome.entries, now);
+  for (const name of probe?.found ?? []) {
+    const item = summary.names.get(name) ?? { name, wildcard: false, certificates: 0, firstSeen: null, lastExpires: null, current: false, foundInDns: false };
+    summary.names.set(name, { ...item, foundInDns: true });
+  }
+  const sorted = [...summary.names.values()].sort((a, b) => reversedLabels(a.name).localeCompare(reversedLabels(b.name)));
+  return {
+    domain,
+    certificateSearch: outcome.status,
+    certificateSource: outcome.source,
+    certificates: summary.certificates,
+    subdomains: sorted.slice(0, maxNames),
+    issuers: summary.issuers,
+    truncated: sorted.length > maxNames,
+    dnsCheck: probe && { checked: probe.checked, found: probe.found.length, wildcardDns: probe.wildcardDns },
+  };
+}
+
+async function searchCertificates(domain: string, sources: SubdomainSources): Promise<CertificateOutcome> {
   try {
-    return summarizeCertificates(domain, await searchLogs(domain, false, fetcher), "all");
+    const result = await searchDatabase(domain, sources.query);
+    return { status: result.complete ? "complete" : "incomplete", source: "database", entries: result.entries };
   } catch (error) {
-    if (!(error instanceof TooManyCertificatesError)) throw error;
-    return summarizeCertificates(domain, await searchLogs(domain, true, fetcher), "unexpired");
+    logSearchFailure("database", error);
+  }
+  const fetcher = sources.fetcher ?? fetch;
+  try {
+    return { status: "complete", source: "website", entries: (await searchWebsite(domain, false, fetcher)).entries };
+  } catch (error) {
+    if (!(error instanceof TooManyCertificatesError)) {
+      logSearchFailure("website", error);
+      return { status: "failed", source: null, entries: [] };
+    }
+  }
+  try {
+    return { status: "unexpired", source: "website", entries: (await searchWebsite(domain, true, fetcher)).entries };
+  } catch (error) {
+    if (error instanceof TooManyCertificatesError) return { status: "too-many", source: null, entries: [] };
+    logSearchFailure("website", error);
+    return { status: "failed", source: null, entries: [] };
   }
 }
 
-export async function findSubdomains(domain: string, fetcher: Fetcher = fetch): Promise<SubdomainResult> {
+async function discover(domain: string, sources: SubdomainSources) {
+  const [outcome, probe] = await Promise.all([searchCertificates(domain, sources), probeCommonSubdomains(domain, sources.resolver).catch(() => null)]);
+  const certificatesMissing = outcome.status === "failed" || outcome.status === "too-many";
+  if (certificatesMissing && !probe) throw outcome.status === "too-many" ? new TooManyCertificatesError("too many certificates") : new Error("no source answered");
+  return buildResult(domain, outcome, probe);
+}
+
+export async function findSubdomains(domain: string, sources: SubdomainSources = {}): Promise<SubdomainResult> {
   const hit = cache.get(domain);
   if (hit && hit.expires > Date.now()) return hit.value;
   const running = inFlight.get(domain);
   if (running) return running;
 
-  const promise = discover(domain, fetcher)
+  const promise = discover(domain, sources)
     .then((value) => {
       if (cache.size >= maxCacheEntries) cache.clear();
-      cache.set(domain, { expires: Date.now() + cacheTtlMs, value });
+      const ttl = value.certificateSearch === "failed" ? failedCacheTtlMs : cacheTtlMs;
+      cache.set(domain, { expires: Date.now() + ttl, value });
       return value;
     })
     .finally(() => inFlight.delete(domain));

@@ -174,6 +174,17 @@ export function SubdomainIcon() {
   );
 }
 
+export function IpIcon() {
+  return (
+    <Tile id="ip" from="#ffc36b" to="#e8700a">
+      <g fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M32 50s-13-12.5-13-23a13 13 0 0 1 26 0c0 10.5-13 23-13 23z" />
+      </g>
+      <text x="32" y="31" textAnchor="middle" fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="10.5" fontWeight="700" fill="white">IP</text>
+    </Tile>
+  );
+}
+
 export function ShieldIcon() {
   return (
     <Tile id="sh" from="#ff7a6b" to="#d6204a">

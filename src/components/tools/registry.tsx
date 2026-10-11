@@ -1,6 +1,7 @@
-import { DnsIcon, SubdomainIcon, WhoisIcon } from "@/components/Icons";
+import { DnsIcon, IpIcon, SubdomainIcon, WhoisIcon } from "@/components/Icons";
 import { toolInfos, type ToolInfo } from "@/data/tools";
 import DnsTool from "./DnsTool";
+import IpTool from "./IpTool";
 import SubdomainTool from "./SubdomainTool";
 import WhoisTool from "./WhoisTool";
 
@@ -13,6 +14,7 @@ const parts: Record<string, Pick<Tool, "Icon" | "Component">> = {
   whois: { Icon: WhoisIcon, Component: WhoisTool },
   dns: { Icon: DnsIcon, Component: DnsTool },
   subdomains: { Icon: SubdomainIcon, Component: SubdomainTool },
+  ip: { Icon: IpIcon, Component: IpTool },
 };
 
 export const tools: Tool[] = toolInfos.map((info) => ({ ...info, ...parts[info.id] }));

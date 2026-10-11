@@ -44,7 +44,7 @@ export const aboutPage = {
     {
       question: "What open source software has Felix Pfeiffer written?",
       answer:
-        "He maintains mospy, a Python library for the Cosmos blockchain ecosystem published on PyPI as mospy-wallet, and cosmospy-protobuf, the Protobuf definitions for it. He also built this website and its free whois, DNS and subdomain tools.",
+        "He maintains mospy, a Python library for the Cosmos blockchain ecosystem published on PyPI as mospy-wallet, and cosmospy-protobuf, the Protobuf definitions for it. He also built this website and its free whois, DNS, subdomain and IP lookup tools.",
     },
     {
       question: "How can I contact Felix Pfeiffer?",
