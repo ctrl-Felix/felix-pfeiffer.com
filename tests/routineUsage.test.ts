@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -18,8 +18,8 @@ function setup() {
   const project = join(root, "projects", "-home-user-felix-pfeiffer-com");
   mkdirSync(join(project, sessionId, "subagents"), { recursive: true });
   const files = { tokens: join(root, "tokens.json"), messages: join(root, "messages.json"), routines: join(root, "routines.json") };
-  const run = () => {
-    execFileSync("npx", ["tsx", "scripts/update-usage.ts"], {
+  const run = (args: string[] = []) => {
+    execFileSync("npx", ["tsx", "scripts/update-usage.ts", ...args], {
       env: { ...process.env, TRANSCRIPTS_ROOT: join(root, "projects"), LEDGER_FILE: files.tokens, MESSAGE_LEDGER_FILE: files.messages, ROUTINE_LEDGER_FILE: files.routines },
       stdio: "pipe",
     });
@@ -80,4 +80,27 @@ test("messages recorded as building before a routine marker was read move to the
   const after = run();
   assert.equal(Object.keys(after.tokens).length, 0);
   assert.equal(Object.keys(after.routines.messages).length, 1);
+});
+
+test("a routine marks its own session, and later runs without the flag keep it a routine", () => {
+  const { project, run } = setup();
+  const other = (id: string) => JSON.stringify({ type: "assistant", sessionId: "older", timestamp: "2026-10-09T08:00:00.000Z", message: { id, model: "claude-opus-5-5", usage: { input_tokens: 1, output_tokens: 1 } } });
+  writeFileSync(join(project, "older.jsonl"), other("o1"));
+  utimesSync(join(project, "older.jsonl"), new Date("2026-10-09T08:00:00Z"), new Date("2026-10-09T08:00:00Z"));
+  const session = join(project, `${sessionId}.jsonl`);
+  writeFileSync(session, [prompt("t1", "2026-10-11T00:11:05.000Z", "Handle the Dependabot PRs.", "human"), reply("a1", "2026-10-11T00:11:10.000Z", 10)].join("\n"));
+  writeFileSync(join(project, sessionId, "subagents", "agent.jsonl"), reply("s1", "2026-10-11T00:11:20.000Z", 3, { isSidechain: true }));
+
+  const marked = run(["--routine", "Dependency update check"]);
+  assert.deepEqual(Object.keys(marked.tokens).length, 1, "only the older session stays in the build ledger");
+  assert.equal(Object.keys(marked.messages).length, 0, "the routine prompt is not a message by Felix");
+  assert.deepEqual(Object.values(marked.routines.sessions), ["Dependency update check"]);
+  assert.equal(Object.keys(marked.routines.messages).length, 2);
+  assert.deepEqual(Object.values(marked.routines.executions).map((execution) => (execution as string[]).slice(1)), [["Dependency update check", "claude-sonnet-5-5"]]);
+
+  writeFileSync(session, [readFileSync(session, "utf8"), reply("a2", "2026-10-11T00:12:00.000Z", 4)].join("\n"));
+  const later = run();
+  assert.equal(Object.keys(later.tokens).length, 1);
+  assert.equal(Object.keys(later.routines.messages).length, 3);
+  assert.equal(Object.keys(later.routines.executions).length, 1);
 });
