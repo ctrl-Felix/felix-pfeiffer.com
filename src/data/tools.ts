@@ -134,26 +134,29 @@ export const toolInfos: ToolInfo[] = [
   {
     id: "subdomains",
     name: "Subdomain Finder",
-    description: "Find the subdomains of a domain in public certificate transparency logs.",
-    keywords: ["subdomain", "subdomains", "finder", "enumeration", "discovery", "certificate transparency", "crt.sh", "ssl", "tls", "recon"],
+    description: "Find the subdomains of a domain in certificate transparency logs and DNS.",
+    keywords: ["subdomain", "subdomains", "finder", "enumeration", "discovery", "certificate transparency", "crt.sh", "dns", "ssl", "tls", "recon"],
     updated: "2026-10-11",
     seo: {
       title: "Free Subdomain Finder: Certificate Transparency Search",
       description:
-        "Free subdomain finder: discover the subdomains of any domain from certificate transparency logs. No sign up, nothing stored. Works with AI assistants via MCP.",
+        "Free subdomain finder: discover the subdomains of any domain from certificate transparency logs and DNS. No sign up, nothing stored. Works with AI assistants.",
       heading: "Free subdomain finder: discover subdomains of any domain",
       features: [
         "Subdomains from certificate transparency logs",
         "Wildcard certificates marked",
         "First seen date and last certificate expiry",
         "Current and expired names",
+        "About 120 common names such as www, mail and api checked in DNS",
+        "Wildcard DNS detection",
         "Issuing certificate authorities",
         "Copy the full list",
         "MCP server for AI assistants",
       ],
       paragraphs: [
         "Enter a domain name such as example.com to list every subdomain that appeared in a publicly trusted TLS certificate, for example www.example.com, api.example.com or mail.example.com. Each name shows when it was first seen, when its latest certificate expires and whether a certificate for it is still valid today.",
-        "Certificate authorities must publish every certificate they issue in public certificate transparency logs. This makes the names in those certificates public. The tool searches the logs through crt.sh, so the discovery is passive: the domain and its servers are never contacted.",
+        "Certificate authorities must publish every certificate they issue in public certificate transparency logs. This makes the names in those certificates public. The tool searches the logs through crt.sh, so this part is passive: the servers of the domain are never contacted.",
+        "It also checks about 120 common names such as www, mail, api, vpn and staging through public DNS resolvers. This finds names that never had their own certificate, for example when a wildcard certificate covers them. A random test name first checks whether the domain answers every name, so wildcard DNS does not produce false hits.",
         "The tool is free, needs no account and does not store the domains you search. AI assistants such as Claude can use the same search through an open MCP server at https://felix-pfeiffer.com/mcp, together with a whois and a DNS record lookup.",
       ],
       steps: [
@@ -172,11 +175,11 @@ export const toolInfos: ToolInfo[] = [
         },
         {
           question: "Does this find every subdomain?",
-          answer: "No. It finds names that appeared in a public certificate. Names that only exist in DNS, are internal or are covered by a wildcard certificate such as *.example.com do not show up by name.",
+          answer: "No. It finds names that appeared in a public certificate and common names that resolve in DNS. Unusual names that only exist in DNS or behind a wildcard certificate such as *.example.com can still be missing.",
         },
         {
           question: "Is subdomain discovery from certificate logs legal?",
-          answer: "Yes. The logs are public by design and the search is passive: the domain and its servers are not contacted. Only test systems further if you are allowed to.",
+          answer: "Yes. The logs are public by design and the DNS check only sends normal lookups through public resolvers, like any visitor would. Only test systems further if you are allowed to.",
         },
         {
           question: "Can an AI assistant use this subdomain finder?",

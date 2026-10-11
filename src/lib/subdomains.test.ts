@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { findSubdomains, issuerOrganization, normalizeSubdomainQuery, summarizeCertificates, TooManyCertificatesError } from "./subdomains";
+import type { DatabaseQuery } from "./certificateSearch";
+import type { ProbeResolver } from "./subdomainProbe";
+import { buildResult, findSubdomains, issuerOrganization, normalizeSubdomainQuery, TooManyCertificatesError } from "./subdomains";
 
 const now = Date.parse("2026-10-11T00:00:00Z");
 
@@ -32,6 +34,22 @@ const entries = [
   { id: 3, issuer_name: "CN=Unrelated", common_name: "other.org", name_value: "other.org", not_before: "2026-01-01T00:00:00", not_after: "2027-01-01T00:00:00" },
 ];
 
+const failingDatabase: DatabaseQuery = async () => {
+  throw Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" });
+};
+const databaseWith = (rows: unknown[]): DatabaseQuery => async () => ({ rows });
+const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+const nothingInDns: ProbeResolver = {
+  resolve4: async () => {
+    throw Object.assign(new Error("ENOTFOUND"), { code: "ENOTFOUND" });
+  },
+};
+const brokenDns: ProbeResolver = {
+  resolve4: async () => {
+    throw Object.assign(new Error("ETIMEOUT"), { code: "ETIMEOUT" });
+  },
+};
+
 test("queries are validated and reduced to a public name", () => {
   assert.equal(normalizeSubdomainQuery("Example.COM"), "example.com");
   assert.equal(normalizeSubdomainQuery("https://www.example.com/path?x=1"), "www.example.com");
@@ -49,63 +67,87 @@ test("issuer organizations are read from the distinguished name", () => {
   assert.equal(issuerOrganization(undefined), "Unknown");
 });
 
-test("certificates are merged into unique names under the domain, sorted by hierarchy", () => {
-  const result = summarizeCertificates("example.com", entries, "all", now);
-  assert.deepEqual(result.subdomains.map((item) => item.name), ["example.com", "api.example.com", "dev.api.example.com", "www.example.com"]);
+test("certificates and DNS finds are merged into unique names under the domain, sorted by hierarchy", () => {
+  const result = buildResult("example.com", { status: "complete", source: "database", entries }, { found: ["mail.example.com", "www.example.com"], checked: 120, wildcardDns: false }, now);
+  assert.deepEqual(result.subdomains.map((item) => item.name), ["example.com", "api.example.com", "dev.api.example.com", "mail.example.com", "www.example.com"]);
   assert.equal(result.certificates, 2);
   assert.equal(result.truncated, false);
-  const apex = result.subdomains[0];
+  const [apex, api, , mail, www] = result.subdomains;
   assert.equal(apex.wildcard, true);
   assert.equal(apex.current, true);
-  const www = result.subdomains[3];
+  assert.equal(apex.foundInDns, false);
+  assert.equal(api.current, false);
+  assert.deepEqual({ certificates: mail.certificates, foundInDns: mail.foundInDns, firstSeen: mail.firstSeen }, { certificates: 0, foundInDns: true, firstSeen: null });
   assert.equal(www.certificates, 2);
+  assert.equal(www.foundInDns, true);
   assert.equal(www.firstSeen, "2020-01-01T00:00:00.000Z");
   assert.equal(www.lastExpires, "2026-10-30T00:00:00.000Z");
-  assert.equal(result.subdomains[1].current, false);
   assert.deepEqual(result.issuers, [
     { name: "DigiCert, Inc.", certificates: 1 },
     { name: "Let's Encrypt", certificates: 1 },
   ]);
+  assert.deepEqual(result.dnsCheck, { checked: 120, found: 2, wildcardDns: false });
 });
 
-const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+test("the certificate database is used first and the website is not asked", async () => {
+  let fetched = false;
+  const result = await findSubdomains("db.example.com", {
+    query: databaseWith([{ id: "7:ab", issuer_name: "O=Let's Encrypt", common_name: "www.db.example.com", name_value: "www.db.example.com", not_before: "2026-01-01T00:00:00", not_after: "2099-01-01T00:00:00", matched: "1" }]),
+    fetcher: async () => {
+      fetched = true;
+      return jsonResponse([]);
+    },
+    resolver: nothingInDns,
+  });
+  assert.equal(fetched, false);
+  assert.equal(result.certificateSource, "database");
+  assert.equal(result.certificateSearch, "complete");
+  assert.deepEqual(result.subdomains.map((item) => item.name), ["www.db.example.com"]);
+});
 
-test("the search asks crt.sh for all subdomains and caches the answer", async () => {
+test("a failed database falls back to the website and the answer is cached", async () => {
   const urls: string[] = [];
-  const fetcher = async (url: string) => {
-    urls.push(url);
-    return jsonResponse(entries);
+  const sources = {
+    query: failingDatabase,
+    fetcher: async (url: string) => {
+      urls.push(url);
+      return jsonResponse(entries);
+    },
+    resolver: nothingInDns,
   };
-  const first = await findSubdomains("cache.example.com", fetcher);
-  const second = await findSubdomains("cache.example.com", fetcher);
+  const first = await findSubdomains("cache.example.com", sources);
+  const second = await findSubdomains("cache.example.com", sources);
   assert.equal(first, second);
+  assert.equal(first.certificateSource, "website");
   assert.equal(urls.length, 1);
   const url = new URL(urls[0]);
   assert.equal(url.origin, "https://crt.sh");
   assert.equal(url.searchParams.get("q"), "%.cache.example.com");
-  assert.equal(url.searchParams.get("output"), "json");
-  assert.equal(url.searchParams.get("exclude"), null);
 });
 
 test("too many certificates fall back to unexpired ones only", async () => {
-  const urls: string[] = [];
   const huge = "x".repeat(13 * 1024 * 1024);
-  const fetcher = async (url: string) => {
-    urls.push(url);
-    return new URL(url).searchParams.get("exclude") === "expired" ? jsonResponse([{ ...entries[0], common_name: "a.big.example.com", name_value: "a.big.example.com" }]) : new Response(huge);
-  };
-  const result = await findSubdomains("big.example.com", fetcher);
-  assert.equal(result.scope, "unexpired");
+  const fetcher = async (url: string) =>
+    new URL(url).searchParams.get("exclude") === "expired" ? jsonResponse([{ ...entries[0], common_name: "a.big.example.com", name_value: "a.big.example.com" }]) : new Response(huge);
+  const result = await findSubdomains("big.example.com", { query: failingDatabase, fetcher, resolver: nothingInDns });
+  assert.equal(result.certificateSearch, "unexpired");
   assert.deepEqual(result.subdomains.map((item) => item.name), ["a.big.example.com"]);
-  assert.equal(urls.length, 2);
 
-  await assert.rejects(findSubdomains("huge.example.com", async () => new Response(huge)), TooManyCertificatesError);
+  await assert.rejects(findSubdomains("huge.example.com", { query: failingDatabase, fetcher: async () => new Response(huge), resolver: brokenDns }), TooManyCertificatesError);
 });
 
-test("failures and empty answers are handled", async () => {
-  await assert.rejects(findSubdomains("down.example.com", async () => jsonResponse({}, 502)), /502/);
-  await assert.rejects(findSubdomains("odd.example.com", async () => jsonResponse({ not: "a list" })), /unexpected/);
-  const empty = await findSubdomains("empty.example.com", async () => new Response(""));
-  assert.deepEqual(empty.subdomains, []);
-  assert.equal(empty.certificates, 0);
+test("DNS finds are returned when the certificate logs fail, and both failing is an error", async () => {
+  const resolver: ProbeResolver = {
+    resolve4: async (name) => {
+      if (name === "www.dnsonly.example.com") return ["192.0.2.10"];
+      throw Object.assign(new Error("ENOTFOUND"), { code: "ENOTFOUND" });
+    },
+  };
+  const down = async () => jsonResponse({}, 500);
+  const result = await findSubdomains("dnsonly.example.com", { query: failingDatabase, fetcher: down, resolver });
+  assert.equal(result.certificateSearch, "failed");
+  assert.equal(result.certificateSource, null);
+  assert.deepEqual(result.subdomains.map((item) => item.name), ["www.dnsonly.example.com"]);
+
+  await assert.rejects(findSubdomains("down.example.com", { query: failingDatabase, fetcher: down, resolver: brokenDns }), /no source answered/);
 });

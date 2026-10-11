@@ -29,7 +29,7 @@ export const mcpConnectors: McpConnector[] = [
       },
       {
         name: "subdomain_discovery",
-        description: "Subdomains of a domain from public certificate transparency logs (crt.sh), with first seen date, last expiry and issuers.",
+        description: "Subdomains of a domain from public certificate transparency logs (crt.sh) and a DNS check of common names, with first seen date, last expiry and issuers.",
         example: "Which subdomains of example.com have a valid certificate?",
       },
     ],
