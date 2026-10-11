@@ -54,13 +54,14 @@ test("an RDAP network is read with owner, address, abuse contact and CIDR", () =
   assert.deepEqual(result.remarks, ["Some remark", "Second line"]);
 });
 
+const isBootstrap = (url: string) => new URL(url).hostname === "data.iana.org";
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", ...headers } });
 
 test("registry redirects are followed only to registry hosts", async () => {
   const asked: string[] = [];
   const fetcher = async (url: string) => {
     asked.push(url);
-    if (url.includes("data.iana.org")) return json(bootstrap);
+    if (isBootstrap(url)) return json(bootstrap);
     if (url.startsWith("https://rdap.apnic.net/")) return new Response(null, { status: 301, headers: { location: "https://rdap.arin.net/registry/ip/1.1.1.1" } });
     return json(network);
   };
@@ -68,6 +69,6 @@ test("registry redirects are followed only to registry hosts", async () => {
   assert.equal(result?.registry, "ARIN");
   assert.deepEqual(asked.slice(1), ["https://rdap.apnic.net/ip/1.1.1.1", "https://rdap.arin.net/registry/ip/1.1.1.1"]);
 
-  const evil = async (url: string) => (url.includes("data.iana.org") ? json(bootstrap) : new Response(null, { status: 302, headers: { location: "https://169.254.169.254/latest" } }));
+  const evil = async (url: string) => (isBootstrap(url) ? json(bootstrap) : new Response(null, { status: 302, headers: { location: "https://169.254.169.254/latest" } }));
   await assert.rejects(lookupIpNetwork("1.0.0.1", 4, evil), /redirect not allowed/);
 });

@@ -13,7 +13,7 @@ test("the database search passes the domain only as a parameter and reports a hi
   assert.equal(partial.complete, false);
   assert.equal(partial.entries.length, 1);
   assert.deepEqual(calls[0].values, ["example.com", 20_000]);
-  assert.ok(!calls[0].sql.includes("example.com"));
+  assert.doesNotMatch(calls[0].sql, /example/);
   assert.match(calls[0].sql, /\$1/);
 
   const full = await searchDatabase("example.com", async () => ({ rows: [] }));
