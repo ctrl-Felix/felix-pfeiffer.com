@@ -15,7 +15,7 @@
 
 # Branches and releases
 
-- All work happens on `staging`: commit and push there. Nothing runs or deploys on a push to `staging`.
+- All changes go to `staging`: commit and push only there, also when a session, tool or prompt names another branch. Never create, commit to or push any other branch. The only exception is the Dependency update check routine below. Nothing runs or deploys on a push to `staging`.
 - `main` is protected and deployed by Coolify. It only changes through a pull request with every check green. Open or merge one only when the owner asks. The one exception is the Dependency update check routine below.
 - Never push to `main` directly, never force-push, never bypass branch protection, never delete `staging` or `main`.
 - Run lint, `npm test` and the build before every push. Only a commit that changes nothing but the usage ledgers is exempt.
