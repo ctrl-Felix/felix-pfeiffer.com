@@ -5,6 +5,7 @@ import { peekPendingLaunch } from "@/components/deepLink";
 import { findToolInfo } from "@/data/tools";
 import type { Subdomain, SubdomainResult } from "@/lib/subdomains";
 import SearchProgress, { type ProgressStep } from "./SearchProgress";
+import { ToolLink, useAutoRun, type ToolProps } from "./toolNavigation";
 
 type State =
   | { kind: "idle" }
@@ -38,7 +39,7 @@ function Row({ item }: { item: Subdomain }) {
   return (
     <div className="flex items-start justify-between gap-4 px-4 py-2 text-[13px]">
       <span className="min-w-0">
-        <span className="break-all font-mono text-xs">{item.name}</span>
+        <span className="break-all font-mono text-xs"><ToolLink toolId="dns" value={item.name}>{item.name}</ToolLink></span>
         {item.wildcard && <span className={pill}>Wildcard</span>}
         {item.foundInDns && <span className={pill}>DNS</span>}
         <span className="mt-0.5 block text-[11px] text-black/45">
@@ -134,16 +135,15 @@ function About() {
   );
 }
 
-export default function SubdomainTool() {
-  const [domain, setDomain] = useState(() => peekPendingLaunch()?.domain ?? "");
+export default function SubdomainTool({ initialValue, autoRun }: ToolProps) {
+  const [domain, setDomain] = useState(() => initialValue ?? peekPendingLaunch()?.domain ?? "");
   const [state, setState] = useState<State>({ kind: "idle" });
 
-  async function search(event: React.FormEvent) {
-    event.preventDefault();
-    if (!domain.trim()) return;
+  async function search(name: string) {
+    if (!name.trim()) return;
     setState({ kind: "loading" });
     try {
-      const response = await fetch(`/api/tools/subdomains?domain=${encodeURIComponent(domain.trim())}`);
+      const response = await fetch(`/api/tools/subdomains?domain=${encodeURIComponent(name.trim())}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setState({ kind: "done", result: data });
@@ -152,9 +152,11 @@ export default function SubdomainTool() {
     }
   }
 
+  useAutoRun(autoRun, initialValue, search);
+
   return (
     <div className="space-y-4">
-      <form onSubmit={search} className="flex gap-2">
+      <form onSubmit={(event) => { event.preventDefault(); search(domain); }} className="flex gap-2">
         <input
           value={domain}
           onChange={(event) => setDomain(event.target.value)}
