@@ -1,39 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { peekPendingLaunch, setPendingLaunch } from "@/components/deepLink";
 import { useWindow } from "@/components/windows/context";
 import TrafficLights from "@/components/windows/TrafficLights";
 import { matchTools, tools } from "./registry";
+import { ToolNavigationContext } from "./toolNavigation";
+
+type Entry = { key: number; toolId: string; value?: string };
+
+const maxDepth = 10;
+let nextKey = 1;
 
 export default function ToolsApp() {
   const { dragProps } = useWindow();
   const [query, setQuery] = useState("");
-  const [activeId, setActiveId] = useState<string | null>(() => peekPendingLaunch()?.toolId ?? null);
+  const [stack, setStack] = useState<Entry[]>(() => {
+    const toolId = peekPendingLaunch()?.toolId;
+    return toolId && tools.some((tool) => tool.id === toolId) ? [{ key: 0, toolId }] : [];
+  });
 
   useEffect(() => {
     setPendingLaunch(undefined);
   }, []);
-  const active = tools.find((tool) => tool.id === activeId);
+
+  const push = useCallback((toolId: string, value?: string) => {
+    if (!tools.some((tool) => tool.id === toolId)) return;
+    setStack((current) => [...current, { key: nextKey++, toolId, value }].slice(-maxDepth));
+  }, []);
+  const back = () => setStack((current) => current.slice(0, -1));
+  const navigation = useMemo(() => ({ openTool: push }), [push]);
+
+  const nameOf = (toolId: string) => tools.find((tool) => tool.id === toolId)?.name;
+  const top = stack[stack.length - 1];
+  const previous = stack[stack.length - 2];
   const matches = matchTools(query);
 
   return (
     <div className="@container flex h-full flex-col bg-[#f5f5f7]/90 text-[#1d1d1f]">
       <div className="flex h-12 shrink-0 items-center gap-4 border-b border-black/10 px-4" {...dragProps}>
         <TrafficLights />
-        {active ? (
+        {top ? (
           <>
-            <button type="button" onClick={() => setActiveId(null)} className="text-sm text-[#0a84ff]">‹ Tools</button>
-            <h1 className="flex-1 pr-24 text-center text-[13px] font-semibold">{active.name}</h1>
+            <button type="button" onClick={back} className="max-w-[40%] truncate text-sm text-[#0a84ff]">‹ {previous ? nameOf(previous.toolId) : "Tools"}</button>
+            <h1 className="flex-1 pr-24 text-center text-[13px] font-semibold">{nameOf(top.toolId)}</h1>
           </>
         ) : (
           <h1 className="flex-1 pr-14 text-center text-[13px] font-semibold">Tools</h1>
         )}
       </div>
-      {active ? (
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          <active.Component />
-        </div>
+      {top ? (
+        <ToolNavigationContext.Provider value={navigation}>
+          {stack.map((entry) => {
+            const tool = tools.find((candidate) => candidate.id === entry.toolId)!;
+            return (
+              <div key={entry.key} hidden={entry !== top} className="min-h-0 flex-1 overflow-y-auto p-4">
+                <tool.Component initialValue={entry.value} autoRun={entry.value !== undefined} />
+              </div>
+            );
+          })}
+        </ToolNavigationContext.Provider>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
           <input
@@ -53,7 +79,7 @@ export default function ToolsApp() {
                     onClick={(event) => {
                       if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
                       event.preventDefault();
-                      setActiveId(tool.id);
+                      push(tool.id);
                     }}
                     className="flex h-[88px] w-full items-center gap-3 rounded-2xl bg-white/80 p-3 text-left shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)] hover:bg-white"
                   >

@@ -3,11 +3,12 @@ import { toolInfos, type ToolInfo } from "@/data/tools";
 import DnsTool from "./DnsTool";
 import IpTool from "./IpTool";
 import SubdomainTool from "./SubdomainTool";
+import type { ToolProps } from "./toolNavigation";
 import WhoisTool from "./WhoisTool";
 
 export type Tool = ToolInfo & {
   Icon: () => React.JSX.Element;
-  Component: React.ComponentType;
+  Component: React.ComponentType<ToolProps>;
 };
 
 const parts: Record<string, Pick<Tool, "Icon" | "Component">> = {

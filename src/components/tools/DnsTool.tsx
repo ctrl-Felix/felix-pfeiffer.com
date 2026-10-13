@@ -5,6 +5,7 @@ import { peekPendingLaunch } from "@/components/deepLink";
 import { classifyTxt, formatDuration, hostmasterToEmail } from "@/lib/dnsFormat";
 import type { DnsRecords, DnsResult, RecordType } from "@/lib/dnsLookup";
 import { findToolInfo } from "@/data/tools";
+import { ToolLink, useAutoRun, type ToolProps } from "./toolNavigation";
 
 type State =
   | { kind: "idle" }
@@ -47,7 +48,7 @@ function Group({ type, children }: { type: RecordType; children: React.ReactNode
 
 function RecordGroup({ type, records }: { type: RecordType; records: DnsRecords }) {
   if (type === "A" || type === "AAAA") {
-    return <>{records[type]!.map((record) => <Line key={record.address} left={<Mono>{record.address}</Mono>} right={`TTL ${formatDuration(record.ttl)}`} />)}</>;
+    return <>{records[type]!.map((record) => <Line key={record.address} left={<Mono><ToolLink toolId="ip" value={record.address}>{record.address}</ToolLink></Mono>} right={`TTL ${formatDuration(record.ttl)}`} />)}</>;
   }
   if (type === "MX") return <>{records.MX!.map((record) => <Line key={`${record.priority}-${record.exchange}`} left={<Mono>{record.exchange}</Mono>} right={`Priority ${record.priority}`} />)}</>;
   if (type === "TXT") {
@@ -127,16 +128,15 @@ function About() {
   );
 }
 
-export default function DnsTool() {
-  const [domain, setDomain] = useState(() => peekPendingLaunch()?.domain ?? "");
+export default function DnsTool({ initialValue, autoRun }: ToolProps) {
+  const [domain, setDomain] = useState(() => initialValue ?? peekPendingLaunch()?.domain ?? "");
   const [state, setState] = useState<State>({ kind: "idle" });
 
-  async function lookup(event: React.FormEvent) {
-    event.preventDefault();
-    if (!domain.trim()) return;
+  async function lookup(name: string) {
+    if (!name.trim()) return;
     setState({ kind: "loading" });
     try {
-      const response = await fetch(`/api/tools/dns?domain=${encodeURIComponent(domain.trim())}`);
+      const response = await fetch(`/api/tools/dns?domain=${encodeURIComponent(name.trim())}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setState({ kind: "done", result: data });
@@ -145,9 +145,11 @@ export default function DnsTool() {
     }
   }
 
+  useAutoRun(autoRun, initialValue, lookup);
+
   return (
     <div className="space-y-4">
-      <form onSubmit={lookup} className="flex gap-2">
+      <form onSubmit={(event) => { event.preventDefault(); lookup(domain); }} className="flex gap-2">
         <input
           value={domain}
           onChange={(event) => setDomain(event.target.value)}

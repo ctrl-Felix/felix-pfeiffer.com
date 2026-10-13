@@ -1,13 +1,16 @@
 import assert from "node:assert/strict";
+import { readdirSync } from "node:fs";
 import { test } from "node:test";
+import { basename, dirname, join } from "node:path";
 import robots, { aiCrawlers } from "../app/robots";
+import sitemap from "../app/sitemap";
 import { llmsText } from "../lib/llmsText";
 import { personNode } from "../lib/personSchema";
 import { aboutPage } from "./about";
 import { mcpPage } from "./mcp";
 import { organizations } from "./organizations";
 import { profile } from "./profile";
-import { publicPaths } from "./publicPaths";
+import { absoluteUrl, publicPaths } from "./publicPaths";
 import { toolInfos, toolsHub } from "./tools";
 
 test("every tool has search friendly metadata", () => {
@@ -103,5 +106,22 @@ test("every public path belongs to a group and every parent exists", () => {
   for (const entry of publicPaths) {
     assert.ok(["site", "tools", "ai"].includes(entry.group), `${entry.path} needs a group`);
     if (entry.parent) assert.ok(paths.has(entry.parent), `${entry.path} has an unknown parent`);
+  }
+});
+
+test("the sitemap lists exactly the indexed public paths", () => {
+  const urls = sitemap().map((entry) => entry.url);
+  const expected = publicPaths.filter((entry) => entry.indexed).map((entry) => absoluteUrl(entry.path));
+  assert.deepEqual(urls, expected);
+});
+
+test("every static page route is a public path", () => {
+  const appDir = join(process.cwd(), "src/app");
+  const routes = readdirSync(appDir, { recursive: true, encoding: "utf8" })
+    .filter((file) => basename(file) === "page.tsx" && !file.includes("["))
+    .map((file) => "/" + dirname(file).replace(/^\.$/, ""));
+  for (const route of routes) {
+    const path = route === "/" ? "/" : route.replace(/\/$/, "");
+    assert.ok(publicPaths.some((entry) => entry.path === path), `${path} is missing in publicPaths`);
   }
 });

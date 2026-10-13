@@ -4,6 +4,7 @@ import { useState } from "react";
 import { peekPendingLaunch } from "@/components/deepLink";
 import { findToolInfo } from "@/data/tools";
 import type { IpResult } from "@/lib/ipLookup";
+import { useAutoRun, type ToolProps } from "./toolNavigation";
 
 type State =
   | { kind: "idle" }
@@ -127,16 +128,15 @@ function About() {
   );
 }
 
-export default function IpTool() {
-  const [address, setAddress] = useState(() => peekPendingLaunch()?.domain ?? "");
+export default function IpTool({ initialValue, autoRun }: ToolProps) {
+  const [address, setAddress] = useState(() => initialValue ?? peekPendingLaunch()?.domain ?? "");
   const [state, setState] = useState<State>({ kind: "idle" });
 
-  async function lookup(event: React.FormEvent) {
-    event.preventDefault();
-    if (!address.trim()) return;
+  async function lookup(value: string) {
+    if (!value.trim()) return;
     setState({ kind: "loading" });
     try {
-      const response = await fetch(`/api/tools/ip?ip=${encodeURIComponent(address.trim())}`);
+      const response = await fetch(`/api/tools/ip?ip=${encodeURIComponent(value.trim())}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setState({ kind: "done", result: data });
@@ -145,9 +145,11 @@ export default function IpTool() {
     }
   }
 
+  useAutoRun(autoRun, initialValue, lookup);
+
   return (
     <div className="space-y-4">
-      <form onSubmit={lookup} className="flex gap-2">
+      <form onSubmit={(event) => { event.preventDefault(); lookup(address); }} className="flex gap-2">
         <input
           value={address}
           onChange={(event) => setAddress(event.target.value)}
