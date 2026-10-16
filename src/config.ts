@@ -1,4 +1,4 @@
-import { profile } from "@/data/profile";
+import { profile } from "./data/profile";
 
 export const site = {
   url: "https://felix-pfeiffer.com",
