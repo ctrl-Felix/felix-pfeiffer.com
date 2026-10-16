@@ -1,57 +1,41 @@
 import Link from "next/link";
+import JsonLd, { breadcrumbNode, faqNode } from "@/components/JsonLd";
 import { site } from "@/config";
 import { toolInfos, toolsHub, type ToolInfo } from "@/data/tools";
 import { personRef } from "@/lib/personSchema";
 
 export default function ToolSeo({ tool }: { tool: ToolInfo }) {
   const url = `${site.url}/tools/${tool.id}`;
-  const graph = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebApplication",
-        "@id": `${url}#app`,
-        name: tool.seo.heading,
-        alternateName: tool.name,
-        url,
-        description: tool.seo.description,
-        applicationCategory: "UtilitiesApplication",
-        operatingSystem: "Any",
-        browserRequirements: "Requires JavaScript",
-        inLanguage: "en",
-        isAccessibleForFree: true,
-        featureList: tool.seo.features,
-        dateModified: tool.updated,
-        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-        author: personRef,
-      },
-      {
-        "@type": "FAQPage",
-        mainEntity: tool.seo.faq.map((item) => ({
-          "@type": "Question",
-          name: item.question,
-          acceptedAnswer: { "@type": "Answer", text: item.answer },
-        })),
-      },
-      {
-        "@type": "HowTo",
-        name: `How to use the ${tool.name} tool`,
-        step: tool.seo.steps.map((text, index) => ({ "@type": "HowToStep", position: index + 1, text })),
-      },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: site.name, item: site.url },
-          { "@type": "ListItem", position: 2, name: "Tools", item: `${site.url}${toolsHub.path}` },
-          { "@type": "ListItem", position: 3, name: tool.name, item: url },
-        ],
-      },
-    ],
-  };
+  const nodes = [
+    {
+      "@type": "WebApplication",
+      "@id": `${url}#app`,
+      name: tool.seo.heading,
+      alternateName: tool.name,
+      url,
+      description: tool.seo.description,
+      applicationCategory: "UtilitiesApplication",
+      operatingSystem: "Any",
+      browserRequirements: "Requires JavaScript",
+      inLanguage: "en",
+      isAccessibleForFree: true,
+      featureList: tool.seo.features,
+      dateModified: tool.updated,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      author: personRef,
+    },
+    faqNode(tool.seo.faq),
+    {
+      "@type": "HowTo",
+      name: `How to use the ${tool.name} tool`,
+      step: tool.seo.steps.map((text, index) => ({ "@type": "HowToStep", position: index + 1, text })),
+    },
+    breadcrumbNode(["Tools", `${site.url}${toolsHub.path}`], [tool.name, url]),
+  ];
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }} />
+      <JsonLd nodes={nodes} />
       <div className="sr-only">
         <h1>{tool.seo.heading}</h1>
         {tool.seo.paragraphs.map((paragraph) => (

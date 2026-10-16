@@ -1,6 +1,6 @@
 import { isPublicHostname, loadBootstrap, queryWhois, rdapBaseFor } from "./whois";
 
-export type TldRoute = "rdap" | "whois" | "none" | "error";
+type TldRoute = "rdap" | "whois" | "none" | "error";
 export type Coverage = Record<string, boolean>;
 
 const rootServer = process.env.WHOIS_ROOT_SERVER ?? "whois.iana.org:43";

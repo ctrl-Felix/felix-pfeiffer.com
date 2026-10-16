@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { sortVulnerabilities } from "./vulnerabilitySummary";
 import { parseVulnerability, type Vulnerability } from "./vulnerabilityTypes";
 
-export const vulnerabilityDirectory = join(process.cwd(), "security", "vulnerabilities");
+const vulnerabilityDirectory = join(process.cwd(), "security", "vulnerabilities");
 
 export function readVulnerabilityFiles(directory = vulnerabilityDirectory): { file: string; item: Vulnerability | null }[] {
   let names: string[];

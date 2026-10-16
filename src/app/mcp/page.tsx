@@ -2,18 +2,10 @@ import type { Metadata } from "next";
 import McpPage from "@/components/mcp/McpPage";
 import McpSeo from "@/components/mcp/McpSeo";
 import VisitTracker from "@/components/VisitTracker";
-import { site } from "@/config";
 import { mcpPage } from "@/data/mcp";
+import { pageMetadata } from "@/lib/pageMetadata";
 
-export const metadata: Metadata = {
-  title: { absolute: mcpPage.title },
-  description: mcpPage.description,
-  keywords: mcpPage.keywords,
-  alternates: { canonical: mcpPage.path },
-  robots: { index: true, follow: true },
-  openGraph: { type: "article", url: `${site.url}${mcpPage.path}`, siteName: site.name, title: mcpPage.title, description: mcpPage.description },
-  twitter: { card: "summary_large_image", title: mcpPage.title, description: mcpPage.description },
-};
+export const metadata: Metadata = pageMetadata(mcpPage, { type: "article" });
 
 export default function McpIndexPage() {
   return (

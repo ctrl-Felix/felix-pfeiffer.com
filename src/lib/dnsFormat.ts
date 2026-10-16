@@ -4,7 +4,7 @@ export function hostmasterToEmail(hostmaster: string) {
   return dot > 0 ? `${value.slice(0, dot)}@${value.slice(dot + 1)}` : value;
 }
 
-export type TxtKind = "SPF" | "DMARC" | "DKIM" | "MTA-STS" | "TLS-RPT" | "Verification" | null;
+type TxtKind = "SPF" | "DMARC" | "DKIM" | "MTA-STS" | "TLS-RPT" | "Verification" | null;
 
 export function classifyTxt(value: string): TxtKind {
   const text = value.trim().toLowerCase();

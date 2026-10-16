@@ -1,7 +1,6 @@
 import { ageText, expiryText, expiryTone, formatDate, type ExpiryTone } from "@/lib/whoisFormat";
 import type { Contact, WhoisResult } from "@/lib/whoisTypes";
-
-const card = "overflow-hidden rounded-xl bg-white/80 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]";
+import { card, Section } from "./ui";
 
 const toneClass: Record<ExpiryTone, string> = {
   good: "text-[#1f7a35]",
@@ -10,15 +9,6 @@ const toneClass: Record<ExpiryTone, string> = {
   expired: "text-[#c4281e]",
   unknown: "text-black/60",
 };
-
-function Group({ title, children }: { title?: string; children: React.ReactNode }) {
-  return (
-    <section>
-      {title && <h3 className="mb-1.5 px-1 text-xs font-medium uppercase tracking-wide text-black/45">{title}</h3>}
-      <div className={`${card} divide-y divide-black/10`}>{children}</div>
-    </section>
-  );
-}
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -87,7 +77,7 @@ export default function WhoisResultView({ result }: { result: WhoisResult }) {
 
       {result.registered && (
         <>
-          <Group title="Registration">
+          <Section title="Registration">
             <Row label="Registrar">
               {registrar.name ?? "—"}
               {registrar.ianaId && <Muted> · IANA {registrar.ianaId}</Muted>}
@@ -102,20 +92,20 @@ export default function WhoisResultView({ result }: { result: WhoisResult }) {
             <DateRow label="Expires" iso={result.expires} relative={expiry} />
             <DateRow label="Transferred" iso={result.transferred} />
             {result.handle && <Row label="Registry ID"><span className="font-mono text-xs">{result.handle}</span></Row>}
-          </Group>
+          </Section>
 
           {result.statusInfo.length > 0 && (
-            <Group title="Status">
+            <Section title="Status">
               {result.statusInfo.map((status) => (
                 <div key={status.code} className="px-4 py-2.5 text-[13px]">
                   <div className="break-all font-mono text-xs">{status.code}</div>
                   {status.explanation && <div className="mt-0.5 text-xs text-black/55">{status.explanation}</div>}
                 </div>
               ))}
-            </Group>
+            </Section>
           )}
 
-          <Group title="Name servers">
+          <Section title="Name servers">
             {result.nameserverInfo.length ? (
               result.nameserverInfo.map((server) => (
                 <div key={server.host} className="px-4 py-2 text-[13px]">
@@ -126,9 +116,9 @@ export default function WhoisResultView({ result }: { result: WhoisResult }) {
             ) : (
               <Row label="Name servers">—</Row>
             )}
-          </Group>
+          </Section>
 
-          <Group title="DNSSEC">
+          <Section title="DNSSEC">
             <Row label="Delegation">{result.dnssec === null ? "—" : result.dnssec ? "Signed" : "Unsigned"}</Row>
             {result.dsRecords.map((record) => (
               <div key={`${record.keyTag}-${record.digest}`} className="px-4 py-2 text-[13px]">
@@ -138,9 +128,9 @@ export default function WhoisResultView({ result }: { result: WhoisResult }) {
                 {record.digest && <div className="break-all font-mono text-[11px] text-black/45">{record.digest}</div>}
               </div>
             ))}
-          </Group>
+          </Section>
 
-          <Group title="Contacts">
+          <Section title="Contacts">
             {registrar.abuseEmail && (
               <Row label="Registrar abuse">
                 <a href={`mailto:${registrar.abuseEmail}`} className="text-[#0a6cf0] hover:underline">{registrar.abuseEmail}</a>
@@ -150,7 +140,7 @@ export default function WhoisResultView({ result }: { result: WhoisResult }) {
             <ContactRows contacts={shownContacts} />
             {result.redacted && <Row label="Registrant"><Muted>Personal data is redacted by the registry</Muted></Row>}
             {!registrar.abuseEmail && !shownContacts.length && !result.redacted && <Row label="Contacts">—</Row>}
-          </Group>
+          </Section>
 
           {result.notices.length > 0 && (
             <details className={`${card} px-4 py-2.5 text-[13px]`}>

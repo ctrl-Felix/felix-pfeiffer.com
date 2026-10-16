@@ -11,9 +11,9 @@ const liveTtlMs = 15 * 60_000;
 const liveCache = new Map<string, { at: number; value: Live | null }>();
 
 type Live = { mix: Mix; intensity: number; period: string; source: string; region?: string };
-export type EnergyQuery = { timezone?: string; latitude?: number; longitude?: number };
+type EnergyQuery = { timezone?: string; latitude?: number; longitude?: number };
 
-export const isKnownCountry = (country: string) => Object.hasOwn(countryMixes, country);
+const isKnownCountry = (country: string) => Object.hasOwn(countryMixes, country);
 
 async function cached(key: string, load: () => Promise<Live | null>) {
   const hit = liveCache.get(key);

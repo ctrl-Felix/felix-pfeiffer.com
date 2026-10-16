@@ -2,14 +2,14 @@ import { publicPaths } from "@/data/publicPaths";
 import type { Period, Stats } from "@/lib/stats";
 import { isTrafficSource, otherLanding, sourceGroups, trafficSources, type SourceGroup } from "@/lib/trafficSources";
 
-export type GroupCounts = Record<SourceGroup, number>;
+type GroupCounts = Record<SourceGroup, number>;
 
 const emptyGroups = (): GroupCounts => ({ web: 0, ai: 0, direct: 0 });
 
 const sourceInfo = (source: string) =>
   isTrafficSource(source) ? trafficSources[source] : { label: source, group: "web" as SourceGroup };
 
-export const landingLabel = (path: string) =>
+const landingLabel = (path: string) =>
   path === otherLanding ? "Other paths" : (publicPaths.find((entry) => entry.path === path)?.title ?? path);
 
 export function trafficSummary(stats: Stats, period: Period) {

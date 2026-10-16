@@ -2,7 +2,7 @@ import usage from "@/data/tokenUsage.json";
 import { messagesByModel } from "./messageCount";
 
 type Entry = [model: string, input: number, output: number, cacheWrite: number, cacheRead: number];
-export type ModelTotals = { model: string; processed: number; written: number; messages: number };
+type ModelTotals = { model: string; processed: number; written: number; messages: number };
 
 export function modelName(model: string) {
   const match = model.match(/^claude-([a-z]+)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?$/);

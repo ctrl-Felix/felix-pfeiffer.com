@@ -116,7 +116,7 @@ export function countryMonthlyMixes(rows: Record<string, string>[], iso3ToIso2: 
 
 type Feature = { properties: Record<string, string | number>; geometry: { type: string; coordinates: number[][][] | number[][][][] } };
 
-export function iso2Of(properties: Feature["properties"]) {
+function iso2Of(properties: Feature["properties"]) {
   for (const key of ["ISO_A2", "ISO_A2_EH"]) {
     const value = String(properties[key] ?? "");
     if (/^[A-Z]{2}$/.test(value)) return value;
@@ -124,7 +124,7 @@ export function iso2Of(properties: Feature["properties"]) {
   return null;
 }
 
-export function iso3Of(properties: Feature["properties"]) {
+function iso3Of(properties: Feature["properties"]) {
   for (const key of ["ISO_A3", "ISO_A3_EH", "ADM0_A3"]) {
     const value = String(properties[key] ?? "");
     if (/^[A-Z]{3}$/.test(value)) return value;

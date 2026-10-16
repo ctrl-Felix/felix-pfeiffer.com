@@ -1,18 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { peekPendingLaunch } from "@/components/deepLink";
-import { findToolInfo } from "@/data/tools";
 import type { IpResult } from "@/lib/ipLookup";
-import { useAutoRun, type ToolProps } from "./toolNavigation";
+import LookupTool from "./LookupTool";
+import type { ToolProps } from "./toolNavigation";
+import { ResultHeader, Section, ToolAbout } from "./ui";
 
-type State =
-  | { kind: "idle" }
-  | { kind: "loading" }
-  | { kind: "error"; message: string }
-  | { kind: "done"; result: IpResult };
-
-const card = "overflow-hidden rounded-xl bg-white/80 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]";
 const failedLabels: Record<IpResult["failed"][number], string> = { registry: "registry", routing: "ASN", reverseDns: "reverse DNS" };
 
 const regionNames = (() => {
@@ -33,7 +25,7 @@ const countryName = (code: string | null | undefined) => {
   }
 };
 
-const day = (iso: string | null) => (iso ? iso.slice(0, 10) : null);
+const day = (iso: string | null) => iso?.slice(0, 10);
 
 function Line({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   if (value === null || value === undefined || value === "") return null;
@@ -45,24 +37,12 @@ function Line({ label, value, mono }: { label: string; value: React.ReactNode; m
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section>
-      <h3 className="mb-1.5 px-1 text-xs font-medium uppercase tracking-wide text-black/45">{title}</h3>
-      <div className={`${card} divide-y divide-black/10`}>{children}</div>
-    </section>
-  );
-}
-
 function Result({ result }: { result: IpResult }) {
   const { network, asn } = result;
   const country = network?.country ?? network?.organization?.country ?? asn?.country ?? null;
   return (
     <div className="space-y-4">
-      <div className={`${card} flex items-center justify-between gap-3 px-4 py-3`}>
-        <h2 className="min-w-0 break-all font-mono text-base font-semibold">{result.ip}</h2>
-        <span className="shrink-0 rounded-full bg-[#ff9500]/15 px-2.5 py-0.5 text-xs font-medium text-[#a35f00]">IPv{result.version}</span>
-      </div>
+      <ResultHeader title={result.ip} badge={`IPv${result.version}`} badgeClass="bg-[#ff9500]/15 text-[#a35f00]" mono />
       <Section title="Owner">
         <Line label="Organization" value={network?.organization?.name ?? "Unknown"} />
         <Line label="Address" value={network?.organization?.address} />
@@ -107,69 +87,16 @@ function Result({ result }: { result: IpResult }) {
   );
 }
 
-function About() {
-  const tool = findToolInfo("ip");
-  if (!tool) return null;
+export default function IpTool(props: ToolProps) {
   return (
-    <div className="space-y-4 pt-2">
-      <p className="text-[13px] text-black/60">{tool.description}</p>
-      <section>
-        <h2 className="mb-2 text-sm font-semibold">Frequently asked questions</h2>
-        <div className={`${card} divide-y divide-black/10`}>
-          {tool.seo.faq.map((item) => (
-            <details key={item.question} className="px-4 py-2.5 text-[13px]">
-              <summary className="cursor-default font-medium">{item.question}</summary>
-              <p className="mt-1.5 text-black/60">{item.answer}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default function IpTool({ initialValue, autoRun }: ToolProps) {
-  const [address, setAddress] = useState(() => initialValue ?? peekPendingLaunch()?.domain ?? "");
-  const [state, setState] = useState<State>({ kind: "idle" });
-
-  async function lookup(value: string) {
-    if (!value.trim()) return;
-    setState({ kind: "loading" });
-    try {
-      const response = await fetch(`/api/tools/ip?ip=${encodeURIComponent(value.trim())}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      setState({ kind: "done", result: data });
-    } catch (error) {
-      setState({ kind: "error", message: error instanceof Error ? error.message : "Something went wrong." });
-    }
-  }
-
-  useAutoRun(autoRun, initialValue, lookup);
-
-  return (
-    <div className="space-y-4">
-      <form onSubmit={(event) => { event.preventDefault(); lookup(address); }} className="flex gap-2">
-        <input
-          value={address}
-          onChange={(event) => setAddress(event.target.value)}
-          placeholder="1.1.1.1 or 2606:4700:4700::1111"
-          aria-label="IP address"
-          autoFocus
-          maxLength={47}
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          className="min-w-0 flex-1 rounded-lg bg-black/6 px-3 py-2 text-[13px] outline-none placeholder:text-black/35 focus:ring-2 focus:ring-[#0a84ff]"
-        />
-        <button type="submit" disabled={!address.trim() || state.kind === "loading"} className="rounded-lg bg-[#0a84ff] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-40">
-          Look up
-        </button>
-      </form>
-      {state.kind === "loading" && <p className="py-6 text-center text-sm text-black/45">Looking up…</p>}
-      {state.kind === "error" && <p className="rounded-xl bg-[#ff3b30]/10 px-4 py-3 text-[13px] text-[#c4281e]" role="alert">{state.message}</p>}
-      {state.kind === "done" && <Result result={state.result} />}
-      {state.kind === "idle" && <About />}
-    </div>
+    <LookupTool<IpResult>
+      {...props}
+      endpoint="/api/tools/ip?ip="
+      placeholder="1.1.1.1 or 2606:4700:4700::1111"
+      label="IP address"
+      maxLength={47}
+      idle={<ToolAbout toolId="ip" />}
+      result={(result) => <Result result={result} />}
+    />
   );
 }

@@ -4,8 +4,8 @@ import { trackClick } from "@/lib/track";
 import type { WindowState } from "./windows/context";
 import type { useWindows } from "./windows/WindowManager";
 
-export type MenuItem = { label?: string; onSelect?: () => void; disabled?: boolean; checked?: boolean; separator?: boolean };
-export type Menu = { id: string; label: string; bold?: boolean; compactHidden?: boolean; items: MenuItem[] };
+type MenuItem = { label?: string; onSelect?: () => void; disabled?: boolean; checked?: boolean; separator?: boolean };
+type Menu = { id: string; label: string; bold?: boolean; compactHidden?: boolean; items: MenuItem[] };
 
 type Windows = ReturnType<typeof useWindows>;
 

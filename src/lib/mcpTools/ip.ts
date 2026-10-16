@@ -1,13 +1,11 @@
 import { normalizeIp } from "../ipAddress";
 import { lookupIp, type IpResult } from "../ipLookup";
-import { tooMany } from "../rateLimit";
-import { toolError, type McpTool, type ToolResult } from "./types";
+import { isoDay, runLookup, toolError, type McpTool, type ToolResult } from "./types";
 
 const failedLabels: Record<IpResult["failed"][number], string> = { registry: "registry (RDAP)", routing: "routing (ASN)", reverseDns: "reverse DNS" };
 
 function summarize(data: IpResult) {
   const { network, asn } = data;
-  const date = (iso: string | null) => (iso ? iso.slice(0, 10) : "unknown");
   return [
     `IP ${data.ip} (IPv${data.version})`,
     `Reverse DNS: ${data.reverseDns.length ? data.reverseDns.join(", ") : "none"}`,
@@ -21,7 +19,7 @@ function summarize(data: IpResult) {
           `Organization: ${network.organization?.name ?? "unknown"}`,
           ...(network.organization?.address ? [`Address: ${network.organization.address}`] : []),
           `Country: ${network.country ?? network.organization?.country ?? asn?.country ?? "unknown"}`,
-          `Registered: ${date(network.registered)}, last changed: ${date(network.updated)}`,
+          `Registered: ${isoDay(network.registered)}, last changed: ${isoDay(network.updated)}`,
           ...(network.abuse ? [`Abuse contact: ${[network.abuse.email, network.abuse.phone].filter(Boolean).join(", ")}`] : []),
         ]
       : []),
@@ -34,16 +32,15 @@ async function callIp(args: unknown, clientAddress: string): Promise<ToolResult>
   if (typeof input.ip !== "string") return toolError("The ip argument is required, for example 1.1.1.1.");
   const address = normalizeIp(input.ip);
   if (!address) return toolError("That is not a public IPv4 or IPv6 address. Private, reserved and documentation ranges are not looked up.");
-  if (tooMany("mcp-ip", clientAddress, 60, 60_000) || tooMany("mcp-ip-global", "all", 300, 60_000)) {
-    return toolError("Rate limit reached. Please try again in a minute.");
-  }
-  try {
-    const result = await lookupIp(address.ip, address.version);
-    const data = { ...result, lookedUpAt: new Date().toISOString() };
-    return { content: [{ type: "text" as const, text: summarize(result) }], structuredContent: data };
-  } catch {
-    return toolError("The lookup failed. The registry and resolvers may be unreachable. Please try again later.");
-  }
+  return runLookup({
+    bucket: "mcp-ip",
+    ip: clientAddress,
+    perIp: 60,
+    global: 300,
+    run: async () => ({ ...(await lookupIp(address.ip, address.version)), lookedUpAt: new Date().toISOString() }),
+    summarize,
+    failure: () => "The lookup failed. The registry and resolvers may be unreachable. Please try again later.",
+  });
 }
 
 const nullableString = { type: ["string", "null"] };
@@ -96,6 +93,5 @@ export const ipTool: McpTool = {
     },
     required: ["ip", "version", "reverseDns", "asn", "network", "failed", "lookedUpAt"],
   },
-  annotations: { title: "IP lookup", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   call: callIp,
 };

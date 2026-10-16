@@ -28,7 +28,7 @@ export type SubdomainResult = {
   dnsCheck: { checked: number; found: number; wildcardDns: boolean } | null;
 };
 
-export type SubdomainSources = { query?: DatabaseQuery; fetcher?: Fetcher; resolver?: ProbeResolver };
+type SubdomainSources = { query?: DatabaseQuery; fetcher?: Fetcher; resolver?: ProbeResolver };
 
 type CertificateOutcome = { status: CertificateStatus; source: SubdomainResult["certificateSource"]; entries: CrtEntry[] };
 
@@ -77,7 +77,7 @@ function namesOf(entry: CrtEntry, domain: string) {
 
 const reversedLabels = (name: string) => name.split(".").reverse().join(".");
 
-export function summarizeCertificates(domain: string, entries: CrtEntry[], now = Date.now()) {
+function summarizeCertificates(domain: string, entries: CrtEntry[], now = Date.now()) {
   const found = new Map<string, Subdomain>();
   const seenIds = new Map<string, Set<string>>();
   const issuers = new Map<string, Set<string>>();

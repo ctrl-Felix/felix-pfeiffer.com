@@ -6,7 +6,7 @@ import SubdomainTool from "./SubdomainTool";
 import type { ToolProps } from "./toolNavigation";
 import WhoisTool from "./WhoisTool";
 
-export type Tool = ToolInfo & {
+type Tool = ToolInfo & {
   Icon: () => React.JSX.Element;
   Component: React.ComponentType<ToolProps>;
 };

@@ -22,7 +22,7 @@ const organizationsOf = (entries: Entry[]) => [...new Set(entries.map((entry) =>
 
 const educationAndWork: Entry[] = [...profile.education, ...profile.experience];
 
-export const knowsAbout = [
+const knowsAbout = [
   "Information security",
   ...profile.skills.flatMap((skill) => skill.value.split(", ")),
 ];

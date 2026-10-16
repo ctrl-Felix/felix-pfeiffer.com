@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import { site } from "./src/config";
+
+const canonicalHost = new URL(site.url).host;
+const hostPattern = canonicalHost.replaceAll(".", "\\.");
 
 const scriptSources = process.env.NODE_ENV === "development" ? "'self' 'unsafe-inline' 'unsafe-eval'" : "'self' 'unsafe-inline'";
 
@@ -32,7 +36,24 @@ const nextConfig: NextConfig = {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
   async redirects() {
-    return [{ source: "/mcp-servers", destination: "/mcp", permanent: true }];
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: `www\\.${hostPattern}` }],
+        destination: `${site.url}/:path*`,
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [
+          { type: "host", value: hostPattern },
+          { type: "header", key: "x-forwarded-proto", value: "http" },
+        ],
+        destination: `${site.url}/:path*`,
+        permanent: true,
+      },
+      { source: "/mcp-servers", destination: "/mcp", permanent: true },
+    ];
   },
   output: "standalone",
   cacheComponents: true,
