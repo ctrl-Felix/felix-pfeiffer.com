@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCopy } from "@/components/useCopy";
 import { LogoIcon, PathsIcon, StatsIcon, ToolsIcon } from "@/components/Icons";
 import { tools } from "@/components/tools/registry";
 import { useWindow } from "@/components/windows/context";
@@ -26,16 +26,7 @@ const mapsTo = (entry: PublicPath) => {
 };
 
 function Row({ entry }: { entry: PublicPath }) {
-  const [copied, setCopied] = useState(false);
-  const url = absoluteUrl(entry.path);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {}
-  };
+  const { copied, copy } = useCopy();
 
   return (
     <li className={`flex items-start gap-3 py-3 pr-4 ${entry.parent ? "pl-10" : "pl-4"}`}>
@@ -53,9 +44,9 @@ function Row({ entry }: { entry: PublicPath }) {
       </div>
       <div className="flex shrink-0 flex-col gap-1.5 @max-lg:hidden">
         <a href={entry.path} target="_blank" rel="noopener noreferrer" className="rounded-md bg-[#0a84ff] px-2.5 py-1 text-center text-xs font-medium text-white">
-            Open ↗
-          </a>
-        <button type="button" onClick={copy} className="rounded-md bg-black/7 px-2.5 py-1 text-xs font-medium hover:bg-black/12">
+          Open ↗
+        </a>
+        <button type="button" onClick={() => copy(absoluteUrl(entry.path))} className="rounded-md bg-black/7 px-2.5 py-1 text-xs font-medium hover:bg-black/12">
           {copied ? "Copied" : "Copy link"}
         </button>
       </div>

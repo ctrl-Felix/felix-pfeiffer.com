@@ -96,14 +96,14 @@ export const apps: App[] = [
   },
 ];
 
-export const finder: App = {
+const finder: App = {
   id: "finder",
   label: "Finder",
   Icon: FinderIcon,
   window: { Content: FinderWindow, width: 560, height: 380, minWidth: 320, minHeight: 240 },
 };
 
-export const pathsApp: App = {
+const pathsApp: App = {
   id: "paths",
   label: "Public Paths",
   Icon: PathsIcon,
@@ -111,7 +111,7 @@ export const pathsApp: App = {
   window: { Content: PathsWindow, width: 720, height: 540, minWidth: 420, minHeight: 340 },
 };
 
-export const tokensApp: App = {
+const tokensApp: App = {
   id: "tokens",
   label: "Token Usage",
   Icon: StatsIcon,

@@ -3,7 +3,7 @@ import { reverseLabels, type IpVersion } from "./ipAddress";
 import { lookupIpNetwork, type Fetcher, type IpNetwork } from "./ipRdap";
 
 export type IpResolver = { resolveTxt: (name: string) => Promise<string[][]>; reverse: (ip: string) => Promise<string[]> };
-export type IpSources = { fetcher?: Fetcher; resolver?: IpResolver };
+type IpSources = { fetcher?: Fetcher; resolver?: IpResolver };
 
 export type AsnInfo = { asn: number; name: string | null; prefix: string | null; country: string | null; registry: string | null; allocated: string | null };
 

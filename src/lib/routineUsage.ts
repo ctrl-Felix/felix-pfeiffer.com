@@ -3,7 +3,7 @@ import data from "@/data/routineUsage.json";
 type Execution = [day: string, routine: string, model: string];
 type RoutineEntry = [model: string, routine: string, input: number, output: number, cacheWrite: number, cacheRead: number];
 type RoutineLedger = { executions: Record<string, Execution>; messages: Record<string, RoutineEntry> };
-export type RoutineTotals = { name: string; executions: number; processed: number; written: number };
+type RoutineTotals = { name: string; executions: number; processed: number; written: number };
 
 export function summarizeRoutines(ledger: RoutineLedger) {
   const perRoutine = new Map<string, RoutineTotals>();

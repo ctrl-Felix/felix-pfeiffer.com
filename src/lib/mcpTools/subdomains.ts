@@ -1,7 +1,6 @@
-import { tooMany } from "../rateLimit";
 import { findSubdomains, normalizeSubdomainQuery, TooManyCertificatesError, type Subdomain, type SubdomainResult } from "../subdomains";
 import { commonLabels } from "../subdomainProbe";
-import { toolError, type McpTool, type ToolResult } from "./types";
+import { isoDay, runLookup, toolError, type McpTool, type ToolResult } from "./types";
 
 const defaultLimit = 300;
 const maxLimit = 2000;
@@ -32,9 +31,8 @@ function select(result: SubdomainResult, currentOnly: boolean, limit: number) {
 }
 
 function describe(item: Subdomain) {
-  const date = (iso: string | null) => (iso ? iso.slice(0, 10) : "unknown");
   const parts = [
-    ...(item.certificates ? [`${item.current ? "valid certificate" : "expired"}, first seen ${date(item.firstSeen)}, last expiry ${date(item.lastExpires)}`] : []),
+    ...(item.certificates ? [`${item.current ? "valid certificate" : "expired"}, first seen ${isoDay(item.firstSeen)}, last expiry ${isoDay(item.lastExpires)}`] : []),
     ...(item.foundInDns ? ["resolves in DNS"] : []),
   ];
   return `${item.name}${item.wildcard ? " [wildcard]" : ""}: ${parts.join(", ")}`;
@@ -64,16 +62,18 @@ async function callSubdomains(args: unknown, ip: string): Promise<ToolResult> {
   if (input.limit !== undefined && (!Number.isInteger(input.limit) || (input.limit as number) < 1 || (input.limit as number) > maxLimit)) {
     return toolError(`The limit argument must be a whole number from 1 to ${maxLimit}.`);
   }
-  if (tooMany("mcp-subdomains", ip, 20, 60_000) || tooMany("mcp-subdomains-global", "all", 30, 60_000)) {
-    return toolError("Rate limit reached. Please try again in a minute.");
-  }
-  try {
-    const data = select(await findSubdomains(domain), input.currentOnly === true, (input.limit as number | undefined) ?? defaultLimit);
-    return { content: [{ type: "text" as const, text: summarize(data) }], structuredContent: data };
-  } catch (error) {
-    if (error instanceof TooManyCertificatesError) return toolError("This domain has too many certificates to list. Search a more specific name, for example shop.example.com.");
-    return toolError("The certificate logs and DNS resolvers did not answer. Please try again later.");
-  }
+  return runLookup({
+    bucket: "mcp-subdomains",
+    ip,
+    perIp: 20,
+    global: 30,
+    run: async () => select(await findSubdomains(domain), input.currentOnly === true, (input.limit as number | undefined) ?? defaultLimit),
+    summarize,
+    failure: (error) =>
+      error instanceof TooManyCertificatesError
+        ? "This domain has too many certificates to list. Search a more specific name, for example shop.example.com."
+        : "The certificate logs and DNS resolvers did not answer. Please try again later.",
+  });
 }
 
 export const subdomainsTool: McpTool = {
@@ -129,6 +129,5 @@ export const subdomainsTool: McpTool = {
     },
     required: ["domain", "certificateSearch", "certificates", "dnsCheck", "totalNames", "returnedNames", "subdomains", "issuers", "truncated", "source", "lookedUpAt"],
   },
-  annotations: { title: "Subdomain discovery", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   call: callSubdomains,
 };

@@ -2,7 +2,7 @@ import type { Period, Stats } from "@/lib/stats";
 import type { SourceGroup } from "@/lib/trafficSources";
 import { trafficSummary } from "./traffic";
 
-export const groupColors: Record<SourceGroup, string> = { web: "#0a84ff", ai: "#bf5af2", direct: "#8e8e93" };
+const groupColors: Record<SourceGroup, string> = { web: "#0a84ff", ai: "#bf5af2", direct: "#8e8e93" };
 
 const percent = (count: number, total: number) => (total ? Math.round((count / total) * 100) : 0);
 

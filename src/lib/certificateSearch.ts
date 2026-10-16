@@ -1,7 +1,7 @@
 import { certificateDatabase } from "./db";
 
 export type CrtEntry = { id?: unknown; issuer_name?: unknown; common_name?: unknown; name_value?: unknown; not_before?: unknown; not_after?: unknown };
-export type CertificateSearch = { entries: CrtEntry[]; complete: boolean };
+type CertificateSearch = { entries: CrtEntry[]; complete: boolean };
 export type Fetcher = (url: string, init: RequestInit) => Promise<Response>;
 export type DatabaseQuery = (sql: string, values: unknown[]) => Promise<{ rows: unknown[] }>;
 

@@ -15,3 +15,7 @@ export function tooMany(bucket: string, key: string, max: number, windowMs: numb
   hits.set(key, recent);
   return recent.length > max;
 }
+
+export function overMinuteLimit(bucket: string, ip: string, perIp: number, global?: number) {
+  return tooMany(bucket, ip, perIp, 60_000) || (global !== undefined && tooMany(`${bucket}-global`, "all", global, 60_000));
+}

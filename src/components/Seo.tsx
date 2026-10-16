@@ -1,19 +1,15 @@
 import Link from "next/link";
+import JsonLd from "@/components/JsonLd";
 import { links, site } from "@/config";
 import { aboutPage } from "@/data/about";
 import { profile } from "@/data/profile";
 import { toolInfos } from "@/data/tools";
 import { personNode, websiteNode } from "@/lib/personSchema";
 
-const graph = { "@context": "https://schema.org", "@graph": [personNode(), websiteNode] };
-
 export default function Seo() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }}
-      />
+      <JsonLd nodes={[personNode(), websiteNode]} />
       <div className="sr-only">
         <h1>{site.name}</h1>
         <p>{site.summary}</p>

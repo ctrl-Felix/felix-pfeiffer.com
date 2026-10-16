@@ -3,7 +3,7 @@ import { toolSummary } from "./mcpTools/types";
 import { isMcpTarget, type McpTarget } from "./tracking";
 
 type Id = string | number | null;
-export type McpOptions = { onToolCall?: (tool: McpTarget) => void };
+type McpOptions = { onToolCall?: (tool: McpTarget) => void };
 type RpcResponse = { jsonrpc: "2.0"; id: Id; result?: unknown; error?: { code: number; message: string } };
 
 const protocolVersions = ["2025-06-18", "2025-03-26", "2024-11-05"];

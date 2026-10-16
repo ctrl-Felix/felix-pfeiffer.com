@@ -1,9 +1,74 @@
-import { tooMany } from "../rateLimit";
 import { lookupDomain, normalizeDomain, type WhoisResult } from "../whois";
-import { toolError, type McpTool, type ToolResult } from "./types";
+import { daysUntil } from "../whoisFormat";
+import { isoDay, runLookup, toolError, type McpTool, type ToolResult } from "./types";
 
 const rawLimit = 8000;
-const dayMs = 86_400_000;
+
+function enrich(result: WhoisResult, includeRaw: boolean) {
+  const daysUntilExpiry = daysUntil(result.expires);
+  const createdDays = daysUntil(result.created);
+  return {
+    domain: result.domain,
+    registered: result.registered,
+    source: result.source,
+    registrar: result.registrar,
+    created: result.created,
+    updated: result.updated,
+    expires: result.expires,
+    daysUntilExpiry,
+    expired: daysUntilExpiry === null ? null : daysUntilExpiry < 0,
+    ageDays: createdDays === null ? null : -createdDays,
+    status: result.status,
+    nameservers: result.nameservers,
+    dnssec: result.dnssec,
+    handle: result.handle,
+    registrarDetails: result.registrarInfo,
+    statusDetails: result.statusInfo.map(({ code, label, explanation }) => ({ code, label, explanation })),
+    nameserverDetails: result.nameserverInfo,
+    dnssecRecords: result.dsRecords,
+    contacts: result.contacts,
+    registrantDataRedacted: result.redacted,
+    dataServer: result.server,
+    lookedUpAt: new Date().toISOString(),
+    ...(includeRaw ? { raw: result.raw.slice(0, rawLimit) } : {}),
+  };
+}
+
+function summarize(data: ReturnType<typeof enrich>) {
+  if (!data.registered) return `${data.domain} is not registered (no registration record was found), so it is likely available.`;
+  const expiry =
+    data.daysUntilExpiry === null ? "" : data.daysUntilExpiry < 0 ? ` (expired ${-data.daysUntilExpiry} days ago)` : ` (in ${data.daysUntilExpiry} days)`;
+  return [
+    `${data.domain} is registered.`,
+    `Registrar: ${data.registrar ?? "unknown"}${data.registrarDetails.ianaId ? ` (IANA ID ${data.registrarDetails.ianaId})` : ""}`,
+    ...(data.registrarDetails.abuseEmail ? [`Registrar abuse contact: ${data.registrarDetails.abuseEmail}`] : []),
+    `Created: ${isoDay(data.created)}`,
+    `Last updated: ${isoDay(data.updated)}`,
+    `Expires: ${isoDay(data.expires)}${expiry}`,
+    `Status: ${data.statusDetails.length ? data.statusDetails.map((status) => status.label).join(", ") : "unknown"}`,
+    `Name servers: ${data.nameservers.length ? data.nameservers.join(", ") : "unknown"}`,
+    `DNSSEC: ${data.dnssec === null ? "unknown" : data.dnssec ? "signed" : "unsigned"}`,
+    ...(data.registrantDataRedacted ? ["Registrant data: redacted by the registry"] : []),
+    `Source: ${data.source === "rdap" ? "RDAP" : "WHOIS"}`,
+    ...(data.raw ? ["", "Raw response:", data.raw] : []),
+  ].join("\n");
+}
+
+async function callWhois(args: unknown, ip: string): Promise<ToolResult> {
+  const input = (args ?? {}) as { domain?: unknown; includeRaw?: unknown };
+  if (typeof input.domain !== "string") return toolError("The domain argument is required, for example example.com.");
+  const domain = normalizeDomain(input.domain);
+  if (!domain) return toolError("That is not a valid domain name. Use a name like example.com.");
+  return runLookup({
+    bucket: "mcp-whois",
+    ip,
+    perIp: 60,
+    global: 300,
+    run: async () => enrich(await lookupDomain(domain), input.includeRaw === true),
+    summarize,
+    failure: () => "The lookup failed. The registry may be unreachable. Please try again later.",
+  });
+}
 
 export const whoisTool: McpTool = {
   name: "whois_lookup",
@@ -75,80 +140,5 @@ export const whoisTool: McpTool = {
     },
     required: ["domain", "registered", "source", "status", "nameservers", "lookedUpAt"],
   },
-  annotations: { title: "Whois lookup", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
-  call: (args, ip) => callWhois(args, ip),
+  call: callWhois,
 };
-
-
-function daysFrom(iso: string | null) {
-  const time = iso ? Date.parse(iso) : NaN;
-  return Number.isNaN(time) ? null : Math.round((time - Date.now()) / dayMs);
-}
-
-function enrich(result: WhoisResult, includeRaw: boolean) {
-  const daysUntilExpiry = daysFrom(result.expires);
-  const createdDays = daysFrom(result.created);
-  return {
-    domain: result.domain,
-    registered: result.registered,
-    source: result.source,
-    registrar: result.registrar,
-    created: result.created,
-    updated: result.updated,
-    expires: result.expires,
-    daysUntilExpiry,
-    expired: daysUntilExpiry === null ? null : daysUntilExpiry < 0,
-    ageDays: createdDays === null ? null : -createdDays,
-    status: result.status,
-    nameservers: result.nameservers,
-    dnssec: result.dnssec,
-    handle: result.handle,
-    registrarDetails: result.registrarInfo,
-    statusDetails: result.statusInfo.map(({ code, label, explanation }) => ({ code, label, explanation })),
-    nameserverDetails: result.nameserverInfo,
-    dnssecRecords: result.dsRecords,
-    contacts: result.contacts,
-    registrantDataRedacted: result.redacted,
-    dataServer: result.server,
-    lookedUpAt: new Date().toISOString(),
-    ...(includeRaw ? { raw: result.raw.slice(0, rawLimit) } : {}),
-  };
-}
-
-function summarize(data: ReturnType<typeof enrich>) {
-  if (!data.registered) return `${data.domain} is not registered (no registration record was found), so it is likely available.`;
-  const date = (iso: string | null) => (iso ? iso.slice(0, 10) : "unknown");
-  const expiry =
-    data.daysUntilExpiry === null ? "" : data.daysUntilExpiry < 0 ? ` (expired ${-data.daysUntilExpiry} days ago)` : ` (in ${data.daysUntilExpiry} days)`;
-  return [
-    `${data.domain} is registered.`,
-    `Registrar: ${data.registrar ?? "unknown"}${data.registrarDetails.ianaId ? ` (IANA ID ${data.registrarDetails.ianaId})` : ""}`,
-    ...(data.registrarDetails.abuseEmail ? [`Registrar abuse contact: ${data.registrarDetails.abuseEmail}`] : []),
-    `Created: ${date(data.created)}`,
-    `Last updated: ${date(data.updated)}`,
-    `Expires: ${date(data.expires)}${expiry}`,
-    `Status: ${data.statusDetails.length ? data.statusDetails.map((status) => status.label).join(", ") : "unknown"}`,
-    `Name servers: ${data.nameservers.length ? data.nameservers.join(", ") : "unknown"}`,
-    `DNSSEC: ${data.dnssec === null ? "unknown" : data.dnssec ? "signed" : "unsigned"}`,
-    ...(data.registrantDataRedacted ? ["Registrant data: redacted by the registry"] : []),
-    `Source: ${data.source === "rdap" ? "RDAP" : "WHOIS"}`,
-    ...(data.raw ? ["", "Raw response:", data.raw] : []),
-  ].join("\n");
-}
-
-async function callWhois(args: unknown, ip: string): Promise<ToolResult> {
-  const input = (args ?? {}) as { domain?: unknown; includeRaw?: unknown };
-  if (typeof input.domain !== "string") return toolError("The domain argument is required, for example example.com.");
-  const domain = normalizeDomain(input.domain);
-  if (!domain) return toolError("That is not a valid domain name. Use a name like example.com.");
-  if (tooMany("mcp-whois", ip, 60, 60_000) || tooMany("mcp-whois-global", "all", 300, 60_000)) {
-    return toolError("Rate limit reached. Please try again in a minute.");
-  }
-  try {
-    const data = enrich(await lookupDomain(domain), input.includeRaw === true);
-    return { content: [{ type: "text" as const, text: summarize(data) }], structuredContent: data };
-  } catch {
-    return toolError("The lookup failed. The registry may be unreachable. Please try again later.");
-  }
-}
-

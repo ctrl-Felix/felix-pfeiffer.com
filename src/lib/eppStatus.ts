@@ -52,7 +52,7 @@ function labelFromCode(code: string) {
   return spaced ? spaced[0].toUpperCase() + spaced.slice(1) : code;
 }
 
-export function describeStatus(raw: string): StatusInfo {
+function describeStatus(raw: string): StatusInfo {
   const code = normalizeStatusCode(raw);
   const entry = entries[keyOf(code)] ?? entries[code.toLowerCase()];
   if (entry) return { code, ...entry };

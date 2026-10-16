@@ -1,9 +1,9 @@
 export const speedTestOrigin = "https://speed.cloudflare.com";
 
 export type Measure = { fetcher: typeof fetch; now: () => number; signal?: AbortSignal };
-export type Plan = { bytes: number; runs: number }[];
+type Plan = { bytes: number; runs: number }[];
 
-export const downloadPlan: Plan = [
+const downloadPlan: Plan = [
   { bytes: 100_000, runs: 4 },
   { bytes: 1_000_000, runs: 4 },
   { bytes: 10_000_000, runs: 3 },
@@ -11,7 +11,7 @@ export const downloadPlan: Plan = [
   { bytes: 50_000_000, runs: 1 },
 ];
 
-export const uploadPlan: Plan = [
+const uploadPlan: Plan = [
   { bytes: 100_000, runs: 3 },
   { bytes: 1_000_000, runs: 3 },
   { bytes: 5_000_000, runs: 2 },

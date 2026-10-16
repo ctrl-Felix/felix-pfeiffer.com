@@ -1,8 +1,8 @@
 import { site } from "@/config";
 
-export type McpTool = { name: string; description: string; example: string };
+type McpTool = { name: string; description: string; example: string };
 
-export type McpConnector = {
+type McpConnector = {
   id: string;
   name: string;
   description: string;
@@ -73,7 +73,7 @@ export const mcpPage = {
 
 export const mcpServerUrl = (connector: McpConnector) => `${site.url}${connector.path}`;
 
-export type ClientSetup = { id: string; name: string; steps?: string; hint?: string; code?: (url: string) => string };
+type ClientSetup = { id: string; name: string; steps?: string; hint?: string; code?: (url: string) => string };
 
 export const clientSetups: ClientSetup[] = [
   {

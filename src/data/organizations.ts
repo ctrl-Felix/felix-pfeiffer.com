@@ -1,4 +1,4 @@
-export type OrganizationInfo = {
+type OrganizationInfo = {
   type: "CollegeOrUniversity" | "Organization" | "GovernmentOrganization" | "Corporation";
   fullName?: string;
   sameAs?: string;

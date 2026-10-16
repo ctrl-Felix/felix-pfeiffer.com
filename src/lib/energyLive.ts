@@ -1,6 +1,6 @@
 import type { Mix, MixSource } from "./energyTypes";
 
-export const lifecycleFactors: Record<MixSource, number> = {
+const lifecycleFactors: Record<MixSource, number> = {
   coal: 820,
   gas: 490,
   oil: 650,
@@ -21,7 +21,7 @@ export function intensityFromMix(mix: Mix) {
   return Math.round(entries.reduce((sum, [source, share]) => sum + lifecycleFactors[source] * share, 0) / total);
 }
 
-export function normalize(values: Mix): Mix {
+function normalize(values: Mix): Mix {
   const total = Object.values(values).reduce((sum, value) => sum + (value ?? 0), 0);
   if (!total) return {};
   const mix: Mix = {};

@@ -1,5 +1,5 @@
 export type Inline = { type: "text" | "bold" | "code"; value: string } | { type: "link"; value: string; href: string };
-export type Block =
+type Block =
   | { type: "heading"; level: 1 | 2 | 3; content: Inline[] }
   | { type: "paragraph"; content: Inline[] }
   | { type: "list"; items: Inline[][] };

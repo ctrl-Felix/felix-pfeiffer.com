@@ -1,8 +1,14 @@
-import { tooMany } from "../rateLimit";
 import { lookupDns, normalizeDnsName, recordTypes, type DnsRecords, type DnsResult, type RecordType } from "../dnsLookup";
-import { toolError, type McpTool, type ToolResult } from "./types";
+import { runLookup, toolError, type McpTool, type ToolResult } from "./types";
 
 const typeList = recordTypes.join(", ");
+
+function parseTypes(value: unknown) {
+  if (value === undefined) return [...recordTypes];
+  const requested = Array.isArray(value) ? value.map((type) => String(type).toUpperCase()) : [];
+  const valid = requested.length > 0 && requested.every((type): type is RecordType => (recordTypes as readonly string[]).includes(type));
+  return valid ? [...new Set(requested)] : null;
+}
 
 function summarize(result: DnsResult) {
   if (!result.exists) return `${result.domain} does not exist (the DNS answered with NXDOMAIN).`;
@@ -30,25 +36,18 @@ async function callDns(args: unknown, ip: string): Promise<ToolResult> {
   const domain = normalizeDnsName(input.domain);
   if (!domain) return toolError("That is not a valid public domain name. Use a name like example.com or _dmarc.example.com.");
 
-  let types: RecordType[] = [...recordTypes];
-  if (input.types !== undefined) {
-    const requested = Array.isArray(input.types) ? input.types.map((type) => String(type).toUpperCase()) : [];
-    if (!requested.length || !requested.every((type): type is RecordType => (recordTypes as readonly string[]).includes(type))) {
-      return toolError(`The types argument must be a non-empty list of: ${typeList}.`);
-    }
-    types = [...new Set(requested)];
-  }
+  const types = parseTypes(input.types);
+  if (!types) return toolError(`The types argument must be a non-empty list of: ${typeList}.`);
 
-  if (tooMany("mcp-dns", ip, 60, 60_000) || tooMany("mcp-dns-global", "all", 300, 60_000)) {
-    return toolError("Rate limit reached. Please try again in a minute.");
-  }
-  try {
-    const result = await lookupDns(domain, types);
-    const data = { ...result, lookedUpAt: new Date().toISOString() };
-    return { content: [{ type: "text" as const, text: summarize(result) }], structuredContent: data };
-  } catch {
-    return toolError("The DNS lookup failed. The resolvers may be unreachable. Please try again later.");
-  }
+  return runLookup({
+    bucket: "mcp-dns",
+    ip,
+    perIp: 60,
+    global: 300,
+    run: async () => ({ ...(await lookupDns(domain, types)), lookedUpAt: new Date().toISOString() }),
+    summarize,
+    failure: () => "The DNS lookup failed. The resolvers may be unreachable. Please try again later.",
+  });
 }
 
 const caaItem = { type: "object", properties: { critical: { type: "boolean" }, tag: { type: "string" }, value: { type: "string" } } };
@@ -90,6 +89,5 @@ export const dnsTool: McpTool = {
     },
     required: ["domain", "exists", "records", "failures", "lookedUpAt"],
   },
-  annotations: { title: "DNS records", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   call: callDns,
 };

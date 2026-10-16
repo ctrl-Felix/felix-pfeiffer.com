@@ -1,19 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { peekPendingLaunch } from "@/components/deepLink";
+import { useCopy } from "@/components/useCopy";
 import { findToolInfo } from "@/data/tools";
 import type { Subdomain, SubdomainResult } from "@/lib/subdomains";
+import LookupTool from "./LookupTool";
 import SearchProgress, { type ProgressStep } from "./SearchProgress";
-import { ToolLink, useAutoRun, type ToolProps } from "./toolNavigation";
+import { ToolLink, type ToolProps } from "./toolNavigation";
+import { card, ResultHeader, ToolAbout } from "./ui";
 
-type State =
-  | { kind: "idle" }
-  | { kind: "loading" }
-  | { kind: "error"; message: string }
-  | { kind: "done"; result: SubdomainResult };
-
-const card = "overflow-hidden rounded-xl bg-white/80 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]";
 const field = "rounded-lg bg-black/6 px-3 py-2 text-[13px] outline-none placeholder:text-black/35 focus:ring-2 focus:ring-[#0a84ff]";
 const renderLimit = 1000;
 const progressSteps: ProgressStep[] = [
@@ -58,28 +53,19 @@ function Row({ item }: { item: Subdomain }) {
 function Result({ result }: { result: SubdomainResult }) {
   const [filter, setFilter] = useState("");
   const [currentOnly, setCurrentOnly] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopy();
   const needle = filter.trim().toLowerCase();
   const active = (item: Subdomain) => item.current || item.foundInDns;
   const shown = result.subdomains.filter((item) => (!currentOnly || active(item)) && item.name.includes(needle));
   const activeCount = result.subdomains.filter(active).length;
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(shown.map((item) => item.name).join("\n"));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {}
-  };
-
   return (
     <div className="space-y-4">
-      <div className={`${card} flex items-center justify-between gap-3 px-4 py-3`}>
-        <h2 className="min-w-0 truncate text-lg font-semibold">{result.domain}</h2>
-        <span className="shrink-0 rounded-full bg-[#7a3cf0]/12 px-2.5 py-0.5 text-xs font-medium text-[#5a24c4]">
-          {result.subdomains.length} {result.subdomains.length === 1 ? "name" : "names"} · {activeCount} active
-        </span>
-      </div>
+      <ResultHeader
+        title={result.domain}
+        badge={`${result.subdomains.length} ${result.subdomains.length === 1 ? "name" : "names"} · ${activeCount} active`}
+        badgeClass="bg-[#7a3cf0]/12 text-[#5a24c4]"
+      />
       {certificateNotes[result.certificateSearch] && <p className="px-1 text-xs text-[#a35f00]">{certificateNotes[result.certificateSearch]}</p>}
       {result.dnsCheck?.wildcardDns && <p className="px-1 text-xs text-black/50">This domain answers every name in DNS, so only common names with their own addresses are marked DNS.</p>}
       {result.truncated && <p className="px-1 text-xs text-[#a35f00]">Only the first {result.subdomains.length} names are listed. Search a more specific name for the rest.</p>}
@@ -93,7 +79,7 @@ function Result({ result }: { result: SubdomainResult }) {
               <input type="checkbox" checked={currentOnly} onChange={(event) => setCurrentOnly(event.target.checked)} />
               Active only
             </label>
-            <button type="button" onClick={copy} disabled={!shown.length} className="rounded-lg bg-white px-3 py-1.5 text-xs font-medium shadow-sm disabled:opacity-40">
+            <button type="button" onClick={() => copy(shown.map((item) => item.name).join("\n"))} disabled={!shown.length} className="rounded-lg bg-white px-3 py-1.5 text-xs font-medium shadow-sm disabled:opacity-40">
               {copied ? "Copied" : `Copy ${shown.length}`}
             </button>
           </div>
@@ -114,69 +100,18 @@ function Result({ result }: { result: SubdomainResult }) {
   );
 }
 
-function About() {
-  const tool = findToolInfo("subdomains");
-  if (!tool) return null;
+export default function SubdomainTool(props: ToolProps) {
   return (
-    <div className="space-y-4 pt-2">
-      <p className="text-[13px] text-black/60">{tool.seo.paragraphs[1]}</p>
-      <section>
-        <h2 className="mb-2 text-sm font-semibold">Frequently asked questions</h2>
-        <div className={`${card} divide-y divide-black/10`}>
-          {tool.seo.faq.map((item) => (
-            <details key={item.question} className="px-4 py-2.5 text-[13px]">
-              <summary className="cursor-default font-medium">{item.question}</summary>
-              <p className="mt-1.5 text-black/60">{item.answer}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default function SubdomainTool({ initialValue, autoRun }: ToolProps) {
-  const [domain, setDomain] = useState(() => initialValue ?? peekPendingLaunch()?.domain ?? "");
-  const [state, setState] = useState<State>({ kind: "idle" });
-
-  async function search(name: string) {
-    if (!name.trim()) return;
-    setState({ kind: "loading" });
-    try {
-      const response = await fetch(`/api/tools/subdomains?domain=${encodeURIComponent(name.trim())}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      setState({ kind: "done", result: data });
-    } catch (error) {
-      setState({ kind: "error", message: error instanceof Error ? error.message : "Something went wrong." });
-    }
-  }
-
-  useAutoRun(autoRun, initialValue, search);
-
-  return (
-    <div className="space-y-4">
-      <form onSubmit={(event) => { event.preventDefault(); search(domain); }} className="flex gap-2">
-        <input
-          value={domain}
-          onChange={(event) => setDomain(event.target.value)}
-          placeholder="example.com"
-          aria-label="Domain name"
-          autoFocus
-          maxLength={300}
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          className={`${field} min-w-0 flex-1`}
-        />
-        <button type="submit" disabled={!domain.trim() || state.kind === "loading"} className="rounded-lg bg-[#0a84ff] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-40">
-          Search
-        </button>
-      </form>
-      {state.kind === "loading" && <SearchProgress steps={progressSteps} expectedSeconds={12} />}
-      {state.kind === "error" && <p className="rounded-xl bg-[#ff3b30]/10 px-4 py-3 text-[13px] text-[#c4281e]" role="alert">{state.message}</p>}
-      {state.kind === "done" && <Result key={state.result.domain} result={state.result} />}
-      {state.kind === "idle" && <About />}
-    </div>
+    <LookupTool<SubdomainResult>
+      {...props}
+      endpoint="/api/tools/subdomains?domain="
+      placeholder="example.com"
+      label="Domain name"
+      maxLength={300}
+      action="Search"
+      progress={<SearchProgress steps={progressSteps} expectedSeconds={12} />}
+      idle={<ToolAbout toolId="subdomains" intro={findToolInfo("subdomains")?.seo.paragraphs[1]} />}
+      result={(result) => <Result key={result.domain} result={result} />}
+    />
   );
 }
