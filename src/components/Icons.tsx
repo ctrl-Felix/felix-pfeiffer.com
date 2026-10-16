@@ -212,6 +212,17 @@ export function ShieldIcon() {
   );
 }
 
+export function RecruiterIcon() {
+  return (
+    <Tile id="rc" from="#ffd36b" to="#f0a000">
+      <rect x="12" y="23" width="40" height="27" rx="5" fill="white" />
+      <path d="M25 23v-4a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4" fill="none" stroke="white" strokeWidth="3.4" />
+      <path d="M12 34h40" stroke="#f0a000" strokeWidth="2.4" />
+      <rect x="28.5" y="31" width="7" height="6" rx="1.5" fill="#f0a000" />
+    </Tile>
+  );
+}
+
 export function LogoIcon() {
   return (
     <Tile id="lg" from="#5ac8fa" to="#0a64e6">
@@ -310,6 +321,16 @@ export const glyphs = {
       <path d="M12 3c4 2 6 6 5 11l-5 4-5-4c-1-5 1-9 5-11z" />
       <circle cx="12" cy="10" r="1.6" />
       <path d="M7 15l-3 4 4-1M17 15l3 4-4-1" />
+    </Glyph>
+  ),
+  reasons: (
+    <Glyph>
+      <path d="M12 3l2.6 5.5 6 .8-4.4 4.1 1.1 6L12 16.5 6.7 19.4l1.1-6L3.4 9.3l6-.8z" />
+    </Glyph>
+  ),
+  heart: (
+    <Glyph>
+      <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />
     </Glyph>
   ),
   skills: (

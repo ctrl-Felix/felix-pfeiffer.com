@@ -8,6 +8,7 @@ export type WindowState = Bounds & {
   z: number;
   minimized: boolean;
   maximized: boolean;
+  placedByCss?: boolean;
 };
 
 export type WindowActions = {
