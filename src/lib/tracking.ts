@@ -1,6 +1,7 @@
 export const trackTargets = {
   finder: "Finder",
   profile: "Profile",
+  recruiter: "For recruiters",
   github: "GitHub",
   mail: "Mail",
   seo: "SEO and GEO tracker",

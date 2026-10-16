@@ -1,10 +1,11 @@
 import { links } from "@/config";
 import FinderWindow from "./FinderWindow";
-import { FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, StatsIcon, SeoIcon, ShieldIcon, ToolsIcon } from "./Icons";
+import { FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, RecruiterIcon, StatsIcon, SeoIcon, ShieldIcon, ToolsIcon } from "./Icons";
 import MailWindow from "./MailWindow";
 import PathsWindow from "./paths/PathsWindow";
 import ProfileWindow from "./ProfileWindow";
 import ReaderWindow from "./reader/ReaderWindow";
+import RecruiterWindow from "./recruiter/RecruiterWindow";
 import SecurityWindow from "./reader/SecurityWindow";
 import SeoTrackerWindow from "./seo/SeoTrackerWindow";
 import StatsWindow from "./stats/StatsWindow";
@@ -38,6 +39,14 @@ export const apps: App[] = [
     label: "Profile",
     Icon: ProfileIcon,
     window: { Content: ProfileWindow, width: 880, height: 620, minWidth: 560, minHeight: 400 },
+  },
+  {
+    id: "recruiter",
+    label: "For recruiters",
+    Icon: RecruiterIcon,
+    transient: true,
+    desktopLabel: "Are you a recruiter?",
+    window: { Content: RecruiterWindow, width: 560, height: 600, minWidth: 360, minHeight: 360 },
   },
   { id: "github", label: "GitHub", Icon: GithubIcon, href: links.github, external: true },
   {

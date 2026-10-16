@@ -97,6 +97,31 @@ export const profile = {
       description: "Python Protobuf library for the Cosmos ecosystem, published on PyPI",
     },
   ],
+  recruiter: {
+    greeting: "Hi, thanks for stopping by.",
+    prompt: "Short on time? Pick what you need.",
+    pitch:
+      "I study information security at UCL. Before that I spent three years on applied security research at Fraunhofer IOSB, did internships at BaFin and AXA, and co-founded two companies.",
+    reasons: [
+      {
+        title: "Security from research to regulation",
+        text: "I have worked on threshold cryptography and remote attestation at Fraunhofer IOSB, on IAST governance at AXA and on DORA incident reporting at BaFin.",
+      },
+      {
+        title: "I build what I secure",
+        text: "I designed and built the full tech stack of Pakt, a goal-tracking app live on iOS and Android: Flutter app, API, database, login and payments.",
+      },
+      {
+        title: "Results with real stakes",
+        text: "At Cosmoshield we recovered more than $3M in staked cryptocurrency for over 500 phishing victims, with tooling I wrote in Python and Rust.",
+      },
+      {
+        title: "I bring people along",
+        text: "At AXA I onboarded development teams to a new security scanner through training sessions and a weekly Q&A call.",
+      },
+    ],
+    website: "An experiment in how far AI can take a personal website. I wrote none of its code myself, AI did, and all of it is public on GitHub.",
+  },
   skills: [
     { label: "Security tools", value: "Contrast Security (IAST), SonarQube and CodeQL (SAST), Dependabot, Wireshark, Nmap, OpenSSL, Keycloak (OAuth/OIDC)" },
     { label: "Security concepts", value: "OWASP Top 10, MITRE ATT&CK, threshold cryptography, remote attestation" },
