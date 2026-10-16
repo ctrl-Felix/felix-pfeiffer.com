@@ -9,7 +9,7 @@ import MenuBar from "./MenuBar";
 import VisitTracker from "./VisitTracker";
 import { useWindows, WindowProvider } from "./windows/WindowManager";
 
-type Props = { launch?: Launch & { appId: string } };
+type Props = { launch?: Launch & { appId: string }; welcome?: string };
 
 function Launcher({ launch }: Props) {
   const { open } = useWindows();
@@ -24,9 +24,9 @@ function Launcher({ launch }: Props) {
   return null;
 }
 
-export default function Desktop({ launch }: Props) {
+export default function Desktop({ launch, welcome }: Props) {
   return (
-    <WindowProvider apps={allApps}>
+    <WindowProvider apps={allApps} welcome={welcome}>
       <VisitTracker />
       <Launcher launch={launch} />
       <MenuBar />

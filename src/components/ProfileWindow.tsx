@@ -104,7 +104,7 @@ export default function ProfileWindow() {
       <section className="flex min-w-0 flex-1 flex-col bg-[#f2f2f7]/70">
         <div className="flex h-12 shrink-0 items-center gap-2 px-4 md:justify-center" {...dragProps}>
           <TrafficLights className="md:hidden" />
-          <h1 className="text-[15px] font-semibold">{current.label}</h1>
+          <h2 className="text-[15px] font-semibold">{current.label}</h2>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-2 md:hidden">
           {sections.map((item) => (

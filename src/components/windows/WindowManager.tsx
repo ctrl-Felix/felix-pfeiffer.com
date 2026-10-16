@@ -2,8 +2,9 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { App } from "@/components/apps";
-import Window, { MENU_HEIGHT } from "./Window";
+import Window, { MENU_HEIGHT, MOBILE_WIDTH } from "./Window";
 import type { WindowActions, WindowState } from "./context";
+import { useWelcomeSeen } from "./useWelcome";
 
 type WindowsValue = WindowActions & { windows: WindowState[]; focusedId: string | null };
 
@@ -15,7 +16,6 @@ export function useWindows() {
   return value;
 }
 
-const MOBILE_WIDTH = 768;
 const CASCADE = 28;
 
 function topZ(windows: WindowState[]) {
@@ -42,8 +42,23 @@ function createWindow(app: App, existing: WindowState[], maximized?: boolean): W
   };
 }
 
-export function WindowProvider({ apps, children }: { apps: App[]; children: React.ReactNode }) {
-  const [windows, setWindows] = useState<WindowState[]>([]);
+function welcomeWindow(app: App | undefined): WindowState[] {
+  if (!app?.window) return [];
+  const { width, height } = app.window;
+  return [{ id: app.id, title: app.label, x: 0, y: 0, width, height, z: 1, minimized: false, maximized: false, placedByCss: true }];
+}
+
+type ProviderProps = { apps: App[]; welcome?: string; children?: React.ReactNode };
+
+export function WindowProvider({ apps, welcome, children }: ProviderProps) {
+  const [windows, setWindows] = useState<WindowState[]>(() => welcomeWindow(apps.find((app) => app.id === welcome)));
+  const [welcomeHandled, setWelcomeHandled] = useState(false);
+  const welcomeSeen = useWelcomeSeen(welcome);
+
+  if (welcome && welcomeSeen && !welcomeHandled) {
+    setWelcomeHandled(true);
+    setWindows((all) => all.filter((win) => !win.placedByCss));
+  }
 
   const update = useCallback((id: string, change: (win: WindowState, all: WindowState[]) => Partial<WindowState>) => {
     setWindows((all) => all.map((win) => (win.id === id ? { ...win, ...change(win, all) } : win)));
@@ -68,7 +83,7 @@ export function WindowProvider({ apps, children }: { apps: App[]; children: Reac
         }),
       minimize: (id) => update(id, () => ({ minimized: true })),
       toggleMaximize: (id) => update(id, (win) => ({ maximized: !win.maximized })),
-      setBounds: (id, bounds) => update(id, () => bounds),
+      setBounds: (id, bounds) => update(id, () => ({ ...bounds, placedByCss: false })),
     }),
     [apps, update],
   );
