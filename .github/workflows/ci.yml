@@ -211,7 +211,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: scan-*
@@ -251,12 +251,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: staging
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         if: needs.tld-coverage.outputs.changed == 'true'
         with:
           name: tld-coverage
           path: ${{ runner.temp }}/coverage
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         if: needs.vulnerability-record.outputs.changed == 'true'
         with:
           name: vulnerabilities
