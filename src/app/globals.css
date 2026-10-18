@@ -11,13 +11,12 @@ body {
 
 .wallpaper {
   background:
-    radial-gradient(ellipse 85% 55% at 50% 108%, rgba(255, 168, 92, 0.95) 0%, transparent 62%),
-    radial-gradient(ellipse 60% 45% at 8% 82%, rgba(255, 94, 140, 0.75) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 45% at 95% 70%, rgba(214, 92, 196, 0.7) 0%, transparent 65%),
-    radial-gradient(ellipse 80% 60% at 80% 0%, rgba(72, 104, 230, 0.85) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 55% at 10% 10%, rgba(40, 160, 220, 0.6) 0%, transparent 65%),
-    linear-gradient(180deg, #1c2a6b 0%, #4a3a9c 45%, #b0508f 80%, #f08a6a 100%);
-  background-color: #2a2f7a;
+    radial-gradient(ellipse 120% 30% at 50% 104%, rgba(255, 204, 160, 0.75) 0%, transparent 62%),
+    radial-gradient(ellipse 95% 32% at 30% 80%, rgba(90, 200, 250, 0.8) 0%, transparent 62%),
+    radial-gradient(ellipse 70% 40% at 85% 55%, rgba(10, 132, 255, 0.8) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 15% 8%, rgba(94, 92, 230, 0.55) 0%, transparent 65%),
+    linear-gradient(180deg, #0a1d45 0%, #103e8a 48%, #1a74e0 82%, #7cc9f2 100%);
+  background-color: #103e8a;
 }
 
 @layer components {
