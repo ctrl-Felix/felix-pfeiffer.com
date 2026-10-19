@@ -3,6 +3,7 @@ import JsonLd, { breadcrumbNode } from "@/components/JsonLd";
 import { site } from "@/config";
 import { toolInfos, toolsHub } from "@/data/tools";
 import { personRef } from "@/lib/personSchema";
+import { schemaDateTime } from "@/lib/schemaDate";
 
 export default function ToolsHubSeo() {
   const url = `${site.url}${toolsHub.path}`;
@@ -14,7 +15,7 @@ export default function ToolsHubSeo() {
       description: toolsHub.description,
       url,
       inLanguage: "en",
-      dateModified: toolsHub.updated,
+      dateModified: schemaDateTime(toolsHub.updated),
       isPartOf: { "@type": "WebSite", name: site.name, url: site.url },
       author: personRef,
     },

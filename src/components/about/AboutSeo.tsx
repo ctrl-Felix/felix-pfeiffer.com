@@ -3,6 +3,7 @@ import { site } from "@/config";
 import { aboutPage } from "@/data/about";
 import { profile } from "@/data/profile";
 import { organizationNode, personId, personNode, websiteId, websiteNode } from "@/lib/personSchema";
+import { schemaDateTime } from "@/lib/schemaDate";
 
 export default function AboutSeo() {
   const url = `${site.url}${aboutPage.path}`;
@@ -14,7 +15,7 @@ export default function AboutSeo() {
       name: aboutPage.title,
       description: aboutPage.description,
       inLanguage: "en",
-      dateModified: aboutPage.updated,
+      dateModified: schemaDateTime(aboutPage.updated),
       isPartOf: { "@id": websiteId },
       about: { "@id": personId },
       mainEntity: personNode(),
