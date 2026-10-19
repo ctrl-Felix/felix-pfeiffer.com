@@ -3,6 +3,7 @@ import JsonLd, { breadcrumbNode, faqNode } from "@/components/JsonLd";
 import { site } from "@/config";
 import { toolInfos, toolsHub, type ToolInfo } from "@/data/tools";
 import { personRef } from "@/lib/personSchema";
+import { schemaDateTime } from "@/lib/schemaDate";
 
 export default function ToolSeo({ tool }: { tool: ToolInfo }) {
   const url = `${site.url}/tools/${tool.id}`;
@@ -20,7 +21,7 @@ export default function ToolSeo({ tool }: { tool: ToolInfo }) {
       inLanguage: "en",
       isAccessibleForFree: true,
       featureList: tool.seo.features,
-      dateModified: tool.updated,
+      dateModified: schemaDateTime(tool.updated),
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       author: personRef,
     },

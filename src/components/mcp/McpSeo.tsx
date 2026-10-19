@@ -2,6 +2,7 @@ import JsonLd, { breadcrumbNode, faqNode } from "@/components/JsonLd";
 import { site } from "@/config";
 import { mcpConnectors, mcpPage, mcpServerUrl } from "@/data/mcp";
 import { personRef } from "@/lib/personSchema";
+import { schemaDateTime } from "@/lib/schemaDate";
 
 export default function McpSeo() {
   const url = `${site.url}${mcpPage.path}`;
@@ -13,7 +14,7 @@ export default function McpSeo() {
       description: mcpPage.description,
       url,
       inLanguage: "en",
-      dateModified: mcpPage.updated,
+      dateModified: schemaDateTime(mcpPage.updated),
       about: { "@type": "Thing", name: "Model Context Protocol" },
       keywords: mcpPage.keywords.join(", "),
       author: personRef,
