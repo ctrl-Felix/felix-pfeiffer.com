@@ -1,4 +1,5 @@
 import { links } from "@/config";
+import AptitudeWindow from "./aptitude/AptitudeWindow";
 import FinderWindow from "./FinderWindow";
 import { FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, RecruiterIcon, StatsIcon, SeoIcon, ShieldIcon, ToolsIcon } from "./Icons";
 import MailWindow from "./MailWindow";
@@ -128,6 +129,14 @@ const tokensApp: App = {
   window: { Content: TokenUsageWindow, width: 460, height: 560, minWidth: 340, minHeight: 300 },
 };
 
-export const allApps = [finder, ...apps, pathsApp, tokensApp];
+const aptitudeApp: App = {
+  id: "aptitude",
+  label: "Aptitude Practice",
+  Icon: StatsIcon,
+  hidden: true,
+  window: { Content: AptitudeWindow, width: 720, height: 660, minWidth: 360, minHeight: 420 },
+};
+
+export const allApps = [finder, ...apps, pathsApp, tokensApp, aptitudeApp];
 
 export const visibleApps = allApps.filter((app) => !app.hidden);

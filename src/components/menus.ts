@@ -29,6 +29,7 @@ export function buildMenus(windows: Windows, active: WindowState | undefined): M
         { label: "About Felix Pfeiffer", onSelect: () => windows.open("profile") },
         { label: "Public Paths…", onSelect: () => openApp("paths", windows) },
         { label: "Token Usage…", onSelect: () => openApp("tokens", windows) },
+        { label: "Aptitude Practice…", onSelect: () => windows.open("aptitude") },
         separator,
         { label: "Restart…", onSelect: () => window.location.reload() },
       ],
