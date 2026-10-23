@@ -90,39 +90,7 @@ const mirrorOdd = (shape: Shape, rotations: number[], odd: number, difficulty: D
     "The other figures are the same shape turned. This one is mirrored, and no turn can make it match.",
   );
 
-const contentsOdd = (shapes: Shape[], swap: Shape, orders: number[][], odd: number, difficulty: Difficulty) =>
-  oddOneOut(
-    orders.map((order, index) => {
-      const figure = order.map((position) => ({ shape: shapes[position] }));
-      return index === odd ? figure.map((glyph) => (glyph.shape === shapes[1] ? { shape: swap } : glyph)) : figure;
-    }),
-    odd,
-    difficulty,
-    `Every other figure contains a ${shapes.join(", a ")}. This one has a second ${swap} instead of the ${shapes[1]}.`,
-  );
-
 const grid = (cell: (row: number, column: number) => Figure) => Array.from({ length: 9 }, (_, index) => cell(Math.floor(index / 3), index % 3));
-
-const countGrid = (shapes: Shape[], difficulty: Difficulty) => {
-  const cells = grid((row, column) => repeat({ shape: shapes[row] }, column + 1));
-  return matrix(
-    cells,
-    [repeat({ shape: shapes[2] }, 2), repeat({ shape: shapes[1] }, 3), repeat({ shape: shapes[2] }, 4), repeat({ shape: shapes[0] }, 3), repeat({ shape: shapes[2], solid: true }, 3)],
-    difficulty,
-    "Each row keeps its shape and each column adds one more.",
-  );
-};
-
-const latinGrid = (shapes: Shape[], solidColumn: number, difficulty: Difficulty) => {
-  const cells = grid((row, column) => [{ shape: shapes[(row + column) % 3], solid: column === solidColumn }]);
-  const answer = cells[8][0];
-  return matrix(
-    cells,
-    [[{ ...answer, solid: !answer.solid }], [{ shape: shapes[0], solid: answer.solid }], [{ shape: shapes[2], solid: answer.solid }], [{ shape: shapes[0], solid: !answer.solid }]],
-    difficulty,
-    `Each row and column holds every shape once, and only the ${["first", "second", "third"][solidColumn]} column is filled.`,
-  );
-};
 
 const turnGrid = (shape: Shape, starts: number[], step: number, difficulty: Difficulty) => {
   const cells = grid((row, column) => [{ shape, rotation: starts[row] + column * step }]);
@@ -150,39 +118,79 @@ const unionGrid = (rows: [number[], number[]][], difficulty: Difficulty) => {
   );
 };
 
+const orbitTurn = (dotStart: number, dotStep: number, arrowStep: number, difficulty: Difficulty) => {
+  const figure = (index: number, arrowShift = 0, dotShift = 0): Figure => [
+    { shape: "arrow", rotation: (index + arrowShift) * arrowStep, cell: 4 },
+    { shape: "dot", solid: true, cell: at(dotStart + (index + dotShift) * dotStep) },
+  ];
+  return series([0, 1, 2, 3].map((index) => figure(index)), figure(4), [figure(4, 0, 1), figure(4, 1, 0), figure(4, -1, 0), figure(4, 0, -1), figure(4, 1, 1)], difficulty, `The arrow turns ${arrowStep}° clockwise and the dot moves ${Math.abs(dotStep)} ${Math.abs(dotStep) === 1 ? "square" : "squares"} ${dotStep > 0 ? "clockwise" : "counterclockwise"} each step.`);
+};
+
+const cycle = (shapes: Shape[], difficulty: Difficulty) => {
+  const figure = (index: number, shape = shapes[index % 3], solid = index % 2 === 0, count = index + 1) => repeat({ shape, solid }, count);
+  return series(
+    [0, 1, 2, 3].map((index) => figure(index)),
+    figure(4),
+    [figure(4, shapes[1], false), figure(4, shapes[2]), figure(4, shapes[1], true, 4), figure(4, shapes[0]), figure(4, shapes[1], true, 6)],
+    difficulty,
+    `Each figure adds one shape, the shapes cycle ${shapes.join(", ")}, and the fill alternates.`,
+  );
+};
+
+const latinGrid = (shapes: Shape[], countShift: number, withFill: boolean, difficulty: Difficulty) => {
+  const glyphs = (row: number, column: number, shape = shapes[(row + column) % 3], count = 1 + ((row + 2 * column + countShift) % 3), solid = withFill && (2 * row + column) % 3 === 0) => repeat({ shape, solid }, count);
+  const cells = grid((row, column) => glyphs(row, column));
+  const answer = { shape: shapes[(2 + 2) % 3], count: 1 + ((2 + 4 + countShift) % 3), solid: withFill && 6 % 3 === 0 };
+  const otherCount = (answer.count % 3) + 1;
+  return matrix(
+    cells,
+    [glyphs(2, 2, shapes[0]), glyphs(2, 2, shapes[2]), glyphs(2, 2, answer.shape, otherCount), glyphs(2, 2, answer.shape, answer.count, !answer.solid), glyphs(2, 2, answer.shape, (otherCount % 3) + 1)],
+    difficulty,
+    `Every row and column holds each shape once and each count once${withFill ? ", and exactly one filled figure" : ""}.`,
+  );
+};
+
+const xorGrid = (rows: [number[], number[]][], difficulty: Difficulty) => {
+  const dots = (cells: number[]): Figure => cells.map((cell) => ({ shape: "dot", solid: true, cell }));
+  const xor = (left: number[], middle: number[]) => [...left.filter((cell) => !middle.includes(cell)), ...middle.filter((cell) => !left.includes(cell))];
+  const cells = rows.flatMap(([left, middle]) => [dots(left), dots(middle), dots(xor(left, middle))]);
+  const [left, middle] = rows[2];
+  const answer = xor(left, middle);
+  const union = [...new Set([...left, ...middle])];
+  const shared = left.filter((cell) => middle.includes(cell));
+  return matrix(cells, [dots(union), dots(shared), dots(answer.slice(1)), dots(left), dots([...answer, ...shared.slice(0, 1), 4].filter((cell, index, all) => all.indexOf(cell) === index))], difficulty, "In each row the third figure keeps the dots that appear in only one of the first two. Dots in both disappear.");
+};
+
+const sides: Partial<Record<Shape, number>> = { triangle: 3, square: 4, pentagon: 5, hexagon: 6 };
+
+const sidesOdd = (figures: Shape[][], odd: number, difficulty: Difficulty) => {
+  const total = (shapes: Shape[]) => shapes.reduce((sum, shape) => sum + (sides[shape] ?? 0), 0);
+  return oddOneOut(
+    figures.map((shapes) => shapes.map((shape) => ({ shape }))),
+    odd,
+    difficulty,
+    `The shapes in every other figure have ${total(figures[odd === 0 ? 1 : 0])} sides in total. This one has ${total(figures[odd])}.`,
+  );
+};
+
+const flip = (difficulty: Difficulty) => {
+  const figure = (index: number, mirror = index % 2 === 1, rotation = index * 90): Figure => [{ shape: "flag", rotation, mirror }];
+  return series([0, 1, 2, 3].map((index) => figure(index)), figure(4), [figure(4, true), figure(4, false, 450), figure(4, true, 450), figure(4, false, 270), figure(4, false, 180)], difficulty, "The flag turns 90° clockwise each step and is mirrored on every second step.");
+};
+
 export const spatialQuestions: Question[] = [
-  turn("arrow", 0, 45, 1),
-  turn("arrow", 90, 90, 1),
-  turn("clock", 0, 30, 1),
-  turn("half", 0, 45, 2),
-  turn("triangle", 0, 20, 2),
   turn("flag", 0, 90, 2),
   turn("hook", 0, -90, 2),
   turn("flag", 45, 45, 2, { solid: true }),
   turn("arrow", 0, 135, 3),
   turn("clock", 0, 135, 3),
   turn("hook", 90, 135, 3),
+  flip(3),
 
-  count("circle", [1, 2, 3, 4, 5], 1, "One more circle each step.", "square"),
-  count("square", [1, 3, 5, 7, 9], 1, "Two more squares each step.", "diamond"),
-  count("star", [9, 7, 5, 3, 1], 1, "Two fewer stars each step.", "cross"),
   count("triangle", [1, 1, 2, 3, 5], 2, "Each count is the sum of the two before it: 2 + 3 = 5.", "diamond"),
   count("dot", [8, 6, 7, 5, 6], 2, "The count alternates −2 and +1.", "circle"),
-
-  series(
-    [[{ shape: "triangle" }], [{ shape: "square", solid: true }], [{ shape: "pentagon" }]],
-    [{ shape: "hexagon", solid: true }],
-    [[{ shape: "hexagon" }], [{ shape: "pentagon", solid: true }], [{ shape: "star", solid: true }], [{ shape: "circle", solid: true }]],
-    2,
-    "Each shape has one more side, and the fill alternates.",
-  ),
-  series(
-    [[{ shape: "arrow" }], [{ shape: "arrow", rotation: 90, solid: true }], [{ shape: "arrow", rotation: 180 }], [{ shape: "arrow", rotation: 270, solid: true }]],
-    [{ shape: "arrow" }],
-    [[{ shape: "arrow", solid: true }], [{ shape: "arrow", rotation: 90 }], [{ shape: "arrow", rotation: 180 }], [{ shape: "arrow", rotation: 270, solid: true }]],
-    2,
-    "The arrow turns 90° clockwise each step and the fill alternates.",
-  ),
+  cycle(["triangle", "square", "circle"], 3),
+  cycle(["star", "hexagon", "diamond"], 3),
   series(
     [[{ shape: "circle" }, { shape: "square" }], [{ shape: "square" }, { shape: "circle" }, { shape: "square" }], [{ shape: "circle" }, { shape: "square" }, { shape: "circle" }, { shape: "square" }]],
     [{ shape: "square" }, { shape: "circle" }, { shape: "square" }, { shape: "circle" }, { shape: "square" }],
@@ -196,10 +204,9 @@ export const spatialQuestions: Question[] = [
     "Each figure adds one shape, and the first shape switches between circle and square.",
   ),
 
-  orbit(0, 1, 1),
-  orbit(5, -2, 2),
-  orbit(1, 2, 2),
   orbit(0, 3, 3),
+  orbitTurn(0, 1, 90, 2),
+  orbitTurn(2, -2, 135, 3),
   series(
     [0, 1, 2, 3].map((index) => [{ shape: "dot", solid: true, cell: at(index) }, { shape: "square", cell: at(3 - index) }]),
     [{ shape: "dot", solid: true, cell: at(4) }, { shape: "square", cell: at(-1) }],
@@ -217,20 +224,6 @@ export const spatialQuestions: Question[] = [
   mirrorOdd("hook", [0, 45, 90, 135, 270], 4, 2),
   mirrorOdd("flag", [30, 150, 210, 300, 120], 1, 3),
   mirrorOdd("hook", [180, 0, 270, 90, 225], 0, 3),
-  contentsOdd(["circle", "triangle", "square"], "square", [[0, 1, 2], [2, 0, 1], [1, 2, 0], [0, 2, 1], [2, 1, 0]], 1, 1),
-  contentsOdd(["star", "diamond", "cross"], "cross", [[1, 0, 2], [0, 1, 2], [2, 1, 0], [1, 2, 0], [0, 2, 1]], 3, 1),
-  oddOneOut(
-    [
-      [{ shape: "circle", solid: true }, { shape: "circle" }, { shape: "circle", solid: true }, { shape: "circle" }],
-      [{ shape: "circle" }, { shape: "circle", solid: true }, { shape: "circle", solid: true }, { shape: "circle" }],
-      [{ shape: "circle", solid: true }, { shape: "circle", solid: true }, { shape: "circle" }, { shape: "circle", solid: true }],
-      [{ shape: "circle" }, { shape: "circle" }, { shape: "circle", solid: true }, { shape: "circle", solid: true }],
-      [{ shape: "circle", solid: true }, { shape: "circle" }, { shape: "circle" }, { shape: "circle", solid: true }],
-    ],
-    2,
-    2,
-    "Every other figure has exactly two filled circles. This one has three.",
-  ),
   oddOneOut(
     [0, 90, 180, 270, 45].map((rotation, index) => [
       { shape: "arrow", rotation },
@@ -252,19 +245,33 @@ export const spatialQuestions: Question[] = [
     3,
     "In the other figures there is one more square than circles. This one has as many squares as circles.",
   ),
-  oddOneOut(
-    [0, 60, 150, 240, 330].map((rotation, index) => [{ shape: "clock", rotation }, { shape: index === 1 ? "square" : "circle", solid: true }]),
-    1,
-    1,
-    "Every other figure pairs the clock with a filled circle.",
+  sidesOdd(
+    [
+      ["square", "square", "square", "square"],
+      ["triangle", "triangle", "square", "hexagon"],
+      ["triangle", "square", "pentagon", "pentagon"],
+      ["triangle", "triangle", "pentagon", "pentagon"],
+      ["triangle", "square", "square", "pentagon"],
+    ],
+    2,
+    3,
+  ),
+  sidesOdd(
+    [
+      ["hexagon", "pentagon", "triangle", "triangle"],
+      ["hexagon", "square", "square", "triangle"],
+      ["pentagon", "pentagon", "square", "triangle"],
+      ["hexagon", "hexagon", "triangle", "triangle"],
+      ["pentagon", "square", "square", "square"],
+    ],
+    3,
+    3,
   ),
 
-  countGrid(["circle", "square", "triangle"], 1),
-  countGrid(["star", "diamond", "hexagon"], 1),
-  latinGrid(["circle", "square", "triangle"], 1, 2),
-  latinGrid(["cross", "star", "pentagon"], 2, 2),
-  latinGrid(["hexagon", "diamond", "circle"], 0, 2),
-  turnGrid("arrow", [0, 90, 180], 45, 2),
+  latinGrid(["circle", "square", "triangle"], 0, false, 2),
+  latinGrid(["star", "diamond", "hexagon"], 1, false, 3),
+  latinGrid(["cross", "pentagon", "circle"], 2, true, 3),
+  latinGrid(["triangle", "hexagon", "square"], 0, true, 3),
   turnGrid("flag", [0, 180, 90], 90, 3),
   turnGrid("hook", [45, 270, 135], 90, 3),
   unionGrid(
@@ -275,11 +282,19 @@ export const spatialQuestions: Question[] = [
     ],
     3,
   ),
-  unionGrid(
+  xorGrid(
     [
-      [[0, 2], [4]],
-      [[3], [5, 7]],
-      [[6, 8], [1, 4]],
+      [[0, 1, 4], [1, 2, 4]],
+      [[3, 4], [4, 5, 8]],
+      [[2, 6, 7], [7, 8]],
+    ],
+    3,
+  ),
+  xorGrid(
+    [
+      [[0, 4, 8], [2, 4, 6]],
+      [[1, 3], [1, 5, 7]],
+      [[0, 2, 5], [2, 3, 8]],
     ],
     3,
   ),
