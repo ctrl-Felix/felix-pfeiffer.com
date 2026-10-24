@@ -14,7 +14,7 @@ const tfc = (statement: string, verdict: "True" | "False" | "Cannot say", explan
 
 const assumption = (statement: string, made: boolean, explanation: string): CaseItem => ({
   format: "pick",
-  prompt: `Is this assumed? ${statement}`,
+  prompt: `Proposed assumption: ${statement}`,
   options: assumptions,
   answer: made ? 0 : 1,
   explanation,
@@ -86,14 +86,32 @@ export const reasoningSets: CaseSet[] = [
   {
     section: "reasoning",
     title: "Launch in Germany",
-    context: ["A product manager writes: \"We should launch the app in Germany next quarter, because German users already make up a fifth of our downloads.\" Decide whether each statement is an assumption the writer makes."],
+    context: [
+      "A product manager writes: \"We should launch the app in Germany next quarter, because German users already make up a fifth of our downloads.\"",
+      "An assumption is something taken for granted without being said. For each proposed assumption, decide whether the writer takes it for granted. Judge each one on its own and use only the statement. Test: if the assumption were false, would the statement stop making sense?",
+    ],
     items: [
-      assumption("Download numbers are a fair sign of demand.", true, "The argument only works if downloads show demand."),
-      assumption("German users would welcome a version made for their market.", true, "Launching there is only worthwhile if users want it."),
-      assumption("The app has no competitors in Germany.", false, "The argument does not depend on there being no competitors."),
-      assumption("The app is already available in German.", false, "Nothing in the argument needs this to be true."),
+      assumption("Download numbers are a fair sign of demand.", true, "If downloads said nothing about demand, a fifth of downloads would be no reason to launch. The statement relies on it."),
+      assumption("German users would welcome a version made for their market.", true, "If German users did not want it, launching there would make no sense. The statement relies on it."),
+      assumption("The app has no competitors in Germany.", false, "The statement makes sense whether or not there are competitors. Nothing in it depends on this."),
+      assumption("The app is already available in German.", false, "The statement does not mention language and still makes sense if the app is not in German."),
     ],
   },
+  {
+    section: "reasoning",
+    title: "Meeting costs",
+    context: [
+      "A team lead writes: \"We have to cut travel costs this quarter, so we should hold the client review online.\"",
+      "An assumption is something taken for granted without being said. For each proposed assumption, decide whether the writer takes it for granted. Judge each one on its own and use only the statement. Test: if the assumption were false, would the statement stop making sense?",
+    ],
+    items: [
+      assumption("An online review costs less than meeting in person.", true, "If an online review cost as much or more, it would not help cut costs. The statement relies on it."),
+      assumption("Everyone who needs to attend can join online.", true, "If key people could not join, holding the review online would not work. The statement relies on it."),
+      assumption("Online reviews are more productive than meetings in person.", false, "The statement is only about cost. It still makes sense if online reviews are less productive."),
+      assumption("The client prefers online meetings.", false, "The client's preference is not part of the reasoning. The statement still makes sense without it."),
+    ],
+  },
+
   {
     section: "reasoning",
     title: "Data policy",
