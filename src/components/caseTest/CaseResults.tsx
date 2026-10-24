@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { formatSeconds } from "@/lib/ccat";
+import TopicScores from "@/components/aptitude/TopicScores";
 import { isCorrect, scoreCaseTest, type CaseAnswer as Answer, type CaseQuestion } from "@/lib/caseTest";
+import type { Topic } from "@/data/caseTest/types";
 import CaseAnswer from "./CaseAnswer";
 import CaseContext from "./CaseContext";
 
@@ -11,9 +13,10 @@ type Props = {
   answers: Answer[];
   seconds: number[];
   onRestart: () => void;
+  onPractice: (topic: Topic) => void;
 };
 
-export default function CaseResults({ questions, answers, seconds, onRestart }: Props) {
+export default function CaseResults({ questions, answers, seconds, onRestart, onPractice }: Props) {
   const [onlyMissed, setOnlyMissed] = useState(false);
   const score = scoreCaseTest(questions, answers, seconds);
   const shown = questions.map((question, index) => ({ question, index })).filter(({ question, index }) => !onlyMissed || !isCorrect(question.item, answers[index]));
@@ -28,17 +31,7 @@ export default function CaseResults({ questions, answers, seconds, onRestart }: 
           {Math.round((score.correct / questions.length) * 100)}% correct · {formatSeconds(score.totalSeconds)} in total · {Math.round(score.averageSeconds)} s per question
         </p>
       </section>
-      <section className={`grid gap-2 ${score.bySection.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
-        {score.bySection.map((section) => (
-          <div key={section.id} className="rounded-xl bg-white/80 p-3 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
-            <p className="text-[12px] text-black/55">{section.label}</p>
-            <p className="text-lg font-semibold tabular-nums">
-              {section.correct}/{section.total}
-            </p>
-            <p className="text-[12px] text-black/50">{Math.round(section.seconds / section.total)} s per question</p>
-          </div>
-        ))}
-      </section>
+      <TopicScores scores={score.byTopic} onPractice={(id) => onPractice(id as Topic)} />
       <div className="flex items-center justify-between gap-2">
         <label className="flex items-center gap-2 text-[13px]">
           <input type="checkbox" checked={onlyMissed} onChange={(event) => setOnlyMissed(event.target.checked)} />

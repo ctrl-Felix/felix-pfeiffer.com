@@ -41,6 +41,7 @@ const rank = (prompt: string, ordered: string[], shown: number[], explanation: s
 export const reasoningSets: CaseSet[] = [
   {
     section: "reasoning",
+    topic: "verbal",
     title: "Office move",
     context: [
       "Subject: Office move",
@@ -56,6 +57,7 @@ export const reasoningSets: CaseSet[] = [
   },
   {
     section: "reasoning",
+    topic: "verbal",
     title: "Remote work pilot",
     context: [
       "For six months, 80 employees worked from home three days a week. Average output per person rose 6% compared with the six months before. Sick days fell from 4.1 to 2.9 per person.",
@@ -74,8 +76,9 @@ export const reasoningSets: CaseSet[] = [
   },
   {
     section: "reasoning",
+    topic: "arguments",
     title: "Second review",
-    context: ["The firm is discussing whether every client report should be reviewed by a second person before it is sent. Decide whether each argument is strong or weak."],
+    context: ["The firm is discussing whether every client report should be reviewed by a second person before it is sent. Decide whether each argument is strong or weak. A strong argument is important and directly related to the question."],
     items: [
       argument("Yes. A second reviewer catches errors the author no longer sees, which protects the firm's reputation.", true, "It is relevant, important and directly tied to the question."),
       argument("No. Some people dislike having their work checked.", false, "Personal preference does not weigh against report quality."),
@@ -85,6 +88,19 @@ export const reasoningSets: CaseSet[] = [
   },
   {
     section: "reasoning",
+    topic: "arguments",
+    title: "Four-day week",
+    context: ["The firm is discussing whether staff should work four days a week for the same pay. Decide whether each argument is strong or weak. A strong argument is important and directly related to the question."],
+    items: [
+      argument("Yes. A shorter week would help the firm attract applicants while hiring is hard.", true, "It is important and directly tied to the decision."),
+      argument("No. Some managers have never worked a four-day week.", false, "Whether managers have done it before does not bear on whether it would work."),
+      argument("Yes. Everyone likes having more free time.", false, "It is a sweeping claim and says nothing about the firm."),
+      argument("No. Client-facing teams would be harder to reach on one weekday, which could hurt service.", true, "It names a real, relevant cost of the change."),
+    ],
+  },
+  {
+    section: "reasoning",
+    topic: "assumptions",
     title: "Launch in Germany",
     context: [
       "A product manager writes: \"We should launch the app in Germany next quarter, because German users already make up a fifth of our downloads.\"",
@@ -99,6 +115,7 @@ export const reasoningSets: CaseSet[] = [
   },
   {
     section: "reasoning",
+    topic: "assumptions",
     title: "Meeting costs",
     context: [
       "A team lead writes: \"We have to cut travel costs this quarter, so we should hold the client review online.\"",
@@ -114,6 +131,7 @@ export const reasoningSets: CaseSet[] = [
 
   {
     section: "reasoning",
+    topic: "verbal",
     title: "Data policy",
     context: [
       "Firm policy: all client data must be stored on servers in the UK or the EU.",
@@ -132,6 +150,7 @@ export const reasoningSets: CaseSet[] = [
   },
   {
     section: "reasoning",
+    topic: "language",
     title: "Email draft",
     context: ["A colleague asks you to finish an email to a client. Choose the word that fits each gap."],
     items: [
@@ -143,6 +162,7 @@ export const reasoningSets: CaseSet[] = [
   },
   {
     section: "reasoning",
+    topic: "language",
     title: "Client communication",
     context: ["You are preparing notes and replies for a client team."],
     items: [
@@ -178,6 +198,7 @@ export const reasoningSets: CaseSet[] = [
   },
   {
     section: "reasoning",
+    topic: "verbal",
     title: "Quarterly sales",
     context: [
       "The firm's three products sold 14,000 units in total last quarter. Product A sold twice as many units as Product B. Product C sold 2,000 units, its lowest total in two years.",

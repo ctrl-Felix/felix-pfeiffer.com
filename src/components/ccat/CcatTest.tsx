@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import BackButton from "@/components/aptitude/BackButton";
-import { buildTest, realTest, secondsPerQuestion, testLengths, type Answer, type PoolQuestion } from "@/lib/ccat";
+import TopicPicker from "@/components/aptitude/TopicPicker";
+import { buildTest, buildTopicTest, categories, questionPool, realTest, secondsPerQuestion, testLengths, topicLength, topicOf, topics, type Answer, type PoolQuestion } from "@/lib/ccat";
 import CcatResults from "./CcatResults";
 import CcatRunner from "./CcatRunner";
 
@@ -15,7 +16,17 @@ const rules = [
   "Wrong answers cost nothing, so guess rather than skip.",
 ];
 
-function Setup({ onStart, onExit }: { onStart: (length: number) => void; onExit: () => void }) {
+const topicGroups = categories.map((category) => ({
+  title: category.label,
+  topics: topics
+    .filter((topic) => topic.category === category.id)
+    .map((topic) => {
+      const count = Math.min(topicLength, questionPool.filter((question) => topicOf(question).id === topic.id).length);
+      return { id: topic.id, label: topic.label, detail: `${count} questions · ${Math.round((count * secondsPerQuestion) / 60)} min` };
+    }),
+}));
+
+function Setup({ onStart, onTopic, onExit }: { onStart: (length: number) => void; onTopic: (id: string) => void; onExit: () => void }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto p-4">
       <BackButton onClick={onExit} />
@@ -28,7 +39,8 @@ function Setup({ onStart, onExit }: { onStart: (length: number) => void; onExit:
           <li key={rule}>{rule}</li>
         ))}
       </ul>
-      <div className="mx-auto mt-5 grid max-w-md grid-cols-3 gap-2">
+      <h3 className="mx-auto mt-5 max-w-md text-sm font-semibold">Full test</h3>
+      <div className="mx-auto mt-2 grid max-w-md grid-cols-3 gap-2">
         {testLengths.map((length) => (
           <button
             key={length}
@@ -42,6 +54,7 @@ function Setup({ onStart, onExit }: { onStart: (length: number) => void; onExit:
           </button>
         ))}
       </div>
+      <TopicPicker groups={topicGroups} onPick={onTopic} />
       <p className="mx-auto mt-5 max-w-md text-center text-[12px] text-black/45">
         The real CCAT has {realTest.questions} questions in {realTest.minutes} minutes, and the average score is {realTest.averageScore}. These practice questions follow its format but are not taken from it.
       </p>
@@ -51,8 +64,9 @@ function Setup({ onStart, onExit }: { onStart: (length: number) => void; onExit:
 
 export default function CcatTest({ onExit }: { onExit: () => void }) {
   const [phase, setPhase] = useState<Phase>({ name: "setup" });
+  const practice = (id: string) => setPhase({ name: "running", questions: buildTopicTest(id) });
 
-  if (phase.name === "setup") return <Setup onExit={onExit} onStart={(length) => setPhase({ name: "running", questions: buildTest(length) })} />;
+  if (phase.name === "setup") return <Setup onExit={onExit} onTopic={practice} onStart={(length) => setPhase({ name: "running", questions: buildTest(length) })} />;
   if (phase.name === "running") {
     return <CcatRunner questions={phase.questions} onFinish={(answers, seconds) => setPhase({ name: "done", questions: phase.questions, answers, seconds })} />;
   }
@@ -63,6 +77,7 @@ export default function CcatTest({ onExit }: { onExit: () => void }) {
       seconds={phase.seconds}
       limit={phase.questions.length * secondsPerQuestion}
       onRestart={() => setPhase({ name: "setup" })}
+      onPractice={practice}
     />
   );
 }

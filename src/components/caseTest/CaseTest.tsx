@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import BackButton from "@/components/aptitude/BackButton";
-import { buildCaseTest, caseModes, setsPerSection, type CaseAnswer, type CaseQuestion } from "@/lib/caseTest";
+import TopicPicker from "@/components/aptitude/TopicPicker";
+import type { Topic } from "@/data/caseTest/types";
+import { buildCaseTest, buildCaseTopic, caseModes, caseSets, caseTopics, setsPerSection, type CaseAnswer, type CaseQuestion } from "@/lib/caseTest";
 import CaseResults from "./CaseResults";
 import CaseRunner from "./CaseRunner";
 
@@ -15,7 +17,17 @@ const rules = [
   "No time limit, but your time per question is recorded. Accuracy first, then speed.",
 ];
 
-function Setup({ onStart, onExit }: { onStart: (mode: (typeof caseModes)[number]) => void; onExit: () => void }) {
+const topicGroups = [
+  {
+    title: "Topics",
+    topics: caseTopics.map((topic) => {
+      const sets = Math.min(setsPerSection, caseSets.filter((set) => set.topic === topic.id).length);
+      return { id: topic.id, label: topic.label, detail: `${topic.hint} · ${sets * 4} questions` };
+    }),
+  },
+];
+
+function Setup({ onStart, onTopic, onExit }: { onStart: (mode: (typeof caseModes)[number]) => void; onTopic: (topic: Topic) => void; onExit: () => void }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto p-4">
       <BackButton onClick={onExit} />
@@ -28,7 +40,8 @@ function Setup({ onStart, onExit }: { onStart: (mode: (typeof caseModes)[number]
           <li key={rule}>{rule}</li>
         ))}
       </ul>
-      <div className="mx-auto mt-5 grid max-w-md grid-cols-3 gap-2">
+      <h3 className="mx-auto mt-5 max-w-md text-sm font-semibold">Full assessment</h3>
+      <div className="mx-auto mt-2 grid max-w-md grid-cols-3 gap-2">
         {caseModes.map((mode) => (
           <button
             key={mode.id}
@@ -41,6 +54,7 @@ function Setup({ onStart, onExit }: { onStart: (mode: (typeof caseModes)[number]
           </button>
         ))}
       </div>
+      <TopicPicker groups={topicGroups} onPick={(id) => onTopic(id as Topic)} />
       <p className="mx-auto mt-5 max-w-md text-center text-[12px] text-black/45">Questions are written for practice in the style of these assessments and are not taken from a real test.</p>
     </div>
   );
@@ -49,9 +63,11 @@ function Setup({ onStart, onExit }: { onStart: (mode: (typeof caseModes)[number]
 export default function CaseTest({ onExit }: { onExit: () => void }) {
   const [phase, setPhase] = useState<Phase>({ name: "setup" });
 
-  if (phase.name === "setup") return <Setup onExit={onExit} onStart={(mode) => setPhase({ name: "running", questions: buildCaseTest(mode.sections) })} />;
+  const practice = (topic: Topic) => setPhase({ name: "running", questions: buildCaseTopic(topic) });
+
+  if (phase.name === "setup") return <Setup onExit={onExit} onTopic={practice} onStart={(mode) => setPhase({ name: "running", questions: buildCaseTest(mode.sections) })} />;
   if (phase.name === "running") {
     return <CaseRunner questions={phase.questions} onFinish={(answers, seconds) => setPhase({ name: "done", questions: phase.questions, answers, seconds })} />;
   }
-  return <CaseResults questions={phase.questions} answers={phase.answers} seconds={phase.seconds} onRestart={() => setPhase({ name: "setup" })} />;
+  return <CaseResults questions={phase.questions} answers={phase.answers} seconds={phase.seconds} onRestart={() => setPhase({ name: "setup" })} onPractice={practice} />;
 }

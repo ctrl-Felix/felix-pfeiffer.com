@@ -82,6 +82,7 @@ const women = sum(departments.map(([, people, share]) => (people * share) / 100)
 export const numericalSets: CaseSet[] = [
   {
     section: "numerical",
+    topic: "numerical",
     title: "Regional revenue",
     context: ["Your manager asks you to check the regional figures before the board pack goes out. All figures are in £ thousands."],
     table: [["Region", "2024", "2025"], ...regions.map(([name, from, to]) => [name, String(from), String(to)])],
@@ -94,6 +95,7 @@ export const numericalSets: CaseSet[] = [
   },
   {
     section: "numerical",
+    topic: "numerical",
     title: "Project hours",
     context: [`The chart shows the hours each team member booked to a client project last month. Everyone is billed at £${rate} per hour, except Dev, who is senior and billed at £${seniorRate} per hour.`],
     chart: { title: "Hours booked", unit: "hours", bars: hours.map(([label, value]) => ({ label, value })) },
@@ -106,6 +108,7 @@ export const numericalSets: CaseSet[] = [
   },
   {
     section: "numerical",
+    topic: "numerical",
     title: "Travel expenses",
     context: [
       "You are checking the expenses from a client trip. Convert each amount to pounds.",
@@ -121,6 +124,7 @@ export const numericalSets: CaseSet[] = [
   },
   {
     section: "numerical",
+    topic: "numerical",
     title: "Customer survey",
     context: [`A client surveyed ${surveyed.toLocaleString("en-GB")} customers. 45% were satisfied, 30% neutral and 25% dissatisfied. Of the dissatisfied customers, 40% named delivery times as the main reason.`],
     items: [
@@ -132,6 +136,7 @@ export const numericalSets: CaseSet[] = [
   },
   {
     section: "numerical",
+    topic: "numerical",
     title: "Quarterly costs",
     context: ["The finance team sent the costs for last year. All figures are in £ thousands."],
     table: [["Cost", "Q1", "Q2", "Q3", "Q4"], ...Object.entries(costs).map(([name, values]) => [name, ...values.map(String)])],
@@ -144,6 +149,7 @@ export const numericalSets: CaseSet[] = [
   },
   {
     section: "numerical",
+    topic: "numerical",
     title: "Website traffic",
     context: [`The chart shows monthly visits to a client's online shop, in thousands. On average ${conversion * 100}% of visits end in a sale.`],
     chart: { title: "Visits", unit: "thousand", bars: visits.map(([label, value]) => ({ label, value })) },
@@ -156,6 +162,7 @@ export const numericalSets: CaseSet[] = [
   },
   {
     section: "numerical",
+    topic: "numerical",
     title: "Software pricing",
     context: [
       `A client is choosing a software plan. Basic costs £${plans.Basic}, Pro £${plans.Pro} and Enterprise £${plans.Enterprise} per user per month. Enterprise needs at least 50 users.`,
@@ -170,6 +177,7 @@ export const numericalSets: CaseSet[] = [
   },
   {
     section: "numerical",
+    topic: "numerical",
     title: "Headcount",
     context: ["HR sent the headcount by department and the share of women in each."],
     table: [["Department", "People", "Women"], ...departments.map(([name, people, share]) => [name, String(people), `${share}%`])],

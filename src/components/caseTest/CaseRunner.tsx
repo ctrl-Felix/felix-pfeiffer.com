@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { formatSeconds } from "@/lib/ccat";
-import { isAnswered, sections, type CaseAnswer as Answer, type CaseQuestion } from "@/lib/caseTest";
+import { caseTopics, isAnswered, type CaseAnswer as Answer, type CaseQuestion } from "@/lib/caseTest";
 import CaseAnswer from "./CaseAnswer";
 import CaseContext from "./CaseContext";
 
@@ -28,7 +28,7 @@ export default function CaseRunner({ questions, onFinish }: Props) {
   }, [index]);
 
   const question = questions[index];
-  const section = sections.find((entry) => entry.id === question.set.section)?.label;
+  const section = caseTopics.find((entry) => entry.id === question.set.topic)?.label;
   const ready = isAnswered(question.item, value);
 
   const next = () => {
