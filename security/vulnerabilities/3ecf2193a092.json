@@ -1,0 +1,18 @@
+{
+  "id": "3ecf2193a092",
+  "title": "Nodemailer: A \";\" inside a quoted string or comment ends an address group early in addressparser, turning display text into a recipient",
+  "explanation": "Nodemailer: A \";\" inside a quoted string or comment ends an address group early in addressparser, turning display text into a recipient. Affects nodemailer >=3.0.0 <10.1.4. A fixed version is available.",
+  "severity": "medium",
+  "cvss": {
+    "score": 6.5,
+    "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:N"
+  },
+  "scanner": "npm-audit",
+  "identifier": "GHSA-m943-m63m-w62w",
+  "location": "nodemailer >=3.0.0 <10.1.4",
+  "url": "https://github.com/advisories/GHSA-m943-m63m-w62w",
+  "detected": "2026-10-24",
+  "status": "open",
+  "fixed": null,
+  "pullRequest": 41
+}

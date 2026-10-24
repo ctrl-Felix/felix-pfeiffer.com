@@ -1,0 +1,18 @@
+{
+  "id": "8875616da54e",
+  "title": "Nodemailer: A nested comment ends early in addressparser, releasing the rest of the comment as a recipient",
+  "explanation": "Nodemailer: A nested comment ends early in addressparser, releasing the rest of the comment as a recipient. Affects nodemailer >=3.0.0 <10.1.4. A fixed version is available.",
+  "severity": "medium",
+  "cvss": {
+    "score": 6.5,
+    "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:N"
+  },
+  "scanner": "npm-audit",
+  "identifier": "GHSA-8c8m-p3m8-cjg8",
+  "location": "nodemailer >=3.0.0 <10.1.4",
+  "url": "https://github.com/advisories/GHSA-8c8m-p3m8-cjg8",
+  "detected": "2026-10-24",
+  "status": "open",
+  "fixed": null,
+  "pullRequest": 41
+}

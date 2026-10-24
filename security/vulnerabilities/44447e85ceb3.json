@@ -1,0 +1,18 @@
+{
+  "id": "44447e85ceb3",
+  "title": "Nodemailer: A \">\" inside a quoted local part ends an angle-addr early in addressparser, delivering to a domain the header does not name",
+  "explanation": "Nodemailer: A \">\" inside a quoted local part ends an angle-addr early in addressparser, delivering to a domain the header does not name. Affects nodemailer >=3.0.0 <10.1.4. A fixed version is available.",
+  "severity": "medium",
+  "cvss": {
+    "score": 6.5,
+    "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:N"
+  },
+  "scanner": "npm-audit",
+  "identifier": "GHSA-85x2-q946-cp5h",
+  "location": "nodemailer >=3.0.0 <10.1.4",
+  "url": "https://github.com/advisories/GHSA-85x2-q946-cp5h",
+  "detected": "2026-10-24",
+  "status": "open",
+  "fixed": null,
+  "pullRequest": 41
+}
