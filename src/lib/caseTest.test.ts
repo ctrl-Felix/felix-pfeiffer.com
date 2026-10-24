@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildCaseTest, caseSets, isCorrect, parseNumber, scoreCaseTest, setsPerSection } from "./caseTest";
+import { buildCaseTest, buildCaseTopic, caseSets, caseTopics, isCorrect, parseNumber, scoreCaseTest, setsPerSection } from "./caseTest";
 
 const seeded = (seed: number) => () => {
   seed = (seed * 1103515245 + 12345) % 2147483648;
@@ -90,5 +90,16 @@ test("scoring counts each section and the time spent", () => {
   assert.equal(score.correct, questions.length - 1);
   assert.equal(score.totalSeconds, questions.length * 30);
   assert.equal(score.averageSeconds, 30);
-  assert.deepEqual(score.bySection.map((section) => section.id), ["reasoning"]);
+  assert.ok(score.byTopic.every((topic) => topic.id !== "numerical"));
+  assert.equal(score.byTopic.reduce((sum, topic) => sum + topic.total, 0), questions.length);
+});
+
+test("every case set belongs to a topic that can be practised on its own", () => {
+  for (const set of caseSets) assert.ok(caseTopics.some((topic) => topic.id === set.topic), set.title);
+  for (const topic of caseTopics) {
+    assert.ok(caseSets.filter((set) => set.topic === topic.id).length >= 2, topic.id);
+    const questions = buildCaseTopic(topic.id, seeded(4));
+    assert.ok(questions.length >= 8, topic.id);
+    assert.ok(questions.every((question) => question.set.topic === topic.id), topic.id);
+  }
 });

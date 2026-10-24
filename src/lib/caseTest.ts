@@ -1,6 +1,6 @@
 import { numericalSets, round } from "@/data/caseTest/numerical";
 import { reasoningSets } from "@/data/caseTest/reasoning";
-import type { CaseItem, CaseSet, Section } from "@/data/caseTest/types";
+import type { CaseItem, CaseSet, Section, Topic } from "@/data/caseTest/types";
 import { shuffle } from "./ccat";
 
 export type CaseQuestion = { set: CaseSet; item: CaseItem; key: string };
@@ -11,9 +11,12 @@ type Random = () => number;
 
 export const setsPerSection = 3;
 
-export const sections: { id: Section; label: string }[] = [
-  { id: "numerical", label: "Numerical" },
-  { id: "reasoning", label: "Reasoning" },
+export const caseTopics: { id: Topic; label: string; hint: string }[] = [
+  { id: "numerical", label: "Numerical reasoning", hint: "Tables and charts: pick, type or rank" },
+  { id: "verbal", label: "True, false or cannot say", hint: "What follows from a text" },
+  { id: "assumptions", label: "Assumptions", hint: "What an argument takes for granted" },
+  { id: "arguments", label: "Strong and weak arguments", hint: "Which reasons matter" },
+  { id: "language", label: "Language and communication", hint: "Word choice, tone and ranking" },
 ];
 
 export const caseSets = [...numericalSets, ...reasoningSets];
@@ -33,14 +36,25 @@ function shuffleItem(item: CaseItem, random: Random): CaseItem {
   return { ...item, options: order.map((index) => item.options[index]), answer: order.indexOf(item.answer) };
 }
 
+const toQuestions = (sets: CaseSet[], random: Random) =>
+  sets.flatMap((set) => set.items.map((item, index) => ({ set, item: shuffleItem(item, random), key: `${set.title}-${index}` })));
+
 export function buildCaseTest(chosen: Section[], random: Random = Math.random): CaseQuestion[] {
-  return chosen.flatMap((section) =>
+  return chosen.map((section) =>
     shuffle(
       caseSets.filter((set) => set.section === section),
       random,
-    )
-      .slice(0, setsPerSection)
-      .flatMap((set) => set.items.map((item, index) => ({ set, item: shuffleItem(item, random), key: `${set.title}-${index}` }))),
+    ).slice(0, setsPerSection),
+  ).flatMap((sets) => toQuestions(sets, random));
+}
+
+export function buildCaseTopic(topic: Topic, random: Random = Math.random): CaseQuestion[] {
+  return toQuestions(
+    shuffle(
+      caseSets.filter((set) => set.topic === topic),
+      random,
+    ).slice(0, setsPerSection),
+    random,
   );
 }
 
@@ -73,16 +87,16 @@ export function scoreCaseTest(questions: CaseQuestion[], answers: CaseAnswer[], 
     correct: questions.filter((question, index) => isCorrect(question.item, answers[index])).length,
     totalSeconds,
     averageSeconds: questions.length ? totalSeconds / questions.length : 0,
-    bySection: sections
-      .map((section) => {
-        const indexes = questions.flatMap((question, index) => (question.set.section === section.id ? [index] : []));
+    byTopic: caseTopics
+      .map((topic) => {
+        const indexes = questions.flatMap((question, index) => (question.set.topic === topic.id ? [index] : []));
         return {
-          ...section,
+          ...topic,
           total: indexes.length,
           correct: indexes.filter((index) => isCorrect(questions[index].item, answers[index])).length,
           seconds: indexes.reduce((total, index) => total + (seconds[index] ?? 0), 0),
         };
       })
-      .filter((section) => section.total > 0),
+      .filter((topic) => topic.total > 0),
   };
 }

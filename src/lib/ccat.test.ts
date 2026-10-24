@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildTest, categoryCounts, formatSeconds, questionPool, scoreTest, testLengths } from "./ccat";
+import { buildTest, buildTopicTest, categoryCounts, formatSeconds, questionPool, scoreTest, testLengths, topicLength, topicOf, topics } from "./ccat";
 import { figureKey, isFigure } from "./ccatFigure";
 
 const seeded = (seed: number) => () => {
@@ -80,4 +80,26 @@ test("time is shown as minutes and seconds", () => {
   assert.equal(formatSeconds(900), "15:00");
   assert.equal(formatSeconds(65.2), "1:06");
   assert.equal(formatSeconds(-3), "0:00");
+});
+
+test("every question belongs to one topic and each topic can be practised on its own", () => {
+  for (const question of questionPool) {
+    const matches = topics.filter((topic) => topic.kinds.includes(question.kind));
+    assert.equal(matches.length, 1, question.kind);
+    assert.equal(matches[0].category, question.category, question.kind);
+  }
+  for (const topic of topics) {
+    const available = questionPool.filter((question) => topicOf(question).id === topic.id).length;
+    assert.ok(available >= 7, `${topic.id} has ${available}`);
+    const questions = buildTopicTest(topic.id, seeded(11));
+    assert.equal(questions.length, Math.min(available, topicLength));
+    assert.ok(questions.every((question) => topicOf(question).id === topic.id));
+  }
+});
+
+test("results break the score down by topic", () => {
+  const questions = buildTest(30, seeded(2));
+  const score = scoreTest(questions, questions.map((question) => question.answer));
+  assert.equal(score.byTopic.reduce((sum, topic) => sum + topic.total, 0), 30);
+  assert.ok(score.byTopic.every((topic) => topic.correct === topic.total));
 });

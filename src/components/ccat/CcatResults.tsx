@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatSeconds, realTest, scoreTest, type Answer, type PoolQuestion } from "@/lib/ccat";
 import { isFigure } from "@/lib/ccatFigure";
+import TopicScores from "@/components/aptitude/TopicScores";
 import CcatQuestion from "./CcatQuestion";
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
   seconds: number;
   limit: number;
   onRestart: () => void;
+  onPractice: (topic: string) => void;
 };
 
 const letter = (index: number) => "ABCDE"[index];
@@ -27,9 +29,10 @@ function answerText(question: PoolQuestion, index: number) {
   return isFigure(option) ? letter(index) : `${letter(index)}: ${option}`;
 }
 
-export default function CcatResults({ questions, answers, seconds, limit, onRestart }: Props) {
+export default function CcatResults({ questions, answers, seconds, limit, onRestart, onPractice }: Props) {
   const [onlyMissed, setOnlyMissed] = useState(false);
   const score = scoreTest(questions, answers);
+  const full = score.byTopic.length > 1;
   const scaled = Math.round((score.correct / questions.length) * realTest.questions);
   const shown = questions.map((question, index) => ({ question, index, answer: answers[index] })).filter(({ question, answer }) => !onlyMissed || answer !== question.answer);
 
@@ -42,11 +45,14 @@ export default function CcatResults({ questions, answers, seconds, limit, onRest
         <p className="mt-1 text-[13px] text-black/55">
           {Math.round((score.correct / questions.length) * 100)}% correct · {score.answered} answered · {formatSeconds(seconds)} of {formatSeconds(limit)}
         </p>
-        <p className="mt-2 text-[13px] text-black/70">
+{full && (
+          <p className="mt-2 text-[13px] text-black/70">
           {questions.length === realTest.questions ? "" : `Scaled to ${realTest.questions} questions: about ${scaled}. `}
           The average on the real CCAT is {realTest.averageScore} of {realTest.questions}.
         </p>
+        )}
       </section>
+{full && (
       <section className="grid grid-cols-3 gap-2">
         {score.byCategory.map((category) => (
           <div key={category.id} className="rounded-xl bg-white/80 p-3 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
@@ -60,6 +66,8 @@ export default function CcatResults({ questions, answers, seconds, limit, onRest
           </div>
         ))}
       </section>
+      )}
+      <TopicScores scores={score.byTopic} onPractice={onPractice} />
       <div className="flex items-center justify-between gap-2">
         <label className="flex items-center gap-2 text-[13px]">
           <input type="checkbox" checked={onlyMissed} onChange={(event) => setOnlyMissed(event.target.checked)} />
