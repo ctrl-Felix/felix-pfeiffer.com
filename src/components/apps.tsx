@@ -1,7 +1,8 @@
 import { links } from "@/config";
+import AnalystWindow from "./analyst/AnalystWindow";
 import AptitudeWindow from "./aptitude/AptitudeWindow";
 import FinderWindow from "./FinderWindow";
-import { FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, RecruiterIcon, StatsIcon, SeoIcon, ShieldIcon, ToolsIcon } from "./Icons";
+import { AnalystIcon, FinderIcon, GithubIcon, MailIcon, MarkdownFileIcon, PathsIcon, ProfileIcon, ReaderIcon, RecruiterIcon, StatsIcon, SeoIcon, ShieldIcon, ToolsIcon } from "./Icons";
 import MailWindow from "./MailWindow";
 import PathsWindow from "./paths/PathsWindow";
 import ProfileWindow from "./ProfileWindow";
@@ -69,6 +70,13 @@ export const apps: App[] = [
     Icon: ToolsIcon,
     transient: true,
     window: { Content: ToolsApp, width: 720, height: 560, minWidth: 420, minHeight: 340 },
+  },
+  {
+    id: "analyst",
+    label: "Financial Analyst",
+    Icon: AnalystIcon,
+    transient: true,
+    window: { Content: AnalystWindow, width: 980, height: 700, minWidth: 420, minHeight: 360 },
   },
   {
     id: "reader",

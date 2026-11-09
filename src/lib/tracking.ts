@@ -7,6 +7,7 @@ export const trackTargets = {
   seo: "SEO and GEO tracker",
   vulnerabilities: "Vulnerability tracker",
   tools: "Tools",
+  analyst: "Financial Analyst",
   stats: "Stats",
   paths: "Public paths",
   tokens: "Token usage",

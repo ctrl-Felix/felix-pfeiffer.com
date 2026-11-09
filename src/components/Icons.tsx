@@ -116,6 +116,20 @@ function Screwdriver({ metal, grip, shadow }: { metal: string; grip: string; sha
   );
 }
 
+export function AnalystIcon() {
+  return (
+    <Tile id="an" from="#2b3a55" to="#0d1526">
+      <path d="M12 50h40" stroke="white" strokeOpacity="0.35" strokeWidth="2" strokeLinecap="round" />
+      <rect x="15" y="36" width="6" height="12" rx="2" fill="#4cd964" />
+      <rect x="25" y="30" width="6" height="18" rx="2" fill="#4cd964" />
+      <rect x="35" y="34" width="6" height="14" rx="2" fill="#ff5e57" />
+      <rect x="45" y="22" width="6" height="26" rx="2" fill="#4cd964" />
+      <path d="M14 30l11-8 10 5 15-13" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M44 13h7v7" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </Tile>
+  );
+}
+
 export function ToolsIcon() {
   const id = useSvgId("tl");
   const shadow = "rgba(0,0,0,0.3)";
