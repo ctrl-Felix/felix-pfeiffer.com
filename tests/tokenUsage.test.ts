@@ -17,7 +17,7 @@ function setup() {
 
 function run(root: string, ledger: string) {
   execFileSync("npx", ["tsx", "scripts/update-usage.ts"], {
-    env: { ...process.env, TRANSCRIPTS_ROOT: join(root, "projects"), LEDGER_FILE: ledger, MESSAGE_LEDGER_FILE: join(root, "messages.json") },
+    env: { ...process.env, TRANSCRIPTS_ROOT: join(root, "projects"), LEDGER_FILE: ledger, MESSAGE_LEDGER_FILE: join(root, "messages.json"), ROUTINE_LEDGER_FILE: join(root, "routines.json") },
     stdio: "pipe",
   });
   return JSON.parse(readFileSync(ledger, "utf8")).messages as Record<string, [string, number, number, number, number]>;
