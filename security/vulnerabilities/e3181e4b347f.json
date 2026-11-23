@@ -1,0 +1,18 @@
+{
+  "id": "e3181e4b347f",
+  "title": "openssl: OpenSSL: Message authentication bypass via zero-length AAD update",
+  "explanation": "Issue summary: The AES-GCM-SIV implementation treats a zero-length Additional Authenticated Data (AAD) update as a reset of all the AAD supplied so far, instead of leaving the AAD unchanged. An application that supplies its AAD in several fragments, one of which is empty, therefore produces or verifies messages whose authentication tag does not cover the AAD supplied before the empty fragment. Impact summary: Data an application intended to authenticate alongside a message is silently left unauthenticated. An attacker can forge the AAD of such a message. CWE: CWE-325: Missing Cryptographic Step Description: An application passing AAD in multiple chunks of which some have zero length will have the previous AAD chunks effectively unauthenticated. Also, on context re-initialisation, the AAD was not reset, which meant that any AAD accumulated from the previous context usage were also included in the AAD of the new message. The fix makes a zero-length AAD update a no-op and clears any accumulated AAD whenever the context is re-initialised with a key or a nonce. A re-initialisation that only changes parameters keeps the AAD. FIPS impact: no The FIPS modules are not affected, as AES-GCM-…",
+  "severity": "low",
+  "cvss": {
+    "score": 3.7,
+    "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+  },
+  "scanner": "trivy",
+  "identifier": "CVE-2026-88823",
+  "location": "libssl3 3.5.9-r0",
+  "url": "https://avd.aquasec.com/nvd/cve-2026-88823",
+  "detected": "2026-11-23",
+  "status": "open",
+  "fixed": null,
+  "pullRequest": null
+}

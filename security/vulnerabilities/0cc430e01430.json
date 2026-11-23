@@ -1,0 +1,18 @@
+{
+  "id": "0cc430e01430",
+  "title": "openssl: OpenSSL: Denial of Service via out-of-bounds read in AES-GCM-SIV",
+  "explanation": "Issue summary: Setting an AES-GCM-SIV IV shorter than the expected nonce length via EVP_CipherInit_ex() may trigger a heap out-of-bounds read. Supplying a longer IV is silently truncated instead of rejected. Impact summary: An application passing a caller-supplied IV of the wrong length may crash or read beyond its buffer. Because trailing IV bytes are ignored, an attacker who knows one message and tag may forge messages under a different IV. CWE: CWE-125: Out-of-bounds Read Description: AES-GCM-SIV copies the caller-supplied IV or nonce into its internal state using a copy whose length is taken from the expected nonce size rather than from the length the caller actually provided. When the caller passes a shorter IV, the copy reads past the end of the caller's buffer; AddressSanitizer confirms a heap out-of-bounds read reached through EVP_CipherInit_ex() into ossl_aes_gcm_siv_init(). When the caller passes a longer IV, the implementation silently discards the trailing bytes instead of rejecting the length. The truncation breaks the binding between the IV and the computed authentication tag. An attacker who has observed a message and its tag under one IV can produce a message and t…",
+  "severity": "medium",
+  "cvss": {
+    "score": 4.8,
+    "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:L"
+  },
+  "scanner": "trivy",
+  "identifier": "CVE-2026-95692",
+  "location": "libcrypto3 3.5.9-r0",
+  "url": "https://avd.aquasec.com/nvd/cve-2026-95692",
+  "detected": "2026-11-23",
+  "status": "open",
+  "fixed": null,
+  "pullRequest": null
+}
