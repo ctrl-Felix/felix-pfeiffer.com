@@ -120,7 +120,7 @@ export const profile = {
         text: "I play handball and I like working with people. I do my best work as part of a team.",
       },
     ],
-    website: "An experiment in how far AI can take a personal website. I wrote none of its code myself, AI did, and all of it is public on GitHub.",
+    likes: "I like good food, spending valuable time with friends, playing cards and doing sports.",
   },
   skills: [
     { label: "Security tools", value: "Contrast Security (IAST), SonarQube and CodeQL (SAST), Dependabot, Wireshark, Nmap, OpenSSL, Keycloak (OAuth/OIDC)" },

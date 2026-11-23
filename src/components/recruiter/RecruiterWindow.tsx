@@ -13,18 +13,14 @@ import { trackClick } from "@/lib/track";
 const views = [
   { id: "glance", title: "Felix in 30 seconds", subtitle: "Who I am, what I study and where I worked.", glyph: glyphs.person, color: "#0a84ff" },
   { id: "why", title: "Why hire me", subtitle: "What I bring to a security team, with proof.", glyph: glyphs.reasons, color: "#ff9500" },
-  { id: "beyond", title: "Beyond the CV", subtitle: "What drives me and what I build in my free time.", glyph: glyphs.heart, color: "#ff375f" },
+  { id: "beyond", title: "Beyond the CV", subtitle: "What I like outside of work.", glyph: glyphs.heart, color: "#ff375f" },
 ] as const;
 
 type ViewId = (typeof views)[number]["id"];
 
 const { recruiter, education, experience, ventures } = profile;
 
-const beyond = [
-  { title: "What drives me", text: profile.about },
-  { title: "Open source", text: profile.openSource.map((project) => `${project.name}: ${project.description}.`).join(" ") },
-  { title: "This website", text: recruiter.website },
-];
+const beyond = [{ title: "What I like", text: recruiter.likes }];
 
 function Glance() {
   const [current, previous] = education;
