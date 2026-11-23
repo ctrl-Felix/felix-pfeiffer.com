@@ -101,7 +101,7 @@ export const profile = {
     greeting: "Hi, thanks for stopping by.",
     prompt: "Short on time? Pick what you need.",
     pitch:
-      "I study information security at UCL. Before that I spent three years on applied security research at Fraunhofer IOSB, did internships at BaFin and AXA, and co-founded two companies.",
+      "I study information security at UCL. Before that I spent three years on applied security research at Fraunhofer IOSB and did internships at BaFin and AXA. I also co-founded Cosmoshield, where we recovered more than $3M in staked cryptocurrency for over 500 phishing victims.",
     reasons: [
       {
         title: "From code to regulation",
