@@ -1,0 +1,18 @@
+{
+  "id": "fda399d547ff",
+  "title": "openssl: openssl: Denial of Service via crafted EC certificate in CMS encryption",
+  "explanation": "Issue summary: Encrypting a CMS message to an EC certificate whose group order is 1 may cause CMS_encrypt() or CMS_encrypt_ex() to loop indefinitely. Impact summary: An attacker able to supply the recipient certificate to an application performing CMS encryption can cause that application to loop indefinitely, consuming CPU and resulting in Denial of Service. CWE: CWE-835: Loop with Unreachable Exit Condition ('Infinite Loop') Description: CMS_encrypt() and CMS_encrypt_ex() encrypt a message to one or more recipient certificates and, for an EC recipient, generate an ephemeral key in the recipient's group. If the certificate declares a group order of 1, random scalar generation can only produce zero. The key generation routine then retries without limit while waiting for a nonzero private scalar, so the call never returns. The OpenSSL TLS and QUIC implementations do not use this path. An application is exposed only if it calls CMS_encrypt() or CMS_encrypt_ex() with a recipient certificate whose EC parameters are attacker-controlled. Certificates with normal EC group orders do not trigger the loop. OpenSSL 4.0 and later reject unknown explicit EC groups in default builds. These vers…",
+  "severity": "medium",
+  "cvss": {
+    "score": 5.9,
+    "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+  },
+  "scanner": "trivy",
+  "identifier": "CVE-2026-107496",
+  "location": "libcrypto3 3.5.9-r0",
+  "url": "https://avd.aquasec.com/nvd/cve-2026-107496",
+  "detected": "2026-11-23",
+  "status": "open",
+  "fixed": null,
+  "pullRequest": 54
+}

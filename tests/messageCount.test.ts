@@ -11,7 +11,7 @@ const queued = (sourceUuid: string, timestamp: string) =>
 
 function run(root: string, ledger: string) {
   execFileSync("npx", ["tsx", "scripts/update-usage.ts"], {
-    env: { ...process.env, TRANSCRIPTS_ROOT: join(root, "projects"), LEDGER_FILE: join(root, "tokens.json"), MESSAGE_LEDGER_FILE: ledger },
+    env: { ...process.env, TRANSCRIPTS_ROOT: join(root, "projects"), LEDGER_FILE: join(root, "tokens.json"), MESSAGE_LEDGER_FILE: ledger, ROUTINE_LEDGER_FILE: join(root, "routines.json") },
     stdio: "pipe",
   });
   return JSON.parse(readFileSync(ledger, "utf8")).userMessages as Record<string, [string, string]>;

@@ -12,7 +12,7 @@
   "location": "nodemailer >=3.0.0 <10.1.4",
   "url": "https://github.com/advisories/GHSA-85x2-q946-cp5h",
   "detected": "2026-10-24",
-  "status": "open",
-  "fixed": null,
+  "status": "fixed",
+  "fixed": "2026-11-23",
   "pullRequest": 41
 }

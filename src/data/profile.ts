@@ -101,26 +101,26 @@ export const profile = {
     greeting: "Hi, thanks for stopping by.",
     prompt: "Short on time? Pick what you need.",
     pitch:
-      "I study information security at UCL. Before that I spent three years on applied security research at Fraunhofer IOSB, did internships at BaFin and AXA, and co-founded two companies.",
+      "I study information security at UCL. Before that I spent three years on applied security research at Fraunhofer IOSB and did internships at BaFin and AXA. I also co-founded Cosmoshield, where we recovered more than $3M in staked cryptocurrency for over 500 phishing victims.",
     reasons: [
       {
-        title: "Security from research to regulation",
-        text: "I have worked on threshold cryptography and remote attestation at Fraunhofer IOSB, on IAST governance at AXA and on DORA incident reporting at BaFin.",
+        title: "From code to regulation",
+        text: "Remote attestation at Fraunhofer IOSB, application security at AXA, phishing recovery at Cosmoshield and DORA oversight at BaFin. I have worked on security from low-level code up to regulation.",
       },
       {
-        title: "I build what I secure",
-        text: "I designed and built the full tech stack of Pakt, a goal-tracking app live on iOS and Android: Flutter app, API, database, login and payments.",
+        title: "I want my work to matter",
+        text: "I look for hard problems and for roles where I make decisions and my work has a real impact.",
       },
       {
-        title: "Results with real stakes",
-        text: "At Cosmoshield we recovered more than $3M in staked cryptocurrency for over 500 phishing victims, with tooling I wrote in Python and Rust.",
+        title: "More than technology",
+        text: "Security only works if people can use it and it makes economic sense. Cosmoshield and my studies at UCL taught me to look at UX and economics, not only at the code.",
       },
       {
-        title: "I bring people along",
-        text: "At AXA I onboarded development teams to a new security scanner through training sessions and a weekly Q&A call.",
+        title: "Team player",
+        text: "I play handball and I like working with people. I do my best work as part of a team.",
       },
     ],
-    website: "An experiment in how far AI can take a personal website. I wrote none of its code myself, AI did, and all of it is public on GitHub.",
+    likes: "I like good food, spending valuable time with friends, playing cards and doing sports.",
   },
   skills: [
     { label: "Security tools", value: "Contrast Security (IAST), SonarQube and CodeQL (SAST), Dependabot, Wireshark, Nmap, OpenSSL, Keycloak (OAuth/OIDC)" },

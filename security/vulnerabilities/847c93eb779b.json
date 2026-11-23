@@ -1,0 +1,18 @@
+{
+  "id": "847c93eb779b",
+  "title": "openssl: openssl: Information disclosure via uninitialized memory in QUIC peer detection",
+  "explanation": "Issue summary: QUIC, when performing automated peer detection, may allow uninitialized stack data to leak into the received address which is then used as the destination for outgoing packets. Impact summary: Applications using QUIC's automated peer detection mechanism may receive an invalid address, leading to connection loss and disclosure of uninitialized stack data to an attacker observing the outgoing network traffic. CWE: CWE-457 (Use of Uninitialized Variable) Description: The OpenSSL QUIC stack contains a feature in which, when using an already connected socket, it will auto-detect the peer address during the SSL handshake. This feature uses the getpeername() function, passing a buffer of sufficient length to hold any supported address family, but passes a buffer length that is only sized such that larger addresses, such as IPv6, cannot be retrieved. The getpeername() function however, still returns the full address length, which is accepted as the valid input buffer length, leading to the address buffer containing uninitialized stack data instead of the actual peer address. The invalid peer address is then used as destination for the outgoing packets which leads to a conne…",
+  "severity": "low",
+  "cvss": {
+    "score": 3.7,
+    "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+  },
+  "scanner": "trivy",
+  "identifier": "CVE-2026-88822",
+  "location": "libcrypto3 3.5.9-r0",
+  "url": "https://avd.aquasec.com/nvd/cve-2026-88822",
+  "detected": "2026-11-23",
+  "status": "open",
+  "fixed": null,
+  "pullRequest": 54
+}
